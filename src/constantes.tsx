@@ -1,7 +1,8 @@
 export const CAPITULOS: string[][] = [
   [
     "QmaXssBVshysRTQmkWkBDKYc5UpvE5U3ZqMxsRNu6QFpU9",
-    "QmeqvgEKPsdecXX5SSX8pmwq34731KMML8px6gJkLg9MJe",
+    "Qme3Qa758gYTwmqJt5HQTgLiT2ZcemedFox8iiEGjyzQKh",
+    "QmPPdmrRWEvszfRZvKqConurvr5UyYXDXgrd2NGeS3Kxds"
   ],
 ];
 
