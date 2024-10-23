@@ -7,12 +7,12 @@ export const metadata: Metadata = {
   description: "Ŋarra ga dhäwu",
   twitter: {
     card: "summary_large_image",
-    images: "https://thedial.infura-ipfs.io/ipfs/",
+    images: "https://thedial.infura-ipfs.io/ipfs/QmSkVX4ZK9DLeRvHwmRTDYZz81ecaztx7eBsmcug93y9Sc",
     title: "Dhäwu",
     description: "Ŋarra ga dhäwu",
   },
   openGraph: {
-    images: "https://thedial.infura-ipfs.io/ipfs/",
+    images: "https://thedial.infura-ipfs.io/ipfs/QmSkVX4ZK9DLeRvHwmRTDYZz81ecaztx7eBsmcug93y9Sc",
     title: "Dhäwu",
     description: "Ŋarra ga dhäwu.",
   },
