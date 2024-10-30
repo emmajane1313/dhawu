@@ -7,22 +7,31 @@ const Capitulos: FunctionComponent<CapitulosProps> = ({
   capituloActual,
 }): JSX.Element => {
   return (
-    <div className="relative w-full h-fit flex items-center justify-center flex flex-col">
-      {CAPITULOS[capituloActual].map((pagina: string, indice: number) => {
-        return (
-          <div key={indice} className="relative w-full">
-            <Image
-              layout="responsive"
-              draggable={false}
-              src={`${INFURA_GATEWAY}/ipfs/${pagina}`}
-              objectFit="contain"
-              priority
-              width={944}
-              height={1360}
-            />
-          </div>
-        );
-      })}
+    <div className="relative w-2/3 h-fit flex items-center justify-center flex flex-col">
+      {CAPITULOS[capituloActual].map(
+        (
+          pagina: {
+            imagen: string;
+            altura: number;
+            anchura: number;
+          },
+          indice: number
+        ) => {
+          return (
+            <div key={indice} className="relative w-full">
+              <Image
+                layout="responsive"
+                draggable={false}
+                src={`${INFURA_GATEWAY}/ipfs/${pagina?.imagen}`}
+                objectFit="contain"
+                priority
+                width={pagina?.anchura}
+                height={pagina?.altura}
+              />
+            </div>
+          );
+        }
+      )}
     </div>
   );
 };
