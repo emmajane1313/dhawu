@@ -17,7 +17,7 @@ export default function Home() {
           {dhawus?.map((dhawu, indice: number) => (
             <div
               key={indice}
-              className={`relative w-full h-80 sm:h-72 lg:h-80 xl:h-96 flex items-center justify-center border border-white ${
+              className={`relative w-full h-80 sm:h-72 lg:h-80 xl:h-96 flex items-center justify-center border border-white bg-white ${
                 dhawu.envivo ? "cursor-pointer hover:opacity-90" : "opacity-70"
               }`}
               title={dhawu.titulo}
