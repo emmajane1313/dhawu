@@ -10,6 +10,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         manga: "Manga",
+        estilo: "Manga Style",
       },
     },
   },

@@ -7,10 +7,14 @@
   src: url("/fonts/Manga.ttf");
 }
 
+@font-face {
+  font-family: "Manga Style";
+  src: url("/fonts/MangaStyle.otf");
+}
+
 html {
   background: black;
 }
-
 
 html::-webkit-scrollbar {
   width: 0;

@@ -1,55 +1,44 @@
 "use client";
-import useCapitulos from "@/components/hooks/useCapitulos";
-import Capitulos from "@/components/modules/Capitulos";
-import { CAPITULOS } from "@/constantes";
-
+import useDhawus from "@/components/hooks/useDhawus";
+import Marquee from "@/components/modules/Marquee";
+import { INFURA_GATEWAY } from "@/constantes";
+import Image from "next/legacy/image";
+import { useRouter } from "next/navigation";
 export default function Home() {
-  const { capituloActual, setCapituloActual, abrirCapitulo, setAbrirCapitulo } =
-    useCapitulos();
+  const { dhawus } = useDhawus();
+  const router = useRouter();
   return (
-    <div className="bg-black w-full h-fit overflow-y-scroll flex flex-col items-center justify-start gap-10 pt-8">
-      <div className="relative w-fit h-fit flex items-center justify-center flex-row gap-3 text-white text-xs font-manga">
-        <div
-          className="relative w-24 h-fit border border-white flex items-center justify-center cursor-pointer hover:opacity-70 p-2"
-          onClick={() => setAbrirCapitulo(!abrirCapitulo)}
-        >
-          Chapters
-        </div>
-        {abrirCapitulo && (
-          <div className="absolute top-8 left-0 flex flex-col items-center justify-center w-24 border-b">
-            {CAPITULOS?.map((_, indice) => {
-              return (
-                <div
-                  className={`relative w-full h-8 flex items-center justify-center border-x border-white cursor-pointer hover:opacity-70 p-2 ${
-                    indice + 1 !== Capitulos.length && "border-b"
-                  }`}
-                  key={indice}
-                  onClick={() => {
-                    setAbrirCapitulo(!abrirCapitulo);
-                    setCapituloActual(indice);
-                  }}
-                >
-                  {`Chapter ${indice + 1}`}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        <div
-          className={`relative w-24 h-fit flex border border-white items-center justify-center p-2 ${
-            capituloActual + 1 < CAPITULOS.length
-              ? "cursor-pointer hover:opacity-70"
-              : "opacity-50"
-          }`}
-          onClick={() =>
-            capituloActual + 1 < CAPITULOS.length &&
-            setCapituloActual((prev) => prev + 1)
-          }
-        >
-          Next
+    <div className="bg-black w-full h-screen flex flex-col items-center gap-10">
+      <div className="relative w-full pt-8 text-white text-6xl font-estilo flex items-center justify-center">
+        <div className="relative w-fit h-fit flex text-center">Dhäwu Mala</div>
+      </div>
+      <div className="relative w-full flex-grow overflow-y-scroll flex items-start justify-center">
+        <div className="relative w-full md:w-3/4 h-fit grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-3 sm:px-10 gap-6">
+          {dhawus?.map((dhawu, indice: number) => (
+            <div
+              key={indice}
+              className={`relative w-full h-80 sm:h-72 lg:h-80 xl:h-96 flex items-center justify-center border border-white ${
+                dhawu.envivo ? "cursor-pointer hover:opacity-90" : "opacity-70"
+              }`}
+              title={dhawu.titulo}
+              onClick={() =>
+                dhawu.envivo &&
+                router.push(`/dhawu/${dhawu.titulo.replaceAll(" ", "-")}`)
+              }
+            >
+              <Image
+                draggable={false}
+                src={`${INFURA_GATEWAY}/ipfs/${dhawu.portada}`}
+                objectFit="cover"
+                layout="fill"
+              />
+            </div>
+          ))}
         </div>
       </div>
-      <Capitulos capituloActual={capituloActual} />
+      <div className="relative w-full">
+        <Marquee />
+      </div>
     </div>
   );
 }
