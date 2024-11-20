@@ -68,11 +68,11 @@
     "titulo": "Yindi Dhukarr",
     "portada": "QmYG7QBdEvo46PHPHrnR44saEhB1bNuMLaNYYE4TyUj3qo",
     "capitulos": [
-      {
+      [{
         "imagen": "QmYG7QBdEvo46PHPHrnR44saEhB1bNuMLaNYYE4TyUj3qo",
         "altura": 1489,
         "anchura": 817
-      }
+      }]
     ]
   }
 ]
