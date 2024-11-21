@@ -12,6 +12,12 @@ const config: Config = {
         manga: "Manga",
         estilo: "Manga Style",
       },
+      scale: {
+        "300": "3",
+      },
+      screens: {
+        galaxy: "480px",
+      },
     },
   },
   plugins: [],
