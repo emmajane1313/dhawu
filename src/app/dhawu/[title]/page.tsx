@@ -14,7 +14,7 @@ export default function Title() {
   } = useCapitulos(id?.title as string);
   return (
     <div className="bg-black w-full h-fit overflow-y-scroll flex flex-col items-center justify-start gap-10 pt-8">
-      <div className="relative w-fit h-fit flex items-center justify-center flex-row gap-3 text-white text-xs font-manga">
+      <div className="relative w-fit h-fit flex items-center justify-center flex-row gap-3 text-white text-xs font-manga z-20">
         <div
           className="relative w-24 h-fit border border-white flex items-center justify-center cursor-pointer hover:opacity-70 p-2"
           onClick={() => setAbrirCapitulo(!abrirCapitulo)}
@@ -26,8 +26,10 @@ export default function Title() {
             {capitulos?.map((_, indice: number) => {
               return (
                 <div
-                  className={`relative w-full h-8 flex items-center justify-center border-x border-white cursor-pointer hover:opacity-70 p-2 ${
-                    indice + 1 !== Capitulos.length && "border-b"
+                  className={`relative w-full h-8 flex items-center justify-center border-x border-white bg-black cursor-pointer hover:opacity-70 p-2 ${
+                    indice !== Capitulos.length && "border-b"
+                  } ${
+                    indice == 0 && "border-t"
                   }`}
                   key={indice}
                   onClick={() => {
