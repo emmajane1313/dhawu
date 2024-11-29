@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import dhawus from "./../../../public/dhawus.json";
+import { ReadonlyURLSearchParams } from "next/navigation";
 
-const useCapitulos = (titulo: string) => {
+const useCapitulos = (titulo: string, searchParams: ReadonlyURLSearchParams) => {
   const [capituloActual, setCapituloActual] = useState<number>(0);
   const [abrirCapitulo, setAbrirCapitulo] = useState<boolean>(false);
   const [capitulos, setCapitulos] = useState<
@@ -15,8 +16,16 @@ const useCapitulos = (titulo: string) => {
   useEffect(() => {
     if (titulo) {
       setCapitulos(
-        dhawus?.find((elemento) => elemento?.titulo == titulo?.replaceAll("-", " "))?.capitulos || []
+        dhawus?.find(
+          (elemento) => elemento?.titulo == titulo?.replaceAll("-", " ")
+        )?.capitulos || []
       );
+
+ 
+
+      if (searchParams && searchParams?.get("chapter")) {
+        setCapituloActual(Number(searchParams?.get("chapter")) - 1);
+      }
     }
   }, [titulo]);
 

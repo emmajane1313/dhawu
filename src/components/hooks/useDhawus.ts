@@ -38,7 +38,6 @@ const useDhawus = () => {
 
 
   const particlesLoaded = async (container?: Container | undefined) => {
-    console.log(container);
   };
 
   return { dhawus, init, particlesLoaded,  };
