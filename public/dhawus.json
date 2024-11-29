@@ -60,11 +60,17 @@
           "altura": 1360,
           "anchura": 640
         }
-      ], [
+      ],
+      [
         {
           "imagen": "Qmay1StpDjzYqbbMCnCB8N6tngqtZvUQxf3D7BZbv7vYFP",
           "altura": 1456,
           "anchura": 816
+        },
+        {
+          "imagen": "QmPNk3BF4Prn1wdfpaRU4Jsr55FzCkuKhXcGWkiigcR8jq",
+          "altura": 1480,
+          "anchura": 729
         }
       ]
     ]
@@ -74,15 +80,18 @@
     "titulo": "Yindi Dhukarr (Coming Soon)",
     "portada": "QmYG7QBdEvo46PHPHrnR44saEhB1bNuMLaNYYE4TyUj3qo",
     "capitulos": [
-      [{
-        "imagen": "QmYG7QBdEvo46PHPHrnR44saEhB1bNuMLaNYYE4TyUj3qo",
-        "altura": 1489,
-        "anchura": 817
-      }, {
-        "imagen": "QmVWK72kfvFmCFVdpWBH26Ho7swEKoeczB1tjRAwdcesKB",
-        "altura": 1488,
-        "anchura": 816
-      }]
+      [
+        {
+          "imagen": "QmYG7QBdEvo46PHPHrnR44saEhB1bNuMLaNYYE4TyUj3qo",
+          "altura": 1489,
+          "anchura": 817
+        },
+        {
+          "imagen": "QmVWK72kfvFmCFVdpWBH26Ho7swEKoeczB1tjRAwdcesKB",
+          "altura": 1488,
+          "anchura": 816
+        }
+      ]
     ]
   }
 ]
