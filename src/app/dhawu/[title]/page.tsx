@@ -77,8 +77,8 @@ export default function Title() {
                 normalizedPath?.includes("?chapter=")
                   ? normalizedPath.split("?chapter=")?.[0] +
                       "?chapter=" +
-                      (capituloActual + 1)
-                  : normalizedPath + "?chapter=" + (capituloActual + 1)
+                      (capituloActual + 2)
+                  : normalizedPath + "?chapter=" + (capituloActual + 2)
               );
             }
           }}
