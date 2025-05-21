@@ -1,0 +1,114 @@
+[
+  {
+    "envivo": true,
+    "titulo": "The Stingray Embassy After Woop Woop",
+    "portada": "QmaXssBVshysRTQmkWkBDKYc5UpvE5U3ZqMxsRNu6QFpU9",
+    "capitulos": [
+      [
+        {
+          "imagen": "QmaXssBVshysRTQmkWkBDKYc5UpvE5U3ZqMxsRNu6QFpU9",
+          "altura": 1360,
+          "anchura": 640
+        },
+        {
+          "imagen": "QmQjjijMs2mJHmaBNQZEHJALPVPUBUZNgaabBzBtxFPAnt",
+          "altura": 1360,
+          "anchura": 640
+        },
+        {
+          "imagen": "QmPPdmrRWEvszfRZvKqConurvr5UyYXDXgrd2NGeS3Kxds",
+          "altura": 1360,
+          "anchura": 640
+        },
+        {
+          "imagen": "QmQxwCH5mQpjLxtuC5XGAnZkJM79bAq6cktB8yoLe5A1bV",
+          "altura": 1360,
+          "anchura": 640
+        },
+        {
+          "imagen": "QmTpqUVwFak1ZGNrvEGdsorM3oSgiFB6Sa1Qo2cMcZj8dE",
+          "altura": 1360,
+          "anchura": 640
+        },
+        {
+          "imagen": "Qmbx9FpsMQJUNwU7rGcC1M1fKTDminK6ydMKJ1bKpV8hyr",
+          "altura": 1360,
+          "anchura": 640
+        },
+        {
+          "imagen": "QmXbQ2cBBAVuWGFwjw4AUKuLvvomnkRfF8xy4yXCXdLbuh",
+          "altura": 1360,
+          "anchura": 640
+        },
+        {
+          "imagen": "QmYYAWFj2syvbm8q5ESLCqjikoKHAWogGYxu1YfcVPBdvK",
+          "altura": 1360,
+          "anchura": 640
+        },
+        {
+          "imagen": "QmcQjfpzqstpDoBniDsSAygriUUuguYjWnZKf87m9evyUE",
+          "altura": 3818,
+          "anchura": 640
+        },
+        {
+          "imagen": "QmdzhSxUzPzhzNauf2Wnc92Bn3KKZah9wvfKqzVQCnxxYz",
+          "altura": 3375,
+          "anchura": 640
+        },
+        {
+          "imagen": "QmaEh8GLCrbHeMC1Jke2hpgid3HXKdveyzAjfDGypijxR5",
+          "altura": 1360,
+          "anchura": 640
+        }
+      ],
+      [
+        {
+          "imagen": "QmagY6vntvBaFFDgaUbacUTjqDQX1QrAxyLfSxvjYYTUhd",
+          "altura": 1456,
+          "anchura": 816
+        },
+        {
+          "imagen": "QmPNk3BF4Prn1wdfpaRU4Jsr55FzCkuKhXcGWkiigcR8jq",
+          "altura": 1480,
+          "anchura": 729
+        },
+        {
+          "imagen": "Qmd9vqyBo2iBZscSkEfvnQbYS9uV5XSFukhYgsU3o3CdKw",
+          "altura": 1457,
+          "anchura": 817
+        },
+        {
+          "imagen": "QmUZjYR7Eu1BpuZUL7d63Ht5v419EJBgozc9gcfz5zmhC7",
+          "altura": 1497,
+          "anchura": 801
+        },
+        {
+          "imagen": "QmaatWsvWeyAXaLEkgKgj3JysZiSLE5Y39Upf8pXGqGzy3",
+          "altura": 1517,
+          "anchura": 788
+        }
+
+        
+      ]
+    ]
+  },
+  {
+    "envivo": false,
+    "titulo": "Yindi Dhukarr (Coming Soon)",
+    "portada": "QmYG7QBdEvo46PHPHrnR44saEhB1bNuMLaNYYE4TyUj3qo",
+    "capitulos": [
+      [
+        {
+          "imagen": "QmYG7QBdEvo46PHPHrnR44saEhB1bNuMLaNYYE4TyUj3qo",
+          "altura": 1489,
+          "anchura": 817
+        },
+        {
+          "imagen": "QmVWK72kfvFmCFVdpWBH26Ho7swEKoeczB1tjRAwdcesKB",
+          "altura": 1488,
+          "anchura": 816
+        }
+      ]
+    ]
+  }
+]
