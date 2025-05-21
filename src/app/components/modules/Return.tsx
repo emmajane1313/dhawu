@@ -8,8 +8,8 @@ export default function Return({ image }: ReturnProps) {
   const router = useRouter();
 
   return (
-    <div className="relative w-fit h-full flex">
-      <div className="relative w-60 h-full border border-white rounded-md">
+    <div className="relative w-full sm:w-fit h-fit sm:h-full flex">
+      <div className="relative w-full sm:w-60 h-40 sm:h-full border border-white rounded-md">
         <Image
           alt="Girl walks towards sunset"
           layout="fill"

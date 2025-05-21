@@ -8,7 +8,7 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
   const { init, particlesLoaded } = useParticles();
 
   return (
-    <div className="bg-black w-full h-fit p-10 sm:h-screen flex flex-col items-center justify-center">
+    <div className="bg-black w-full p-2 md:p-10 h-screen flex flex-col items-center justify-center">
       {init && (
         <Particles
           id="tsparticles"
@@ -66,7 +66,7 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
           }}
         />
       )}
-      <div className="relative sm:w-[60%] h-full flex flex-col border border-white rounded-md items-start justify-between overflow-y-hidden bg-black gap-3">
+      <div className="relative lg:w-[80%] xl:w-[60%] w-full h-full flex flex-col border border-white rounded-md items-start justify-between overflow-y-hidden bg-black gap-3">
         <div className="relative w-full h-full flex flex-col items-start justify-between overflow-y-scroll pt-2 px-2">
           {children}
         </div>

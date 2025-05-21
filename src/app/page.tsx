@@ -8,9 +8,9 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="relative w-full h-full flex flex-row gap-4 items-start justify-between">
-      <div className="relative w-fit h-full flex">
-        <div className="relative w-60 h-full border border-white rounded-md">
+    <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between">
+      <div className="relative w-full sm:w-fit h-fit sm:h-full flex">
+        <div className="relative w-full sm:w-60 h-40 sm:h-full border border-white rounded-md">
           <Image
             alt="Girl walks towards sunset"
             layout="fill"
@@ -27,7 +27,7 @@ export default function Home() {
           <div className="text-black relative w-fit h-fit flex text-sm font-manga">
             Buwa!
           </div>
-          <div className="relative w-fit h-fit flex text-center text-5xl sm:text-7xl font-estilo text-[#FFFF00]">
+          <div className="relative w-fit h-fit flex text-center text-3xl sm:text-7xl font-estilo text-[#FFFF00] break-all">
             Djartjaryun!
           </div>
           <div className="relative text-white w-fit h-fit flex text-sm font-neueL pt-4">
