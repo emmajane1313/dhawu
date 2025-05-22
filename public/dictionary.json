@@ -26,5 +26,33 @@
       "portuguese": "algo",
       "french": "algo"
     }
+  },
+  {
+    "id": "otr",
+    "translations": {
+      "gupapuyngu": "guku",
+      "djambarrpuyngu": "algo",
+      "spanish": "miel",
+      "english": "honey",
+      "arabic": "عسل",
+      "hebrew": "algo",
+      "yiddish": "algo",
+      "portuguese": "algo",
+      "french": "algo"
+    }
+  },
+  {
+    "id": "otr1",
+    "translations": {
+      "gupapuyngu": "guku",
+      "djambarrpuyngu": "algo",
+      "spanish": "miel",
+      "english": "honey",
+      "arabic": "عسل",
+      "hebrew": "algo",
+      "yiddish": "algo",
+      "portuguese": "algo",
+      "french": "algo"
+    }
   }
 ]

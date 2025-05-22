@@ -14,7 +14,7 @@ const Marquee: FunctionComponent = (): JSX.Element => {
               <span className="relative text-xs text-white px-5" key={index}>
                 Ŋarra yäku Emma-Jane MacKinnon-Lee. Nhämirri walala? Ŋarrakuŋu dhuwala
                 djämapuy. Ŋarra djäl marŋgithinyawu djambarrpuyŋuwu ga
-                gupapuyŋuwu. Dhiyala, ŋarra ŋuli ga wukirri. Ŋarrakuŋu
+                gupapuyŋuwu. Dhuwala, ŋarra ŋuli ga wukirri. Ŋarrakuŋu
                 wukirriwuy bäna balaŋu ḏuḏupmaraŋu.
               </span>
             );

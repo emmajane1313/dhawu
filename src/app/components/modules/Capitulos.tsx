@@ -9,7 +9,7 @@ const Capitulos: FunctionComponent<CapitulosProps> = ({
   titulo
 }): JSX.Element => {
   return (
-    <div className="relative w-2/3 h-fit flex items-center justify-center flex flex-col">
+    <div className="relative w-2/3 h-fit flex items-center justify-start flex flex-col overflow-y-scroll">
       {capitulos?.[capituloActual]?.map((pagina, indice: number) => {
         return (
           <div key={indice} className="relative w-full">
