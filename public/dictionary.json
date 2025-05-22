@@ -1,58 +1,211 @@
 [
   {
-    "id": "guku",
+    "id": "garrwar",
     "translations": {
-      "gupapuyngu": "guku",
-      "djambarrpuyngu": "algo",
-      "spanish": "miel",
-      "english": "honey",
-      "arabic": "عسل",
-      "hebrew": "algo",
-      "yiddish": "algo",
-      "portuguese": "algo",
-      "french": "algo"
+      "djambarrpuyŋu": "-",
+      "spanish": "encima",
+      "english": "above",
+      "arabic": "فوق",
+      "hebrew": "למעלה",
+      "farsi": "بالا",
+      "yiddish": "אויבן",
+      "portuguese": "acima",
+      "french": "au-dessus",
+      "türkiye": "yukarıda",
+      "japonese": "上に　（うえに)",
+      "hungarian": "fölött",
+      "ucranian": "над",
+      "gaelic": "os cionn"
     }
   },
   {
-    "id": "walŋa",
+    "id": "garramat",
     "translations": {
-      "gupapuyngu": "walŋa",
-      "djambarrpuyngu": "algo",
-      "spanish": "morir",
-      "english": "to die",
-      "arabic": "مات",
-      "hebrew": "algo",
-      "yiddish": "algo",
-      "portuguese": "algo",
-      "french": "algo"
+      "djambarrpuyŋu": "-",
+      "spanish": "encima",
+      "english": "above",
+      "arabic": "فوق",
+      "hebrew": "למעלה",
+      "farsi": "بالا",
+      "yiddish": "אויבן",
+      "portuguese": "acima",
+      "french": "au-dessus",
+      "türkiye": "yukarıda",
+      "japonese": "上に　（うえに)",
+      "hungarian": "fölött",
+      "ucranian": "над",
+      "gaelic": "os cionn"
     }
   },
   {
-    "id": "otr",
+    "id": "bakthun",
     "translations": {
-      "gupapuyngu": "guku",
-      "djambarrpuyngu": "algo",
-      "spanish": "miel",
-      "english": "honey",
-      "arabic": "عسل",
-      "hebrew": "algo",
-      "yiddish": "algo",
-      "portuguese": "algo",
-      "french": "algo"
+      "djambarrpuyŋu": "-",
+      "spanish": "accidente",
+      "english": "accident",
+      "arabic": "حادثة",
+      "hebrew": "תאונה",
+      "farsi": "تصادف",
+      "yiddish": "אומפאַל",
+      "portuguese": "acidente",
+      "french": "accident",
+      "türkiye": "kaza",
+      "japonese": "事故　（じこ)",
+      "hungarian": "baleset",
+      "ucranian": "нещасний випадок",
+      "gaelic": "tubaist"
     }
   },
   {
-    "id": "otr1",
+    "id": "babala",
     "translations": {
-      "gupapuyngu": "guku",
-      "djambarrpuyngu": "algo",
-      "spanish": "miel",
-      "english": "honey",
-      "arabic": "عسل",
-      "hebrew": "algo",
-      "yiddish": "algo",
-      "portuguese": "algo",
-      "french": "algo"
+      "djambarrpuyŋu": "-",
+      "spanish": "accidental",
+      "english": "accidental",
+      "arabic": "صدفة",
+      "hebrew": "מקרי",
+      "farsi": "تصادفی",
+      "yiddish": "צופעליק",
+      "portuguese": "acidental",
+      "french": "accidentel / accidentelle",
+      "türkiye": "kazara",
+      "japonese": "偶然の　（ぐうぜんの)",
+      "hungarian": "véletlen",
+      "ucranian": "випадковий",
+      "gaelic": "tubaisteach"
+    }
+  },
+  {
+    "id": "bawala",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "accidental",
+      "english": "accidental",
+      "arabic": "صدفة",
+      "hebrew": "מקרי",
+      "farsi": "تصادفی",
+      "yiddish": "צופעליק",
+      "portuguese": "acidental",
+      "french": "accidentel / accidentelle",
+      "türkiye": "kazara",
+      "japonese": "偶然の　（ぐうぜんの)",
+      "hungarian": "véletlen",
+      "ucranian": "випадковий",
+      "gaelic": "tubaisteach"
+    }
+  },
+  {
+    "id": "birrka'",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "accidental",
+      "english": "accidental",
+      "arabic": "صدفة",
+      "hebrew": "מקרי",
+      "farsi": "تصادفی",
+      "yiddish": "צופעליק",
+      "portuguese": "acidental",
+      "french": "accidentel / accidentelle",
+      "türkiye": "kazara",
+      "japonese": "偶然の　（ぐうぜんの)",
+      "hungarian": "véletlen",
+      "ucranian": "випадковий",
+      "gaelic": "tubaisteach"
+    }
+  },
+  {
+    "id": "multhun",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "portuguese": "acompanhar",
+      "spanish": "acompañar",
+      "french": "accompagner",
+      "english": "accompany",
+      "arabic": "مشي معاه",
+      "hebrew": "ללוות",
+      "farsi": "همارهی کردن",
+      "yiddish": "באַגלייטן",
+      "türkiye": "eşlik etmek",
+      "japonese": "付き添う　（つきそう)",
+      "hungarian": "elkísér",
+      "ucranian": "супроводжувати",
+      "gaelic": "cuideachadh"
+    }
+  },
+  {
+    "id": "munguyun",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "portuguese": "acompanhar",
+      "spanish": "acompañar",
+      "french": "accompagner",
+      "english": "accompany",
+      "arabic": "مشي معاه",
+      "hebrew": "ללוות",
+      "farsi": "همارهی کردن",
+      "yiddish": "באַגלייטן",
+      "türkiye": "eşlik etmek",
+      "japonese": "付き添う　（つきそう)",
+      "hungarian": "elkísér",
+      "ucranian": "супроводжувати",
+      "gaelic": "cuideachadh"
+    }
+  },
+  {
+    "id": "birrka'yun",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "acusar",
+      "english": "accuse",
+      "arabic": "إتّهم",
+      "hebrew": "להאשים",
+      "farsi": "متهم كردن",
+      "yiddish": "באשולדיקן",
+      "portuguese": "acusar",
+      "french": "accuser",
+      "türkiye": "suçlamak",
+      "japonese": "非難する　（ひなんする)",
+      "hungarian": "vádol",
+      "ucranian": "звинувачувати",
+      "gaelic": "casaidich"
+    }
+  },
+  {
+    "id": "nyäḻ'-ŋupan",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "acusar de mentir",
+      "english": "accuse (of lying)",
+      "arabic": "إتّهمه بالكذب",
+      "hebrew": "להאשים בשקר",
+      "farsi": "به دروغ گفتن متهم کردن",
+      "yiddish": "באַשולדיקן אין ליגן",
+      "portuguese": "acusar de mentir",
+      "french": "accuser de mentir",
+      "türkiye": "yalan söylemekle",
+      "japonese": "嘘をついたと非難する (うそをついたとひなんする)",
+      "hungarian": "hazugsággal vádolni",
+      "ucranian": "звинуватити у брехні",
+      "gaelic": "casaidich airson breugan innse"
+    }
+  },
+  {
+    "id": "dhuṉ'thuṉdhun",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "doler",
+      "english": "ache",
+      "arabic": "وجع",
+      "hebrew": "לכאוב",
+      "farsi": "درد گرفتن",
+      "yiddish": "ווייטאָגן",
+      "portuguese": "doer",
+      "french": "faire mal",
+      "türkiye": "ağrımak",
+      "japonese": "痛む　（いたむ)",
+      "hungarian": "fájni",
+      "ucranian": "боліти",
+      "gaelic": "goirtich"
     }
   }
 ]

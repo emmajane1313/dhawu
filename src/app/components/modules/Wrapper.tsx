@@ -66,7 +66,7 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
           }}
         />
       )}
-      <div className="relative lg:w-[80%] xl:w-[60%] w-full h-full flex flex-col border border-white rounded-md items-start justify-between overflow-y-hidden bg-black gap-3 pt-2 px-2">
+      <div className="relative lg:w-[80%] xl:w-[60%] w-full h-full flex flex-col border border-white rounded-md items-start justify-between overflow-y-hidden bg-black gap-3">
         {children}
         <Footer />
       </div>

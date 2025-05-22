@@ -11,15 +11,20 @@ export type CapitulosProps = {
 export type DictionaryEntry = {
   id: string;
   translations: {
-    gupapuyngu: string;
-    djambarrpuyngu: string;
+    djambarrpuyŋu: string;
     spanish: string;
     english: string;
     arabic: string;
-    yiddish: string;
     hebrew: string;
+    farsi: string;
+    yiddish: string;
     portuguese: string;
     french: string;
+    türkiye: string;
+    japonese: string;
+    hungarian: string;
+    ucranian: string;
+    gaelic: string;
   };
 };
 

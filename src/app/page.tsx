@@ -8,7 +8,7 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between">
+    <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between pt-2 px-2">
       <div className="relative w-full sm:w-fit h-fit sm:h-full flex">
         <div className="relative w-full sm:w-60 h-40 sm:h-full border border-white rounded-md">
           <Image

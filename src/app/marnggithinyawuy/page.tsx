@@ -7,7 +7,7 @@ export default function Marnggithinyawuy() {
   const { search, handleSearch, filtered } = useMarng();
 
   return (
-    <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between text-white overflow-y-scroll">
+    <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between text-white overflow-y-scroll pt-2 px-2">
       <Return image={"QmVpDrjNF5xo47xfCV8arvJ7p8HfzVCWByvwSeUHQYLTWH"} />
       <div className="relative w-full flex items-center justify-start h-full flex-col gap-4 flex-col">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-[#CC0000] border border-white text-2xl sm:text-4xl lg:text-7xl font-estilo text-[#FFFF00]">

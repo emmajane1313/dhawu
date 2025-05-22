@@ -24,7 +24,7 @@ export default function Title() {
   } = useCapitulos(id?.title as string, searchParams);
 
   return (
-    <div className="bg-black w-full h-fit flex flex-col items-center justify-start gap-10 pt-8 overflow-y-hidden">
+    <div className="bg-black w-full h-fit flex flex-col items-center justify-start gap-10 pt-8 overflow-y-hidden pt-2 px-2">
       <div
         className="absolute w-fit h-fit left-2 top-3 cursor-pointer hover:opacity-70 text-white font-nueuL text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
         onClick={() => router.push("/dhawu-mala")}

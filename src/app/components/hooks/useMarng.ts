@@ -8,8 +8,14 @@ const useMarng = () => {
 
   const fetchEntries = () => {
     try {
-      setEntries(data);
-      setFiltered(data);
+      const sortedData = [...data].sort((a, b) => {
+        if (a.id < b.id) return -1;
+        if (a.id > b.id) return 1;
+        return 0;
+      });
+
+      setEntries(sortedData);
+      setFiltered(sortedData);
     } catch (err: any) {
       console.error(err?.message);
     }
