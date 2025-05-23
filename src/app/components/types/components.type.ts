@@ -23,8 +23,8 @@ export type DictionaryEntry = {
     türkiye: string;
     japonese: string;
     hungarian: string;
-    ucranian: string;
-    gaelic: string;
+    ukranian: string;
+    "gaelic (scot)": string;
   };
 };
 

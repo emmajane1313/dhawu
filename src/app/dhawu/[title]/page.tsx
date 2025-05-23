@@ -37,7 +37,7 @@ export default function Title() {
           className="relative w-24 h-fit border border-white flex items-center justify-center cursor-pointer hover:opacity-70 p-2"
           onClick={() => setAbrirCapitulo(!abrirCapitulo)}
         >
-          Djorra'
+          {`Djorra' ${capituloActual + 1}`}
         </div>
         {abrirCapitulo && (
           <div className="absolute top-8 left-0 flex flex-col items-center justify-center w-24 border-b">

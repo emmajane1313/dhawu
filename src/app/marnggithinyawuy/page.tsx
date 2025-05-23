@@ -35,10 +35,10 @@ export default function Marnggithinyawuy() {
                 {Object.entries(entry.translations).map((item, indice) => {
                   return (
                     <div
-                      className="relative w-full h-fit flex flex-row justify-between items-center gap-2 text-xs p-1 border-b border-white/40"
+                      className="relative w-full h-fit flex flex-row justify-between items-center gap-2 text-xs p-1 border-b border-white/40 galaxy:flex-nowrap flex-wrap"
                       key={indice}
                     >
-                      <div className="relative w-fit h-fit flex uppercase">
+                      <div className="relative w-fit h-fit flex uppercase whitespace-nowrap">
                         {item?.[0]}
                       </div>
                       <div className="relative w-full h-fit flex items-center justify-center">

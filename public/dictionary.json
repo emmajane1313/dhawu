@@ -14,8 +14,8 @@
       "türkiye": "yukarıda",
       "japonese": "上に　（うえに)",
       "hungarian": "fölött",
-      "ucranian": "над",
-      "gaelic": "os cionn"
+      "ukranian": "над",
+      "gaelic (scot)": "os cionn"
     }
   },
   {
@@ -33,8 +33,8 @@
       "türkiye": "yukarıda",
       "japonese": "上に　（うえに)",
       "hungarian": "fölött",
-      "ucranian": "над",
-      "gaelic": "os cionn"
+      "ukranian": "над",
+      "gaelic (scot)": "os cionn"
     }
   },
   {
@@ -52,8 +52,8 @@
       "türkiye": "kaza",
       "japonese": "事故　（じこ)",
       "hungarian": "baleset",
-      "ucranian": "нещасний випадок",
-      "gaelic": "tubaist"
+      "ukranian": "нещасний випадок",
+      "gaelic (scot)": "tubaist"
     }
   },
   {
@@ -71,8 +71,8 @@
       "türkiye": "kazara",
       "japonese": "偶然の　（ぐうぜんの)",
       "hungarian": "véletlen",
-      "ucranian": "випадковий",
-      "gaelic": "tubaisteach"
+      "ukranian": "випадковий",
+      "gaelic (scot)": "tubaisteach"
     }
   },
   {
@@ -90,8 +90,8 @@
       "türkiye": "kazara",
       "japonese": "偶然の　（ぐうぜんの)",
       "hungarian": "véletlen",
-      "ucranian": "випадковий",
-      "gaelic": "tubaisteach"
+      "ukranian": "випадковий",
+      "gaelic (scot)": "tubaisteach"
     }
   },
   {
@@ -109,8 +109,8 @@
       "türkiye": "kazara",
       "japonese": "偶然の　（ぐうぜんの)",
       "hungarian": "véletlen",
-      "ucranian": "випадковий",
-      "gaelic": "tubaisteach"
+      "ukranian": "випадковий",
+      "gaelic (scot)": "tubaisteach"
     }
   },
   {
@@ -128,8 +128,8 @@
       "türkiye": "eşlik etmek",
       "japonese": "付き添う　（つきそう)",
       "hungarian": "elkísér",
-      "ucranian": "супроводжувати",
-      "gaelic": "cuideachadh"
+      "ukranian": "супроводжувати",
+      "gaelic (scot)": "cuideachadh"
     }
   },
   {
@@ -147,8 +147,8 @@
       "türkiye": "eşlik etmek",
       "japonese": "付き添う　（つきそう)",
       "hungarian": "elkísér",
-      "ucranian": "супроводжувати",
-      "gaelic": "cuideachadh"
+      "ukranian": "супроводжувати",
+      "gaelic (scot)": "cuideachadh"
     }
   },
   {
@@ -166,8 +166,8 @@
       "türkiye": "suçlamak",
       "japonese": "非難する　（ひなんする)",
       "hungarian": "vádol",
-      "ucranian": "звинувачувати",
-      "gaelic": "casaidich"
+      "ukranian": "звинувачувати",
+      "gaelic (scot)": "casaidich"
     }
   },
   {
@@ -185,8 +185,8 @@
       "türkiye": "yalan söylemekle",
       "japonese": "嘘をついたと非難する (うそをついたとひなんする)",
       "hungarian": "hazugsággal vádolni",
-      "ucranian": "звинуватити у брехні",
-      "gaelic": "casaidich airson breugan innse"
+      "ukranian": "звинуватити у брехні",
+      "gaelic (scot)": "casaidich airson breugan innse"
     }
   },
   {
@@ -204,8 +204,502 @@
       "türkiye": "ağrımak",
       "japonese": "痛む　（いたむ)",
       "hungarian": "fájni",
-      "ucranian": "боліти",
-      "gaelic": "goirtich"
+      "ukranian": "боліти",
+      "gaelic (scot)": "goirtich"
+    }
+  },
+  {
+    "id": "ŋamaŋamathirri",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "actuar",
+      "english": "act",
+      "arabic": "اتصرّف",
+      "hebrew": "לפעול",
+      "farsi": "عمل کردن",
+      "yiddish": "האַנדלען",
+      "portuguese": "agir",
+      "french": "agir",
+      "türkiye": "hareket etmek",
+      "japonese": "行動する　（こうどうする)",
+      "hungarian": "cselekedni",
+      "ukranian": "діяти",
+      "gaelic (scot)": "gnìomhachadh"
+    }
+  },
+  {
+    "id": "manapan",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "añadir",
+      "english": "add",
+      "arabic": "زوّد",
+      "hebrew": "להוסיף",
+      "farsi": "اضافه کردن",
+      "yiddish": "צולייגן",
+      "portuguese": "adicionar",
+      "french": "ajouter",
+      "türkiye": "eklemek",
+      "japonese": "加えり　（くわえる)",
+      "hungarian": "hozzáad",
+      "ukranian": "додати",
+      "gaelic (scot)": "cur ris"
+    }
+  },
+  {
+    "id": "märr-ŋal'yun",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "admirar",
+      "english": "admire",
+      "arabic": "أعجب",
+      "hebrew": "להעריץ",
+      "farsi": "تحسین کردن",
+      "yiddish": "באַוווּנדערן",
+      "portuguese": "admirar",
+      "french": "admirer",
+      "türkiye": "hayran kalmak",
+      "japonese": "憧れる（あこがれる)",
+      "hungarian": "csodálni",
+      "ukranian": "захоплюватися",
+      "gaelic (scot)": "toirt urram do"
+    }
+  },
+  {
+    "id": "raypirri'yun",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "amonestar",
+      "english": "admonish",
+      "arabic": "وبّخ",
+      "hebrew": "להוכיח",
+      "farsi": "سرزنش کردن",
+      "yiddish": "מַתְרֶה זײַן",
+      "portuguese": "advertir",
+      "french": "réprimander",
+      "türkiye": "azarlamak",
+      "japonese": "注意する (ちゅういする)",
+      "hungarian": "megfedni o feddni",
+      "ukranian": "картати",
+      "gaelic (scot)": "casaid"
+    }
+  },
+  {
+    "id": "ŋarrtjun",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "amonestar",
+      "english": "admonish",
+      "arabic": "وبّخ",
+      "hebrew": "להוכיח",
+      "farsi": "سرزنش کردن",
+      "yiddish": "מַתְרֶה זײַן",
+      "portuguese": "advertir",
+      "french": "réprimander",
+      "türkiye": "azarlamak",
+      "japonese": "注意する (ちゅういする)",
+      "hungarian": "megfedni o feddni",
+      "ukranian": "картати",
+      "gaelic (scot)": "casaid"
+    }
+  },
+  {
+    "id": "ḏikarr",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "avión",
+      "english": "aeroplane",
+      "arabic": "طيّارة",
+      "hebrew": "מטוס",
+      "farsi": "هواپیما",
+      "yiddish": "פֿליגער",
+      "portuguese": "avião",
+      "french": "avion",
+      "türkiye": "uçak",
+      "japonese": "飛行機 (ひこうき)",
+      "hungarian": "repülőgép",
+      "ukranian": "літак",
+      "gaelic (scot)": "plèana"
+    }
+  },
+  {
+    "id": "bilayan",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "avión",
+      "english": "aeroplane",
+      "arabic": "طيّارة",
+      "hebrew": "מטוס",
+      "farsi": "هواپیما",
+      "yiddish": "פֿליגער",
+      "portuguese": "avião",
+      "french": "avion",
+      "türkiye": "uçak",
+      "japonese": "飛行機 (ひこうき)",
+      "hungarian": "repülőgép",
+      "ukranian": "літак",
+      "gaelic (scot)": "plèana"
+    }
+  },
+  {
+    "id": "yurruna",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "después",
+      "english": "after (general)",
+      "arabic": "بعد",
+      "hebrew": "אחרי",
+      "farsi": "بعد",
+      "yiddish": "נאָך",
+      "portuguese": "depois",
+      "french": "après",
+      "türkiye": "sonra",
+      "japonese": "後 (あと)",
+      "hungarian": "után",
+      "ukranian": "після",
+      "gaelic (scot)": "dèidh"
+    }
+  },
+  {
+    "id": "dhuḏikurru",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "detrás de / después de",
+      "english": "after (position)",
+      "arabic": "ورا",
+      "hebrew": "מאחורי",
+      "farsi": "پشت سر",
+      "yiddish": "הינטער",
+      "portuguese": "depois de",
+      "french": "après",
+      "türkiye": "arkasında",
+      "japonese": "〜の後ろ (〜のうしろ)",
+      "hungarian": "mögött",
+      "ukranian": "позаду",
+      "gaelic (scot)": "air cùlaibh"
+    }
+  },
+  {
+    "id": "dhurrwaraŋuru",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "después de",
+      "english": "after (time)",
+      "arabic": "بعد ما",
+      "hebrew": "אחרי",
+      "farsi": "بعد از",
+      "yiddish": "נאָך",
+      "portuguese": "depois de",
+      "french": "après",
+      "türkiye": "-den sonra",
+      "japonese": "〜の後で (〜のあとで)",
+      "hungarian": "valami után",
+      "ukranian": "після",
+      "gaelic (scot)": "an dèidh"
+    }
+  },
+  {
+    "id": "milmitjpa",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "tarde",
+      "english": "afternoon",
+      "arabic": "بعد الضهر",
+      "hebrew": "אחר הצהריים",
+      "farsi": "بعدازظهر",
+      "yiddish": "נאָכמיטאָג",
+      "portuguese": "tarde",
+      "french": "après-midi",
+      "türkiye": "öğleden sonra",
+      "japonese": "午後 (ごご)",
+      "hungarian": "délután",
+      "ukranian": "пополудні",
+      "gaelic (scot)": "feasgar"
+    }
+  },
+  {
+    "id": "yalaŋumirri",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "después",
+      "english": "afterwards",
+      "arabic": "بعد كده",
+      "hebrew": "אחר כך",
+      "farsi": "بعداً",
+      "yiddish": "שפּעטער",
+      "portuguese": "depois",
+      "french": "ensuite",
+      "türkiye": "sonrasında",
+      "japonese": "その後 (そのご)",
+      "hungarian": "később",
+      "ukranian": "пізніше",
+      "gaelic (scot)": "an dèis"
+    }
+  },
+  {
+    "id": "bulu",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "otra vez",
+      "english": "again",
+      "arabic": "تاني",
+      "hebrew": "שוב",
+      "farsi": "دوباره",
+      "yiddish": "נאָכאַמאָל",
+      "portuguese": "de novo",
+      "french": "encore",
+      "türkiye": "yeniden",
+      "japonese": "また (また)",
+      "hungarian": "megint",
+      "ukranian": "знову",
+      "gaelic (scot)": "a-rithist"
+    }
+  },
+  {
+    "id": "yä",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "¡ah!",
+      "english": "ah!",
+      "arabic": "آه!",
+      "hebrew": "אה!",
+      "farsi": "آه!",
+      "yiddish": "אַה!",
+      "portuguese": "ah!",
+      "french": "ah !",
+      "türkiye": "ah!",
+      "japonese": "ああ！",
+      "hungarian": "ah!",
+      "ukranian": "ах!",
+      "gaelic (scot)": "à!"
+    }
+  },
+  {
+    "id": "wata",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "aire",
+      "english": "air",
+      "arabic": "هوا",
+      "hebrew": "אוויר",
+      "farsi": "هوا",
+      "yiddish": "לופֿט",
+      "portuguese": "ar",
+      "french": "air",
+      "türkiye": "hava",
+      "japonese": "空気 (くうき)",
+      "hungarian": "levegő",
+      "ukranian": "повітря",
+      "gaelic (scot)": "adhar"
+    }
+  },
+  {
+    "id": "gundarak",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "pista de aterrizaje",
+      "english": "airstrip",
+      "arabic": "ممر طيارات",
+      "hebrew": "מסלול נחיתה",
+      "farsi": "باند فرود",
+      "yiddish": "לאַנדפּאַטשקע",
+      "portuguese": "pista de pouso",
+      "french": "piste d’atterrissage",
+      "türkiye": "iniş pisti",
+      "japonese": "滑走路 (かっそうろ)",
+      "hungarian": "leszállópálya",
+      "ukranian": "злітно-посадкова смуга",
+      "gaelic (scot)": "raon-uidhe"
+    }
+  },
+  {
+    "id": "ŋänitji",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "alcohol",
+      "english": "alcohol",
+      "arabic": "كحول",
+      "hebrew": "אלכוהול",
+      "farsi": "الکل",
+      "yiddish": "אלקאָהאָל",
+      "portuguese": "álcool",
+      "french": "alcool",
+      "türkiye": "alkol",
+      "japonese": "アルコール (あるこーる)",
+      "hungarian": "alkohol",
+      "ukranian": "алкоголь",
+      "gaelic (scot)": "deoch làidir"
+    }
+  },
+  {
+    "id": "warrpam",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "todo",
+      "english": "all",
+      "arabic": "كله",
+      "hebrew": "הכול",
+      "farsi": "همه",
+      "yiddish": "אַלע",
+      "portuguese": "tudo",
+      "french": "tout",
+      "türkiye": "hepsi",
+      "japonese": "全部 (ぜんぶ)",
+      "hungarian": "minden",
+      "ukranian": "все",
+      "gaelic (scot)": "uile"
+    }
+  },
+  {
+    "id": "bukmak",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "todo",
+      "english": "all",
+      "arabic": "كله",
+      "hebrew": "הכול",
+      "farsi": "همه",
+      "yiddish": "אַלע",
+      "portuguese": "tudo",
+      "french": "tout",
+      "türkiye": "hepsi",
+      "japonese": "全部 (ぜんぶ)",
+      "hungarian": "minden",
+      "ukranian": "все",
+      "gaelic (scot)": "uile"
+    }
+  },
+  {
+    "id": "manymak",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "bien",
+      "english": "well / good",
+      "arabic": "كويس",
+      "hebrew": "טוב",
+      "farsi": "خوب",
+      "yiddish": "געזונט",
+      "portuguese": "bem",
+      "french": "bien",
+      "türkiye": "iyi",
+      "japonese": "元気 (げんき)",
+      "hungarian": "jól",
+      "ukranian": "добре",
+      "gaelic (scot)": "gu math"
+    }
+  },
+  {
+    "id": "gäna",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "solo",
+      "english": "alone",
+      "arabic": "لوحده",
+      "hebrew": "לבד",
+      "farsi": "تنها",
+      "yiddish": "אַליין",
+      "portuguese": "sozinho",
+      "french": "seul",
+      "türkiye": "yalnız",
+      "japonese": "一人で (ひとりで)",
+      "hungarian": "egyedül",
+      "ukranian": "наодинці",
+      "gaelic (scot)": "a-mhàin"
+    }
+  },
+  {
+    "id": "gänaŋu",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "solo",
+      "english": "alone",
+      "arabic": "لوحده",
+      "hebrew": "לבד",
+      "farsi": "تنها",
+      "yiddish": "אַליין",
+      "portuguese": "sozinho",
+      "french": "seul",
+      "türkiye": "yalnız",
+      "japonese": "一人で (ひとりで)",
+      "hungarian": "egyedül",
+      "ukranian": "наодинці",
+      "gaelic (scot)": "a-mhàin"
+    }
+  },
+  {
+    "id": "guŋnharra",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "solo",
+      "english": "alone",
+      "arabic": "لوحده",
+      "hebrew": "לבד",
+      "farsi": "تنها",
+      "yiddish": "אַליין",
+      "portuguese": "sozinho",
+      "french": "seul",
+      "türkiye": "yalnız",
+      "japonese": "一人で (ひとりで)",
+      "hungarian": "egyedül",
+      "ukranian": "наодинці",
+      "gaelic (scot)": "a-mhàin"
+    }
+  },
+  {
+    "id": "yurru",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "aunque",
+      "english": "although",
+      "arabic": "مع إنه",
+      "hebrew": "למרות ש",
+      "farsi": "اگرچه",
+      "yiddish": "כּאַף־אַז",
+      "portuguese": "embora",
+      "french": "bien que",
+      "türkiye": "olsa da",
+      "japonese": "けれども (けれども)",
+      "hungarian": "bár",
+      "ukranian": "хоча",
+      "gaelic (scot)": "ged-tà"
+    }
+  },
+  {
+    "id": "bitjan bili",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "siempre",
+      "english": "always",
+      "arabic": "دايمًا",
+      "hebrew": "תמיד",
+      "farsi": "همیشه",
+      "yiddish": "אלעמאָל",
+      "portuguese": "sempre",
+      "french": "toujours",
+      "türkiye": "her zaman",
+      "japonese": "いつも (いつも)",
+      "hungarian": "mindig",
+      "ukranian": "завжди",
+      "gaelic (scot)": "an-còmhnaidh"
+    }
+  },
+  {
+    "id": "baḻaŋu",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "spanish": "ancla",
+      "english": "anchor",
+      "arabic": "مرساة",
+      "hebrew": "עוגן",
+      "farsi": "لنگر",
+      "yiddish": "אַנקער",
+      "portuguese": "âncora",
+      "french": "ancre",
+      "türkiye": "çapa",
+      "japonese": "錨 (いかり)",
+      "hungarian": "horgony",
+      "ukranian": "якір",
+      "gaelic (scot)": "acair"
     }
   }
 ]
