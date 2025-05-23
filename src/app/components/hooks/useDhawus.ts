@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import dhawusJSON from "../../../../public/dhawus.json";
 
 const useDhawus = () => {

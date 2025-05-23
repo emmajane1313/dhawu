@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import dhawusJSON from "./../../../public/dhawus.json";
 
 function generateStaticUrls(baseUrl: string, paths: string[]) {
   return paths
@@ -21,7 +22,13 @@ export async function GET() {
   const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL || "https://dhawu.emancipa.xyz";
 
-  const staticPaths = ["/", "/marnggithinyawuy/", "/nhama/", "/dhawu-mala/"];
+  const staticPaths = [
+    "/",
+    "/marnggithinyawuy/",
+    "/nhama/",
+    "/dhawu-mala/",
+    ...dhawusJSON?.map((item) => `/dhawu/${item.titulo.replaceAll(" ", "-")}/`),
+  ];
   const staticXml = generateStaticUrls(baseUrl, staticPaths);
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
