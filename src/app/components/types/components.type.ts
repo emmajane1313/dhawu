@@ -12,19 +12,19 @@ export type DictionaryEntry = {
   id: string;
   translations: {
     djambarrpuyŋu: string;
-    spanish: string;
+    español: string;
     english: string;
-    arabic: string;
-    hebrew: string;
-    farsi: string;
-    yiddish: string;
-    portuguese: string;
-    french: string;
+    عربي: string;
+    עברית: string;
+    فارسی: string;
+    יידיש: string;
+    português: string;
+    français: string;
     türkiye: string;
-    japonese: string;
-    hungarian: string;
-    ukranian: string;
-    "gaelic (scot)": string;
+    日本語: string;
+    magyar: string;
+    українська: string;
+    "gàidhlig (albannach)": string;
   };
 };
 
