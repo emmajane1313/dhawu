@@ -8,7 +8,7 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
   const { init, particlesLoaded } = useParticles();
 
   return (
-    <div className="bg-black w-full p-2 md:p-10 h-screen flex flex-col items-center justify-center">
+    <div className="bg-black w-full p-2 md:p-10 min-h-[700px] h-screen flex flex-col items-center justify-center">
       {init && (
         <Particles
           id="tsparticles"
