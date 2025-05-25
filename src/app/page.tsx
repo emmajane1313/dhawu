@@ -23,11 +23,11 @@ export default function Home() {
         </div>
       </div>
       <div className="relative w-full flex items-center justify-between h-full flex-col gap-4">
-        <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md p-2 bg-[#CC0000] border border-white">
+        <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md p-2 bg-oscuro border border-white">
           <div className="text-black relative w-fit h-fit flex text-sm font-manga">
             Buwa!
           </div>
-          <div className="relative w-fit h-fit flex text-center text-3xl sm:text-7xl font-estilo text-[#FFFF00] break-all">
+          <div className="relative w-fit h-fit flex text-center text-3xl sm:text-7xl font-estilo text-amarillo break-all">
             Djartjaryun!
           </div>
           <div className="relative text-white w-fit h-fit flex text-sm font-neueL pt-4">

@@ -31,3 +31,14 @@ export type DictionaryEntry = {
 export type ReturnProps = {
   image: string;
 };
+
+export type Video = {
+  portada: string;
+  url: string;
+  url_doblado: string;
+  title: string;
+  transcripciones: {
+    locale: string;
+    enlace: string;
+  }[];
+};

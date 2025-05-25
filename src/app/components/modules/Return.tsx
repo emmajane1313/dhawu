@@ -20,7 +20,7 @@ export default function Return({ image }: ReturnProps) {
           priority
         />
         <div
-          className="absolute w-fit h-fit left-2 top-3 cursor-pointer hover:opacity-70 text-white font-nueuL text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
+          className="absolute w-fit h-fit left-2 top-3 cursor-pointer hover:opacity-70 text-white font-neueL text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
           onClick={() => router.push("/")}
         >
           <IoArrowBackCircle color="white" size={15} />

@@ -10,7 +10,7 @@ export default function Marnggithinyawuy() {
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between text-white overflow-y-scroll pt-2 px-2">
       <Return image={"QmVpDrjNF5xo47xfCV8arvJ7p8HfzVCWByvwSeUHQYLTWH"} />
       <div className="relative w-full flex items-center justify-start h-full flex-col gap-4 flex-col">
-        <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-[#CC0000] border border-white text-2xl sm:text-4xl lg:text-7xl font-estilo text-[#FFFF00]">
+        <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-2xl sm:text-4xl lg:text-7xl font-estilo text-amarillo">
           Dhäruk Mala
         </div>
         <div className="relative w-full h-fit flex">
@@ -29,7 +29,7 @@ export default function Marnggithinyawuy() {
                 className="relative w-full h-fit flex flex-col gap-2"
                 key={entry.id}
               >
-                <div className="relative text-lg underline underline-offset-3 text-[#CC0000]">
+                <div className="relative text-lg underline underline-offset-3 text-oscuro">
                   {entry.id}
                 </div>
                 {Object.entries(entry.translations).map((item, indice) => {
@@ -42,7 +42,7 @@ export default function Marnggithinyawuy() {
                         {item?.[0]}
                       </div>
                       <div className="relative w-full h-fit flex items-center justify-center">
-                        <div className="relative w-fit h-fit text-[#FFFF00]">
+                        <div className="relative w-fit h-fit text-amarillo">
                           ☆
                         </div>
                       </div>

@@ -589,25 +589,6 @@
     }
   },
   {
-    "id": "gäna",
-    "translations": {
-      "djambarrpuyŋu": "-",
-      "español": "solo",
-      "english": "alone",
-      "عربي": "لوحده",
-      "עברית": "לבד",
-      "فارسی": "تنها",
-      "יידיש": "אַליין",
-      "português": "sozinho",
-      "français": "seul",
-      "türkiye": "yalnız",
-      "日本語": "一人で (ひとりで)",
-      "magyar": "egyedül",
-      "українська": "наодинці",
-      "gàidhlig (albannach)": "a-mhàin"
-    }
-  },
-  {
     "id": "gänaŋu",
     "translations": {
       "djambarrpuyŋu": "-",
@@ -658,7 +639,7 @@
       "português": "embora",
       "français": "bien que",
       "türkiye": "olsa da",
-      "日本語": "けれども (けれども)",
+      "日本語": "けれども",
       "magyar": "bár",
       "українська": "хоча",
       "gàidhlig (albannach)": "ged-tà"
@@ -677,7 +658,7 @@
       "português": "sempre",
       "français": "toujours",
       "türkiye": "her zaman",
-      "日本語": "いつも (いつも)",
+      "日本語": "いつも",
       "magyar": "mindig",
       "українська": "завжди",
       "gàidhlig (albannach)": "an-còmhnaidh"
@@ -700,6 +681,959 @@
       "magyar": "horgony",
       "українська": "якір",
       "gàidhlig (albannach)": "acair"
+    }
+  },
+  {
+    "id": "ga",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "y",
+      "english": "and",
+      "عربي": "و",
+      "עברית": "ו",
+      "فارسی": "و",
+      "יידיש": "און",
+      "português": "e",
+      "français": "et",
+      "türkiye": "ve",
+      "日本語": "と",
+      "magyar": "és",
+      "українська": "і",
+      "gàidhlig (albannach)": "is"
+    }
+  },
+  {
+    "id": "maḏakarritj",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "enfadado",
+      "english": "angry",
+      "عربي": "غضبان",
+      "עברית": "כועס",
+      "فارسی": "عصبانی",
+      "יידיש": "כּעסיק",
+      "português": "zangado",
+      "français": "en colère",
+      "türkiye": "kızgın",
+      "日本語": "怒っている (おこっている)",
+      "magyar": "mérges",
+      "українська": "злий",
+      "gàidhlig (albannach)": "feargach"
+    }
+  },
+  {
+    "id": "warrakan",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "animal",
+      "english": "animal",
+      "عربي": "حيوان",
+      "עברית": "חיה",
+      "فارسی": "حیوان",
+      "יידיש": "חיה",
+      "português": "animal",
+      "français": "animal",
+      "türkiye": "hayvan",
+      "日本語": "動物 (どうぶつ)",
+      "magyar": "állat",
+      "українська": "тварина",
+      "gàidhlig (albannach)": "beathach"
+    }
+  },
+  {
+    "id": "wiripu",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "otro",
+      "english": "another",
+      "عربي": "تاني",
+      "עברית": "אחר",
+      "فارسی": "دیگری",
+      "יידיש": "אַן אַנדערער",
+      "português": "outro",
+      "français": "un autre",
+      "türkiye": "başka",
+      "日本語": "別の (べつの)",
+      "magyar": "másik",
+      "українська": "інший",
+      "gàidhlig (albannach)": "eile"
+    }
+  },
+  {
+    "id": "buku-bakmarama",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "respuesta",
+      "english": "answer",
+      "عربي": "إجابة",
+      "עברית": "תשובה",
+      "فارسی": "پاسخ",
+      "ידייש": "ענטפֿער",
+      "português": "resposta",
+      "français": "réponse",
+      "türkiye": "cevap",
+      "日本語": "答え (こたえ)",
+      "magyar": "válasz",
+      "українська": "відповідь",
+      "gàidhlig (albannach)": "freagairt"
+    }
+  },
+  {
+    "id": "gälkal",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "hormiga",
+      "english": "ant",
+      "عربي": "نملة",
+      "עברית": "נמלה",
+      "فارسی": "مورچه",
+      "ידייש": "אַמייזע",
+      "português": "formiga",
+      "français": "fourmi",
+      "türkiye": "karınca",
+      "日本語": "蟻 (あり)",
+      "magyar": "hangya",
+      "українська": "мураха",
+      "gàidhlig (albannach)": "seangan"
+    }
+  },
+  {
+    "id": "guṉḏirr",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "hormiguero",
+      "english": "ant bed",
+      "عربي": "عش النمل",
+      "עברית": "קן נמלים",
+      "فارسی": "لانه مورچه",
+      "ידייש": "אַמייזענעס קאַסטן",
+      "português": "ninho de formigas",
+      "français": "fourmilière",
+      "türkiye": "karınca yuvası",
+      "日本語": "蟻塚 (ありづか)",
+      "magyar": "hangyaboly",
+      "українська": "мурашник",
+      "gàidhlig (albannach)": "nead seangan"
+    }
+  },
+  {
+    "id": "bunydji",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "ano",
+      "english": "anus",
+      "عربي": "شرج",
+      "עברית": "פי הטבעת",
+      "فارسی": "مقعد",
+      "ידייש": "אַנוס",
+      "português": "ânus",
+      "français": "anus",
+      "türkiye": "anus",
+      "日本語": "肛門 (こうもん)",
+      "magyar": "végbélnyílás",
+      "українська": "анус",
+      "gàidhlig (albannach)": "noig"
+    }
+  },
+  {
+    "id": "moku",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "ano",
+      "english": "anus",
+      "عربي": "شرج",
+      "עברית": "פי הטבעת",
+      "فارسی": "مقعد",
+      "ידייש": "אַנוס",
+      "português": "ânus",
+      "français": "anus",
+      "türkiye": "anus",
+      "日本語": "肛門 (こうもん)",
+      "magyar": "végbélnyílás",
+      "українська": "анус",
+      "gàidhlig (albannach)": "noig"
+    }
+  },
+  {
+    "id": "ŋula yol",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "alguien",
+      "english": "anyone",
+      "عربي": "أي حد",
+      "עברית": "מישהו",
+      "فارسی": "هرکسی",
+      "ידייש": "עמיצער",
+      "português": "alguém",
+      "français": "quelqu’un",
+      "türkiye": "herhangi biri",
+      "日本語": "誰か (だれか)",
+      "magyar": "valaki",
+      "українська": "хтось",
+      "gàidhlig (albannach)": "cuideigin"
+    }
+  },
+  {
+    "id": "ŋula nhä",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "algo",
+      "english": "anything",
+      "عربي": "أي حاجة",
+      "עברית": "משהו",
+      "فارسی": "هرچیز",
+      "ידייש": "עפּעס",
+      "português": "qualquer coisa",
+      "français": "n’importe quoi",
+      "türkiye": "her şey",
+      "日本語": "何でも (なんでも)",
+      "magyar": "bármi",
+      "українська": "що-небудь",
+      "gàidhlig (albannach)": "rud sam bith"
+    }
+  },
+  {
+    "id": "babalamirri",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "en cualquier momento",
+      "english": "anytime",
+      "عربي": "في أي وقت",
+      "עברית": "בכל זמן",
+      "فارسی": "هر زمان",
+      "ידייש": "יעדע צייט",
+      "português": "a qualquer hora",
+      "français": "n’importe quand",
+      "türkiye": "her zaman",
+      "日本語": "いつでも",
+      "magyar": "bármikor",
+      "українська": "у будь-який час",
+      "gàidhlig (albannach)": "uair air bith"
+    }
+  },
+  {
+    "id": "ŋula wanha",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "en cualquier lugar",
+      "english": "anywhere",
+      "عربي": "أي مكان",
+      "עברית": "בכל מקום",
+      "فارسی": "هر جا",
+      "ידייש": "אויבעראל",
+      "português": "em qualquer lugar",
+      "français": "n’importe où",
+      "türkiye": "her yerde",
+      "日本語": "どこでも",
+      "magyar": "bárhol",
+      "українська": "де-небудь",
+      "gàidhlig (albannach)": "badeigin"
+    }
+  },
+  {
+    "id": "ŋula",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "cualquiera",
+      "english": "any",
+      "عربي": "أيّ",
+      "עברית": "כל",
+      "فارسی": "هر",
+      "ידייש": "יעדע",
+      "português": "qualquer",
+      "français": "n’importe quel",
+      "türkiye": "herhangi bir",
+      "日本語": "どの〜でも",
+      "magyar": "bármelyik",
+      "українська": "будь-який",
+      "gàidhlig (albannach)": "sam bith"
+    }
+  },
+  {
+    "id": "gäna",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "separado",
+      "english": "apart",
+      "عربي": "منفصل",
+      "עברית": "בנפרד",
+      "فارسی": "جدا",
+      "ידייש": "פֿאַרשיידן",
+      "português": "separado",
+      "français": "séparé",
+      "türkiye": "ayrı",
+      "日本語": "離れて (はなれて)",
+      "magyar": "külön",
+      "українська": "окремо",
+      "gàidhlig (albannach)": "fa seach"
+    }
+  },
+  {
+    "id": "waṉa",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "brazo",
+      "english": "arm",
+      "عربي": "ذراع",
+      "עברית": "זרוע",
+      "فارسی": "بازو",
+      "ידייש": "אָרעם",
+      "português": "braço",
+      "français": "bras",
+      "türkiye": "kol",
+      "日本語": "腕 (うで)",
+      "magyar": "kar",
+      "українська": "рука",
+      "gàidhlig (albannach)": "gàirdean"
+    }
+  },
+  {
+    "id": "wäny",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "axila",
+      "english": "armpit",
+      "عربي": "إبط",
+      "עברית": "בית שחי",
+      "فارسی": "زیر بغل",
+      "ידייש": "כּייטלכעס",
+      "português": "axila",
+      "français": "aisselle",
+      "türkiye": "koltuk altı",
+      "日本語": "脇の下 (わきのした)",
+      "magyar": "hónalj",
+      "українська": "пахва",
+      "gàidhlig (albannach)": "achlais"
+    }
+  },
+  {
+    "id": "wuḏuy",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "axila",
+      "english": "armpit",
+      "عربي": "إبط",
+      "עברית": "בית שחי",
+      "فارسی": "زیر بغل",
+      "ידייש": "כּייטלכעס",
+      "português": "axila",
+      "français": "aisselle",
+      "türkiye": "koltuk altı",
+      "日本語": "脇の下 (わきのした)",
+      "magyar": "hónalj",
+      "українська": "пахва",
+      "gàidhlig (albannach)": "achlais"
+    }
+  },
+  {
+    "id": "yanapi",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "como si",
+      "english": "as if",
+      "عربي": "كأنه",
+      "עברית": "כאילו",
+      "فارسی": "انگار که",
+      "ידייש": "ווי ווען",
+      "português": "como se",
+      "français": "comme si",
+      "türkiye": "sanki",
+      "日本語": "まるで〜かのように",
+      "magyar": "mintha",
+      "українська": "ніби",
+      "gàidhlig (albannach)": "mar gum b'eadh"
+    }
+  },
+  {
+    "id": "ŋäṉḏi",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "tía",
+      "english": "aunt",
+      "عربي": "عمة / خالة",
+      "עברית": "דודה",
+      "فارسی": "عمه / خاله",
+      "ידייש": "מומע",
+      "português": "tia",
+      "français": "tante",
+      "türkiye": "hala / teyze",
+      "日本語": "叔母 (おば)",
+      "magyar": "nagynéni",
+      "українська": "тітка",
+      "gàidhlig (albannach)": "antaidh"
+    }
+  },
+  {
+    "id": "mukul",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "tía",
+      "english": "aunt",
+      "عربي": "عمة / خالة",
+      "עברית": "דודה",
+      "فارسی": "عمه / خاله",
+      "ידייש": "מומע",
+      "português": "tia",
+      "français": "tante",
+      "türkiye": "hala / teyze",
+      "日本語": "叔母 (おば)",
+      "magyar": "nagynéni",
+      "українська": "тітка",
+      "gàidhlig (albannach)": "antaidh"
+    }
+  },
+  {
+    "id": "yätjkurr",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "horrible",
+      "english": "awful",
+      "عربي": "فظيع",
+      "עברית": "נורא",
+      "فارسی": "وحشتناک",
+      "ידייש": "שרעקלעך",
+      "português": "horrível",
+      "français": "affreux",
+      "türkiye": "berbat",
+      "日本語": "ひどい (ひどい)",
+      "magyar": "szörnyű",
+      "українська": "жахливо",
+      "gàidhlig (albannach)": "uarraidh"
+    }
+  },
+  {
+    "id": "miḏikirri",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "salir mal",
+      "english": "go badly",
+      "عربي": "تم بشكل سيء",
+      "עברית": "הלך רע",
+      "فارسی": "بد پیش رفت",
+      "ידייש": "איז שלעכט געגאַנגען",
+      "português": "sair mal",
+      "français": "mal se passer",
+      "türkiye": "kötü gitmek",
+      "日本語": "うまくいかない (うまくいかない)",
+      "magyar": "rosszul megy",
+      "українська": "йде погано",
+      "gàidhlig (albannach)": "plunndraigeadh"
+    }
+  },
+  {
+    "id": "yätjama",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "hacer mal",
+      "english": "do badly",
+      "عربي": "يؤدي بشكل سيء",
+      "עברית": "לעשות רע",
+      "فارسی": "بد انجام دادن",
+      "ידייש": "שלעכט טון",
+      "português": "fazer mal",
+      "français": "mal faire",
+      "türkiye": "kötü yapmak",
+      "日本語": "下手にやる (へたにやる)",
+      "magyar": "rosszul csinálni",
+      "українська": "зробити погано",
+      "gàidhlig (albannach)": "plunndraigeadh"
+    }
+  },
+  {
+    "id": "bathi",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "bolsa",
+      "english": "bag",
+      "عربي": "حقيبة",
+      "עברית": "תיק",
+      "فارسی": "کیف",
+      "ידייש": "טאש",
+      "português": "saco",
+      "français": "sac",
+      "türkiye": "çanta",
+      "日本語": "かばん",
+      "magyar": "táska",
+      "українська": "сумка",
+      "gàidhlig (albannach)": "baga"
+    }
+  },
+  {
+    "id": "nyäḻka",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "bolsa",
+      "english": "bag",
+      "عربي": "حقيبة",
+      "עברית": "תיק",
+      "فارسی": "کیف",
+      "ידייש": "טאש",
+      "português": "saco",
+      "français": "sac",
+      "türkiye": "çanta",
+      "日本語": "かばん",
+      "magyar": "táska",
+      "українська": "сумка",
+      "gàidhlig (albannach)": "baga"
+    }
+  },
+  {
+    "id": "yepaŋ",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "cebo",
+      "english": "bait",
+      "عربي": "طُعم",
+      "עברית": "פיתיון",
+      "فارسی": "طعمه",
+      "ידייש": "בײַט",
+      "português": "isca",
+      "français": "appât",
+      "türkiye": "yem",
+      "日本語": "餌 (えさ)",
+      "magyar": "csali",
+      "українська": "приманка",
+      "gàidhlig (albannach)": "baoit"
+    }
+  },
+  {
+    "id": "buḻ",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "pelota",
+      "english": "ball",
+      "عربي": "كرة",
+      "עברית": "כדור",
+      "فارسی": "توپ",
+      "ידייש": "קוגל",
+      "português": "bola",
+      "français": "balle",
+      "türkiye": "top",
+      "日本語": "ボール (ボール)",
+      "magyar": "labda",
+      "українська": "м’яч",
+      "gàidhlig (albannach)": "bàl"
+    }
+  },
+  {
+    "id": "buḻun",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "globo",
+      "english": "balloon",
+      "عربي": "بالون",
+      "עברית": "בלון",
+      "فارسی": "بادکنک",
+      "ידייש": "באַלאָן",
+      "português": "balão",
+      "français": "ballon",
+      "türkiye": "balon",
+      "日本語": "風船 (ふうせん)",
+      "magyar": "lufi",
+      "українська": "повітряна куля",
+      "gàidhlig (albannach)": "balùn"
+    }
+  },
+  {
+    "id": "bolu",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "bambú",
+      "english": "bamboo",
+      "عربي": "خيزران",
+      "עברית": "במבוק",
+      "فارسی": "بامبو",
+      "ידייש": "באַמבוס",
+      "português": "bambu",
+      "français": "bambou",
+      "türkiye": "bambu",
+      "日本語": "竹 (たけ)",
+      "magyar": "bambusz",
+      "українська": "бамбук",
+      "gàidhlig (albannach)": "bambù"
+    }
+  },
+  {
+    "id": "wunh'thiŋ",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "plátano",
+      "english": "banana",
+      "عربي": "موز",
+      "עברית": "בננה",
+      "فارسی": "موز",
+      "ידייש": "באַנאַנע",
+      "português": "banana",
+      "français": "banane",
+      "türkiye": "muz",
+      "日本語": "バナナ (バナナ)",
+      "magyar": "banán",
+      "українська": "банан",
+      "gàidhlig (albannach)": "banana"
+    }
+  },
+  {
+    "id": "garrpi'yun",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "vendaje",
+      "english": "bandage",
+      "عربي": "ضمادة",
+      "עברית": "תחבושת",
+      "فارسی": "بانداژ",
+      "ידייש": "באַנדאַזש",
+      "português": "bandagem",
+      "français": "bandage",
+      "türkiye": "bandaj",
+      "日本語": "包帯 (ほうたい)",
+      "magyar": "kötés",
+      "українська": "пов’язка",
+      "gàidhlig (albannach)": "leusair"
+    }
+  },
+  {
+    "id": "djärri'tjarri",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "vendaje",
+      "english": "bandage",
+      "عربي": "ضمادة",
+      "עברית": "תחבושת",
+      "فارسی": "بانداژ",
+      "ידייש": "באַנדאַזש",
+      "português": "bandagem",
+      "français": "bandage",
+      "türkiye": "bandaj",
+      "日本語": "包帯 (ほうたい)",
+      "magyar": "kötés",
+      "українська": "пов’язка",
+      "gàidhlig (albannach)": "stìom-cheangail"
+    }
+  },
+  {
+    "id": "djimuku",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "barra de hierro",
+      "english": "iron bar",
+      "عربي": "قضيب حديد",
+      "עברית": "מוט ברזל",
+      "فارسی": "میله آهنی",
+      "ידייש": "אייַזן שטאַנג",
+      "português": "barra de ferro",
+      "français": "barre de fer",
+      "türkiye": "demir çubuk",
+      "日本語": "鉄棒 (てつぼう)",
+      "magyar": "vasrúd",
+      "українська": "залізний прут",
+      "gàidhlig (albannach)": "iarann"
+    }
+  },
+
+  {
+    "id": "galŋa",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "corteza",
+      "english": "bark",
+      "عربي": "قشرة الشجر",
+      "עברית": "קליפת עץ",
+      "فارسی": "پوست درخت",
+      "ידייש": "בוים־רינד",
+      "português": "casca",
+      "français": "écorce",
+      "türkiye": "ağaç kabuğu",
+      "日本語": "樹皮 (じゅひ)",
+      "magyar": "fa kéreg",
+      "українська": "кора",
+      "gàidhlig (albannach)": "rùsg"
+    }
+  },
+  {
+    "id": "munydjulŋu",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "corteza",
+      "english": "bark",
+      "عربي": "قشرة الشجر",
+      "עברית": "קליפת עץ",
+      "فارسی": "پوست درخت",
+      "ידייש": "בוים־רינד",
+      "português": "casca",
+      "français": "écorce",
+      "türkiye": "ağaç kabuğu",
+      "日本語": "樹皮 (じゅひ)",
+      "magyar": "fa kéreg",
+      "українська": "кора",
+      "gàidhlig (albannach)": "rùsg"
+    }
+  },
+
+  {
+    "id": "dhuḏi",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "base",
+      "english": "base",
+      "عربي": "قاعدة",
+      "עברית": "בסיס",
+      "فارسی": "پایه",
+      "ידייש": "באַזע",
+      "português": "base",
+      "français": "base",
+      "türkiye": "taban",
+      "日本語": "基礎 (きそ)",
+      "magyar": "alap",
+      "українська": "основа",
+      "gàidhlig (albannach)": "bonn"
+    }
+  },
+  {
+    "id": "winyiwinyi",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "murciélagos",
+      "english": "bats",
+      "عربي": "خفافيش",
+      "עברית": "עטלפים",
+      "فارسی": "خفاش‌ها",
+      "ידייש": "פֿלעטערמויזן",
+      "português": "morcegos",
+      "français": "chauves-souris",
+      "türkiye": "yarasalar",
+      "日本語": "コウモリ (こうもり)",
+      "magyar": "denevérek",
+      "українська": "кажани",
+      "gàidhlig (albannach)": "dealtag"
+    }
+  },
+  {
+    "id": "winyiḻa",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "murciélagos",
+      "english": "bats",
+      "عربي": "خفافيش",
+      "עברית": "עטלפים",
+      "فارسی": "خفاش‌ها",
+      "ידייש": "פֿלעטערמויזן",
+      "português": "morcegos",
+      "français": "chauves-souris",
+      "türkiye": "yarasalar",
+      "日本語": "コウモリ (こうもり)",
+      "magyar": "denevérek",
+      "українська": "кажани",
+      "gàidhlig (albannach)": "dealtag"
+    }
+  },
+  {
+    "id": "ṉoŋgurr",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "bahía",
+      "english": "bay",
+      "عربي": "خليج صغير",
+      "עברית": "מפרץ",
+      "فارسی": "خلیج کوچک",
+      "ידייש": "בוכטע",
+      "português": "baía",
+      "français": "baie",
+      "türkiye": "koy",
+      "日本語": "湾 (わん)",
+      "magyar": "öböl",
+      "українська": "затока",
+      "gàidhlig (albannach)": "camas"
+    }
+  },
+  {
+    "id": "ḻikan",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "bahía",
+      "english": "bay",
+      "عربي": "خليج صغير",
+      "עברית": "מפרץ",
+      "فارسی": "خلیج کوچک",
+      "ידייש": "בוכטע",
+      "português": "baía",
+      "français": "baie",
+      "türkiye": "koy",
+      "日本語": "湾 (わん)",
+      "magyar": "öböl",
+      "українська": "затока",
+      "gàidhlig (albannach)": "camas"
+    }
+  },
+  {
+    "id": "raŋi",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "playa",
+      "english": "beach",
+      "عربي": "شاطئ",
+      "עברית": "חוף",
+      "فارسی": "ساحل",
+      "ידייש": "באָדע־פּלאַץ",
+      "português": "praia",
+      "français": "plage",
+      "türkiye": "plaj",
+      "日本語": "浜辺 (はまべ)",
+      "magyar": "tengerpart",
+      "українська": "пляж",
+      "gàidhlig (albannach)": "tràigh"
+    }
+  },
+  {
+    "id": "dhawaḏa",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "playa",
+      "english": "beach",
+      "عربي": "شاطئ",
+      "עברית": "חוף",
+      "فارسی": "ساحل",
+      "ידייש": "באָדע־פּלאַץ",
+      "português": "praia",
+      "français": "plage",
+      "türkiye": "plaj",
+      "日本語": "浜辺 (はまべ)",
+      "magyar": "tengerpart",
+      "українська": "пляж",
+      "gàidhlig (albannach)": "tràigh"
+    }
+  },
+  {
+    "id": "ŋurru",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "pico",
+      "english": "beak",
+      "عربي": "منقار",
+      "עברית": "מקור",
+      "فارسی": "منقار",
+      "ידייש": "שנאָבל",
+      "português": "bico",
+      "français": "bec",
+      "türkiye": "gaga",
+      "日本語": "くちばし",
+      "magyar": "csőr",
+      "українська": "дзьоб",
+      "gàidhlig (albannach)": "gob"
+    }
+  },
+  {
+    "id": "dhawarrak",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "barba",
+      "english": "beard",
+      "عربي": "لحية",
+      "עברית": "זקן",
+      "فارسی": "ریش",
+      "ידייש": "באָרד",
+      "português": "barba",
+      "français": "barbe",
+      "türkiye": "sakal",
+      "日本語": "あごひげ",
+      "magyar": "szakáll",
+      "українська": "борода",
+      "gàidhlig (albannach)": "feusag"
+    }
+  },
+  {
+    "id": "latju",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "hermoso",
+      "english": "beautiful",
+      "عربي": "جميل",
+      "עברית": "יפה",
+      "فارسی": "زیبا",
+      "ידייש": "שיין",
+      "português": "bonito",
+      "français": "beau / belle",
+      "türkiye": "güzel",
+      "日本語": "美しい (うつくしい)",
+      "magyar": "szép",
+      "українська": "гарний",
+      "gàidhlig (albannach)": "brèagha"
+    }
+  },
+
+  {
+    "id": "buliki",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "carne de res",
+      "english": "beef",
+      "عربي": "لحم بقر",
+      "עברית": "בקר",
+      "فارسی": "گوشت گاو",
+      "ידייש": "רינד־פלייש",
+      "português": "carne de vaca",
+      "français": "bœuf",
+      "türkiye": "sığır eti",
+      "日本語": "牛肉 (ぎゅうにく)",
+      "magyar": "marhahús",
+      "українська": "яловичина",
+      "gàidhlig (albannach)": "mairtfheoil"
+    }
+  },
+  {
+    "id": "ḏawurr",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "abejas",
+      "english": "bees",
+      "عربي": "نحل",
+      "עברית": "דבורים",
+      "فارسی": "زنبورها",
+      "ידייש": "בינען",
+      "português": "abelhas",
+      "français": "abeilles",
+      "türkiye": "arılar",
+      "日本語": "蜂 (はち)",
+      "magyar": "méhek",
+      "українська": "бджоли",
+      "gàidhlig (albannach)": "seillean"
+    }
+  },
+  {
+    "id": "ŋäthili",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "antes",
+      "english": "before",
+      "عربي": "قبل",
+      "עברית": "לפני",
+      "فارسی": "قبل",
+      "ידייש": "פריער",
+      "português": "antes",
+      "français": "avant",
+      "türkiye": "önce",
+      "日本語": "前に (まえに)",
+      "magyar": "előtt",
+      "українська": "до",
+      "gàidhlig (albannach)": "roimhe"
+    }
+  },
+  {
+    "id": "dhuḏikurru",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "detrás",
+      "english": "behind",
+      "عربي": "خلف",
+      "עברית": "מאחור",
+      "فارسی": "پشت",
+      "ידייש": "הינטער",
+      "português": "atrás",
+      "français": "derrière",
+      "türkiye": "arkasında",
+      "日本語": "後ろに (うしろに)",
+      "magyar": "mögött",
+      "українська": "позаду",
+      "gàidhlig (albannach)": "air cùlaibh"
     }
   }
 ]
