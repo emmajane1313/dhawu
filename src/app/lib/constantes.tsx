@@ -32,7 +32,7 @@ export const VIDEOS: Video[] = [
         enlace: "QmUhGoRUFH4R4cH4192m3pV7UA8eqiSEiJtkySa48YKPFz",
       },
       {
-        locale: "ידייש",
+        locale: "יידיש",
         enlace: "QmaCJx8WjRHW9pWXskXfk93SEVCL8Q4fXmSSrP7aesbz2u",
       },
       {
