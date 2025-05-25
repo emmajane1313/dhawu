@@ -6,12 +6,10 @@ function generateStaticUrls(baseUrl: string, paths: string[]) {
     .map((path) => {
       const loc = `${baseUrl}${path}`;
 
-      const xDefault = `<xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}${path}" />`;
-
       return `
       <url>
         <loc>${loc}</loc>
-          ${xDefault}
+
       </url>
       `;
     })
