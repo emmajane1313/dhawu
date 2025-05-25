@@ -13,7 +13,7 @@ export const VIDEOS: Video[] = [
     transcripciones: [
       {
         locale: "español",
-        enlace: "QmX4GCJV5RfTzwiDoimvh3PUdbJCH6WZjM58umTkgWphZE",
+        enlace: "QmVFPtSVfwkjvB7UG8s83yt3hX5LQhC6dRkZS7LeYMHXR4",
       },
       {
         locale: "english",
@@ -57,7 +57,7 @@ export const VIDEOS: Video[] = [
       },
       {
         locale: "українська",
-        enlace: "QmPj8wpFdty6ctCXWLA5GzVE3pUr75CrG1CKDt1s9M3Bh5",
+        enlace: "QmRDUcgeuhHVzeqWmVsUr1ySjL2CzdaBqVACJpjdfe1c9o",
       },
       {
         locale: "gàidhlig (albannach)",
