@@ -61,7 +61,7 @@ export const VIDEOS: Video[] = [
       },
       {
         locale: "gàidhlig (albannach)",
-        enlace: "QmevPWVAmpJQqffBKoqvApv4Zx5Lu1JAyneu1RZqfQS2Rh",
+        enlace: "QmcpwdpTC7CsTfwuoQjZVwgXD1BktbGiNQJbyE7zK4vt1c",
       },
     ],
   },
