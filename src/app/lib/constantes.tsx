@@ -7,8 +7,8 @@ export const INTERNAL_INFURA_GATEWAY: string =
 export const VIDEOS: Video[] = [
   {
     title: "Nhe yol?",
-    url: "QmUGp9yyPnZf4A5QQCTM5AvwsozU1yD7N85eSBhARFcstn",
-    url_doblado: "QmYy82RPfkbkbx4j6tursBS5WuhdJfMnFczWYdpEQRpYsU",
+    url: "QmeRYTDUDPv1y8Ua2zsdc5wUZ7b1551wKWFTnPcWVGBfFD",
+    url_doblado: "Qmdw1U1n7gAqWCoigdDCpMbmTnQohXRu7KuvvcsZNPh5Hh",
     portada: "QmUDiuBqcSU7j8ftkGbe8BuA9iVEkm4URn6ikpg9UvWWoS",
     transcripciones: [
       {

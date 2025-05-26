@@ -24,15 +24,17 @@ export default function Title() {
   } = useCapitulos(id?.title as string, searchParams);
 
   return (
-    <div className="bg-black w-full h-fit flex flex-col items-center justify-start gap-10 pt-8 overflow-y-hidden pt-2 px-2">
-      <div
-        className="absolute w-fit h-fit left-2 top-3 cursor-pointer hover:opacity-70 text-white font-neueL text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
-        onClick={() => router.push("/dhawu-mala")}
-      >
-        <IoArrowBackCircle color="white" size={15} />
-        <div className="relative w-fit h-fit flex">roŋiyirri</div>
+    <div className="bg-black w-full h-fit flex flex-col items-center justify-start gap-10 overflow-y-hidden pt-2 px-2">
+      <div className="relative w-full h-fit flex">
+        <div
+          className="relative w-fit h-fit cursor-pointer hover:opacity-70 text-white font-neueL text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
+          onClick={() => router.push("/dhawu-mala")}
+        >
+          <IoArrowBackCircle color="white" size={15} />
+          <div className="relative w-fit h-fit flex">roŋiyirri</div>
+        </div>
       </div>
-      <div className="relative w-fit h-fit flex items-center justify-center flex-row gap-3 text-white text-xs font-manga z-20">
+      <div className="relative w-fit h-fit flex items-center justify-center flex-row gap-3 text-white text-xs font-manga z-20 sm:flex-nowrap flex-wrap">
         <div
           className="relative w-24 h-fit border border-white flex items-center justify-center cursor-pointer hover:opacity-70 p-2"
           onClick={() => setAbrirCapitulo(!abrirCapitulo)}
