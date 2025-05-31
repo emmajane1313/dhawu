@@ -1,6 +1,7 @@
 "use client";
 
 import useVideo from "@/app/components/hooks/useVideo";
+import { Video } from "@/app/components/types/components.type";
 import { INFURA_GATEWAY, INTERNAL_INFURA_GATEWAY } from "@/app/lib/constantes";
 import formatTime from "@/app/lib/helpers/formatTime";
 import Image from "next/image";
@@ -9,10 +10,9 @@ import { FormEvent } from "react";
 import { IoArrowBackCircle } from "react-icons/io5";
 import { MdSubtitles, MdSubtitlesOff } from "react-icons/md";
 
-export default function NhamaDjorra() {
+export default function Djorra() {
   const router = useRouter();
   const id = useParams();
-
   const {
     videoActual,
     progressRef,
@@ -24,26 +24,23 @@ export default function NhamaDjorra() {
     handleSeek,
     handleVolumeChange,
     wrapperRef,
-    sub,
-    setSub,
+    setVideoActual,
   } = useVideo(id?.djorra as string);
 
   return (
     <div className="relative w-full h-full flex flex-col gap-4 items-start justify-between p-2 font-neueL text-white overflow-y-scroll">
       <div
-        className="relative w-fit h-fit cursor-pointer hover:opacity-70 text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
-        onClick={() => router.push("/nhama")}
+        className="relative w-fit h-fit cursor-point hover:opacity-70 text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
+        onClick={() => router.push("/wukirri/nhama")}
       >
         <IoArrowBackCircle color="white" size={15} />
         <div className="relative w-fit h-fit flex">roŋiyirri</div>
       </div>
       <div className="relative w-full flex flex-col gap-2 h-full items-start justify-start">
         <video
-          key={sub ? videoActual?.url_doblado : videoActual?.url}
+          key={videoActual?.actual}
           ref={wrapperRef}
-          src={`${INFURA_GATEWAY}/ipfs/${
-            sub ? videoActual?.url_doblado : videoActual?.url
-          }`}
+          src={`${INFURA_GATEWAY}/ipfs/${videoActual?.actual}`}
           poster={`${INFURA_GATEWAY}/ipfs/${videoActual?.portada}`}
           className="relative w-full h-full flex rounded-md object-contain"
           onCanPlay={(e) =>
@@ -74,7 +71,7 @@ export default function NhamaDjorra() {
             </div>
             <div className="relative w-full h-full flex flex-col items-center justify-center">
               <div
-                className="relative w-full h-2 bg-white/40 rounded-sm cursor-pointer"
+                className="relative w-full h-2 bg-white/40 rounded-sm cursor-point"
                 ref={progressRef}
                 onClick={(e: any) => handleSeek(e)}
               >
@@ -91,9 +88,15 @@ export default function NhamaDjorra() {
               </div>
             </div>
             <div
-              className="relative w-fit h-fit flex cursor-pointer"
+              className="relative w-fit h-fit flex cursor-point"
               onClick={() => {
-                setSub(!sub);
+                setVideoActual((prev) => ({
+                  ...(prev as Video),
+                  actual:
+                    videoActual?.actual == videoActual?.url_doblado
+                      ? videoActual?.url!
+                      : videoActual?.url_doblado!,
+                }));
                 setVideoControlsInfo((prev) => ({
                   ...prev,
                   isPlaying: false,
@@ -101,7 +104,7 @@ export default function NhamaDjorra() {
                 }));
               }}
             >
-              {sub ? (
+              {videoActual?.actual == videoActual?.url_doblado ? (
                 <MdSubtitlesOff color="FFFF00" width={12} />
               ) : (
                 <MdSubtitles color="FFFF00" width={12} />
@@ -111,7 +114,7 @@ export default function NhamaDjorra() {
               className={`relative w-fit flex flex-row gap-3 items-center justify-center sm:flex-nowrap flex-wrap md:justify-end`}
             >
               <div
-                className="relative cursor-pointer w-3 h-3 flex items-center justify-center"
+                className="relative cursor-point w-3 h-3 flex items-center justify-center"
                 onClick={() =>
                   setVideoControlsInfo((prev) => ({
                     ...prev,
@@ -132,7 +135,7 @@ export default function NhamaDjorra() {
                 />
               </div>
               <div
-                className="relative cursor-pointer w-3 h-3 flex items-center justify-center"
+                className="relative cursor-point w-3 h-3 flex items-center justify-center"
                 onClick={() => setVolumeOpen(!volumeOpen)}
               >
                 <Image
@@ -162,20 +165,50 @@ export default function NhamaDjorra() {
           </div>
         </div>
       </div>
-      <div className="relative w-full h-fit flex flex-wrap gap-3 text-xs justify-center">
-        {videoActual?.transcripciones?.map((tran, indice) => {
-          return (
-            <div
-              key={indice}
-              className="relative w-fit h-fit flex items-center justify-center text-center cursor-pointer hover:opacity-70 py-1 px-2 border border-white rounded-md"
-              onClick={() =>
-                window.open(`${INFURA_GATEWAY}/ipfs/${tran?.enlace}`)
-              }
-            >
-              {tran?.locale}
-            </div>
-          );
-        })}
+      <div className="relative w-full h-fit flex flex-wrap gap-3 text-xs justify-center overflow-y-scroll pb-3">
+        <div className="relative w-full h-fit flex flex-col gap-2 items-start justify-start">
+          <div className="relative text-lg w-fit h-fit underline underline-offset-3">
+            Matha Mala
+          </div>
+          <div className="relative w-full h-fit flex flex-wrap gap-3 text-xs justify-start">
+            {videoActual?.videos?.map((video, indice) => {
+              return (
+                <div
+                  key={indice}
+                  className="relative w-fit h-fit flex items-center justify-center text-center cursor-point hover:opacity-70 py-1 px-2 border border-white rounded-md"
+                  onClick={() =>
+                    setVideoActual((prev) => ({
+                      ...(prev as Video),
+                      actual: video?.enlace,
+                    }))
+                  }
+                >
+                  {video?.locale}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="relative w-full h-fit flex flex-col gap-2 items-start justify-start">
+          <div className="relative text-lg w-fit h-fit underline underline-offset-3">
+            Djarrma
+          </div>
+          <div className="relative w-full h-fit flex flex-wrap gap-3 text-xs justify-start">
+            {videoActual?.transcripciones?.map((tran, indice) => {
+              return (
+                <div
+                  key={indice}
+                  className="relative w-fit h-fit flex items-center justify-center text-center cursor-point hover:opacity-70 py-1 px-2 border border-white rounded-md"
+                  onClick={() =>
+                    window.open(`${INFURA_GATEWAY}/ipfs/${tran?.enlace}`)
+                  }
+                >
+                  {tran?.locale}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -23,8 +23,12 @@ export async function GET() {
   const staticPaths = [
     "/",
     "/marnggithinyawuy/",
-    "/nhama/",
+    "/wukirri/",
+    "/wukirri/djama/",
+    "/wukirri/rom/",
+    "/wukirri/nhama/",
     "/dhawu-mala/",
+    "/gurrutu/",
     ...dhawusJSON?.map((item) => `/dhawu/${item.titulo.replaceAll(" ", "-")}/`),
   ];
   const staticXml = generateStaticUrls(baseUrl, staticPaths);

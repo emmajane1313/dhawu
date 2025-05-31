@@ -27,7 +27,7 @@ export default function Title() {
     <div className="bg-black w-full h-fit flex flex-col items-center justify-start gap-10 overflow-y-hidden pt-2 px-2">
       <div className="relative w-full h-fit flex">
         <div
-          className="relative w-fit h-fit cursor-pointer hover:opacity-70 text-white font-neueL text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
+          className="relative w-fit h-fit cursor-point hover:opacity-70 text-white font-neueL text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
           onClick={() => router.push("/dhawu-mala")}
         >
           <IoArrowBackCircle color="white" size={15} />
@@ -36,7 +36,7 @@ export default function Title() {
       </div>
       <div className="relative w-fit h-fit flex items-center justify-center flex-row gap-3 text-white text-xs font-manga z-20 sm:flex-nowrap flex-wrap">
         <div
-          className="relative w-24 h-fit border border-white flex items-center justify-center cursor-pointer hover:opacity-70 p-2"
+          className="relative w-24 h-fit border border-white flex items-center justify-center cursor-point hover:opacity-70 p-2"
           onClick={() => setAbrirCapitulo(!abrirCapitulo)}
         >
           {`Djorra' ${capituloActual + 1}`}
@@ -46,7 +46,7 @@ export default function Title() {
             {capitulos?.map((_, indice: number) => {
               return (
                 <div
-                  className={`relative w-full h-8 flex items-center justify-center border-x border-white bg-black cursor-pointer hover:opacity-70 p-2 ${
+                  className={`relative w-full h-8 flex items-center justify-center border-x border-white bg-black cursor-point hover:opacity-70 p-2 ${
                     indice !== Capitulos.length && "border-b"
                   } ${indice == 0 && "border-t"}`}
                   key={indice}
@@ -73,7 +73,7 @@ export default function Title() {
         <div
           className={`relative w-24 h-fit flex border border-white items-center justify-center p-2 ${
             capituloActual + 1 < capitulos?.length
-              ? "cursor-pointer hover:opacity-70"
+              ? "cursor-point hover:opacity-70"
               : "opacity-50"
           }`}
           onClick={() => {

@@ -1,14 +1,17 @@
 import { FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { Video } from "../types/components.type";
-import { INFURA_GATEWAY, VIDEOS } from "@/app/lib/constantes";
+import { VIDEOS } from "@/app/lib/constantes";
 
 const useVideo = (djorra: string) => {
-  const [videoActual, setVideoActual] = useState<Video>();
+  const [videoActual, setVideoActual] = useState<
+    Video & {
+      actual: string;
+    }
+  >();
   const progressRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLVideoElement>(null);
   const [volume, setVolume] = useState<number>(1);
   const [volumeOpen, setVolumeOpen] = useState<boolean>(false);
-  const [sub, setSub] = useState<boolean>(false);
   const [videoControlsInfo, setVideoControlsInfo] = useState<{
     duration: number;
     currentTime: number;
@@ -48,7 +51,10 @@ const useVideo = (djorra: string) => {
 
   useEffect(() => {
     if (djorra) {
-      setVideoActual(VIDEOS[Number(djorra?.split("nhama-djorra-")?.[1]) - 1]);
+      setVideoActual({
+        ...VIDEOS[Number(djorra?.split("djorra-")?.[1]) - 1]!,
+        actual: VIDEOS[Number(djorra?.split("djorra-")?.[1]) - 1].url,
+      });
     }
   }, [djorra]);
 
@@ -75,8 +81,7 @@ const useVideo = (djorra: string) => {
     handleVolumeChange,
     handleSeek,
     wrapperRef,
-    sub,
-    setSub,
+    setVideoActual,
   };
 };
 

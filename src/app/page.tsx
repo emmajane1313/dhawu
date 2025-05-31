@@ -12,7 +12,7 @@ export default function Home() {
       <div className="relative w-full sm:w-fit h-fit sm:h-full flex">
         <div className="relative w-full sm:w-60 h-40 sm:h-full border border-white rounded-md">
           <Image
-            alt="Girl walks towards sunset"
+            alt="Girl looks out window"
             layout="fill"
             className="rounded-md"
             draggable={false}
@@ -37,12 +37,12 @@ export default function Home() {
         </div>
         <div className="relative w-full h-full flex flex-col items-start justify-between gap-2">
           <div
-            className="relative w-full h-full border border-white rounded-md cursor-pointer hover:opacity-80"
-            onClick={() => router.push("nhama")}
-            title="Nhäma"
+            className="relative w-full h-full border border-white rounded-md cursor-point hover:opacity-80"
+            onClick={() => router.push("/wukirri")}
+            title="Wukirri"
           >
             <Image
-              alt="Girl walks towards sunset"
+              alt="School bus"
               layout="fill"
               className="rounded-md"
               draggable={false}
@@ -50,15 +50,18 @@ export default function Home() {
               objectFit="cover"
               priority
             />
+            <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
+              Wukirri
+            </div>
           </div>
           <div className="relative w-full h-full flex flex-row gap-2">
             <div
-              className="relative w-full h-full border border-white rounded-md cursor-pointer hover:opacity-80"
-              onClick={() => router.push("marnggithinyawuy")}
+              className="relative w-full h-full border border-white rounded-md cursor-point hover:opacity-80"
+              onClick={() => router.push("/marnggithinyawuy")}
               title="Marŋgithinyawuy"
             >
               <Image
-                alt="Girl walks towards sunset"
+                alt="Marŋgithinyawuy"
                 layout="fill"
                 className="rounded-md"
                 draggable={false}
@@ -66,14 +69,17 @@ export default function Home() {
                 objectFit="cover"
                 priority
               />
+              <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
+                Marŋgithinyawuy
+              </div>
             </div>
             <div
-              className="relative w-full h-full border border-white rounded-md cursor-pointer hover:opacity-80"
-              onClick={() => router.push("dhawu-mala")}
+              className="relative w-full h-full border border-white rounded-md cursor-point hover:opacity-80"
+              onClick={() => router.push("/dhawu-mala")}
               title="Dhäwu Mala"
             >
               <Image
-                alt="Girl walks towards sunset"
+                alt="Dhäwu Mala"
                 layout="fill"
                 className="rounded-md"
                 draggable={false}
@@ -81,6 +87,27 @@ export default function Home() {
                 objectFit="cover"
                 priority
               />
+              <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
+                Dhäwu Mala
+              </div>
+            </div>
+            <div
+              className="relative w-full h-full border border-white rounded-md cursor-point hover:opacity-80"
+              onClick={() => router.push("/gurrutu")}
+              title="Gurruṯu"
+            >
+              <Image
+                alt="Gurruṯu"
+                layout="fill"
+                className="rounded-md"
+                draggable={false}
+                src={`${INTERNAL_INFURA_GATEWAY}QmTripiSA4mhRqvgDDeeGSNtQQi7RW8NSKbfrNjjF9pyfg`}
+                objectFit="cover"
+                priority
+              />
+              <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
+                Gurruṯu
+              </div>
             </div>
           </div>
         </div>

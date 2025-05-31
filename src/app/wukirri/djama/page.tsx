@@ -1,20 +1,25 @@
 "use client";
 
-import useMarng from "../components/hooks/useMarng";
-import Return from "../components/modules/Return";
+import useDjama from "@/app/components/hooks/useDjama";
+import { useRouter } from "next/navigation";
+import { IoArrowBackCircle } from "react-icons/io5";
 
-export default function Marnggithinyawuy() {
-  const { search, handleSearch, filtered } = useMarng();
+export default function Djama() {
+  const router = useRouter();
+  const { search, handleSearch, filtered } = useDjama();
 
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between text-white overflow-y-scroll pt-2 px-2 font-neueL">
-      <Return
-        image={"QmVpDrjNF5xo47xfCV8arvJ7p8HfzVCWByvwSeUHQYLTWH"}
-        path="/"
-      />
+      <div
+        className="absolute z-10 left-4 top-4 w-fit h-fit cursor-point hover:opacity-70 text-xs bg-black px-2 py-1 border border-white rounded-md items-center justify-center flex flex-row gap-2"
+        onClick={() => router.push("/wukirri/")}
+      >
+        <IoArrowBackCircle color="white" size={15} />
+        <div className="relative w-fit h-fit flex">roŋiyirri</div>
+      </div>
       <div className="relative w-full flex items-center justify-start h-full flex-col gap-4 flex-col">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-2xl sm:text-4xl lg:text-7xl font-estilo text-amarillo">
-          Dhäruk Mala
+          Djäma
         </div>
         <div className="relative w-full h-fit flex">
           <input
@@ -33,7 +38,27 @@ export default function Marnggithinyawuy() {
                 key={entry.id}
               >
                 <div className="relative text-lg underline underline-offset-3 text-oscuro">
-                  {entry.id}
+                  {`${entry.id} (ŋurruk ${entry.grupo})`}
+                </div>
+                <div className="relative w-full h-fit flex gap-2 justify-between items-center text-sm pb-4">
+                  {["primera", "secundaria", "tercera", "quarta"].map(
+                    (elemento, indice) => {
+                      return (
+                        <div
+                          key={indice}
+                          className="relative w-full h-fit flex flex-col gap-2 items-center justify-center text-center"
+                        >
+                          <div className="relative w-fit h-fit flex">
+                            {indice + 1}
+                          </div>
+                          <div className="relative w-full h-px bg-white/40"></div>
+                          <div className="relative w-fit h-fit flex">
+                            {entry?.[elemento as "primera"]}
+                          </div>
+                        </div>
+                      );
+                    }
+                  )}
                 </div>
                 {Object.entries(entry.translations).map((item, indice) => {
                   return (

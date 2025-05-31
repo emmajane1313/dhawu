@@ -4,64 +4,146 @@ export const INFURA_GATEWAY: string = "https://thedial.infura-ipfs.io";
 export const INTERNAL_INFURA_GATEWAY: string =
   "https://emancipa.xyz/api/infura/";
 
+export const VIDEOS_GURRUTU: Video[] = [];
+
 export const VIDEOS: Video[] = [
   {
     title: "Nhe yol?",
-    url: "QmeRYTDUDPv1y8Ua2zsdc5wUZ7b1551wKWFTnPcWVGBfFD",
-    url_doblado: "Qmdw1U1n7gAqWCoigdDCpMbmTnQohXRu7KuvvcsZNPh5Hh",
+    url: "QmbuRxiTjfEe9mnR3CXeBbPh5G1hBfcFMDa9FXWPqLay7U",
+    url_doblado: "QmfPeo25NDHqCzRCcuN4rHFwoXS7M8AEMtD8qs7zFCmFFS",
     portada: "QmUDiuBqcSU7j8ftkGbe8BuA9iVEkm4URn6ikpg9UvWWoS",
     transcripciones: [
       {
         locale: "español",
-        enlace: "QmVFPtSVfwkjvB7UG8s83yt3hX5LQhC6dRkZS7LeYMHXR4",
+        enlace: "",
       },
       {
         locale: "english",
-        enlace: "QmbuJzKn9qNx9qZpo5bhDh76FCqQvMNG9UJTUNEFchU1Ee",
+        enlace: "",
       },
       {
         locale: "عربي",
-        enlace: "QmYVmEhPrQ9pHjtf6e51zgTmAniLNGiLJYyAVTivuUgmkX",
+        enlace: "",
       },
       {
         locale: "עברית",
-        enlace: "QmXk1xW42rzWRtw59MG8YUG9arqHyZ5MYZF4iZB3oHbKAa",
+        enlace: "",
       },
       {
         locale: "فارسی",
-        enlace: "QmUhGoRUFH4R4cH4192m3pV7UA8eqiSEiJtkySa48YKPFz",
+        enlace: "",
       },
       {
         locale: "יידיש",
-        enlace: "QmaCJx8WjRHW9pWXskXfk93SEVCL8Q4fXmSSrP7aesbz2u",
+        enlace: "",
       },
       {
         locale: "português",
-        enlace: "Qma6et9NXQuFoK4FfccAqVq2CCNHQe9jHbY3S3BP9SXbwD",
+        enlace: "",
       },
       {
         locale: "français",
-        enlace: "QmbAjx9m4xGd7RyrLZzUJgTuyHMtFnoJvq4mbkTPgBfWCy",
+        enlace: "",
       },
       {
         locale: "türkiye",
-        enlace: "QmPAT9JwgqsbWYk9VHNSY1gRphmLDieQScnJoyyEVLwZuL",
+        enlace: "",
       },
       {
         locale: "日本語",
-        enlace: "QmQNSmxhvTokjKD7fnK7eHJgDBh7wPtSnSZp2sjofYUvhN",
+        enlace: "",
       },
       {
         locale: "magyar",
-        enlace: "QmPEydUvFSZtxtMtJRunPhwG7b8N7btwrajsR61aXHBJji",
+        enlace: "",
       },
       {
         locale: "українська",
-        enlace: "QmRDUcgeuhHVzeqWmVsUr1ySjL2CzdaBqVACJpjdfe1c9o",
+        enlace: "",
       },
       {
         locale: "gàidhlig (albannach)",
-        enlace: "QmcpwdpTC7CsTfwuoQjZVwgXD1BktbGiNQJbyE7zK4vt1c",
+        enlace: "",
+      },
+    ],
+    videos: [
+      {
+        locale: "español",
+        enlace: "QmfG51PgHrytqQQkVXJTmkKnhpLV4f1PCAHoiqdWfVNeat",
+      },
+      {
+        locale: "english",
+        enlace: "QmecB4dmLUg9zUxRQH6HETg2vd8m8ktWXb35neBcXPLrJG",
+      },
+    ],
+  },
+  {
+    title: "Wulanŋura",
+    url: "QmW5Z3nXepZPdNJ2hNN7h4t4BTdHzF5pty7CTWGyTz5dJY",
+    url_doblado: "QmZhvgLc1qaBQg9aDARGvaQcY2VSmiQ55GCwZaNYVvd7zc",
+    portada: "Qmf4fTke777vLgjsigHu6HWDo9Jr1bGMmv6zyDcLbDwi8x",
+    transcripciones: [
+      {
+        locale: "español",
+        enlace: "",
+      },
+      {
+        locale: "english",
+        enlace: "",
+      },
+      {
+        locale: "عربي",
+        enlace: "",
+      },
+      {
+        locale: "עברית",
+        enlace: "",
+      },
+      {
+        locale: "فارسی",
+        enlace: "",
+      },
+      {
+        locale: "יידיש",
+        enlace: "",
+      },
+      {
+        locale: "português",
+        enlace: "",
+      },
+      {
+        locale: "français",
+        enlace: "",
+      },
+      {
+        locale: "türkiye",
+        enlace: "",
+      },
+      {
+        locale: "日本語",
+        enlace: "",
+      },
+      {
+        locale: "magyar",
+        enlace: "",
+      },
+      {
+        locale: "українська",
+        enlace: "",
+      },
+      {
+        locale: "gàidhlig (albannach)",
+        enlace: "",
+      },
+    ],
+    videos: [
+      {
+        locale: "español",
+        enlace: "",
+      },
+      {
+        locale: "english",
+        enlace: "",
       },
     ],
   },
