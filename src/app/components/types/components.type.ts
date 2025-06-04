@@ -55,6 +55,8 @@ export interface DjamaEntry {
   secundaria: string;
   tercera: string;
   quarta: string;
+  vtr?: boolean;
+  vin?: boolean;
   translations: {
     djambarrpuyŋu: string;
     español: string;

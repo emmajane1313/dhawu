@@ -34,7 +34,7 @@ export default function Djorra() {
         onClick={() => router.push("/wukirri/nhama")}
       >
         <IoArrowBackCircle color="white" size={15} />
-        <div className="relative w-fit h-fit flex">roŋiyirri</div>
+        <div className="relative w-fit h-fit flex">roŋi'ruŋiyi</div>
       </div>
       <div className="relative w-full flex flex-col gap-2 h-full items-start justify-start">
         <video
@@ -175,7 +175,11 @@ export default function Djorra() {
               return (
                 <div
                   key={indice}
-                  className="relative w-fit h-fit flex items-center justify-center text-center cursor-point hover:opacity-70 py-1 px-2 border border-white rounded-md"
+                  className={`relative w-fit h-fit flex items-center justify-center text-center cursor-point hover:opacity-70 py-1 px-2 rounded-md ${
+                    videoActual?.actual == video?.enlace
+                      ? "border border-amarillo bg-red text-amarillo"
+                      : "border border-white text-white"
+                  }`}
                   onClick={() =>
                     setVideoActual((prev) => ({
                       ...(prev as Video),
@@ -198,7 +202,9 @@ export default function Djorra() {
               return (
                 <div
                   key={indice}
-                  className="relative w-fit h-fit flex items-center justify-center text-center cursor-point hover:opacity-70 py-1 px-2 border border-white rounded-md"
+                  className={
+                    "relative w-fit h-fit flex items-center justify-center text-center cursor-point hover:opacity-70 py-1 px-2 border border-white rounded-md"
+                  }
                   onClick={() =>
                     window.open(`${INFURA_GATEWAY}/ipfs/${tran?.enlace}`)
                   }

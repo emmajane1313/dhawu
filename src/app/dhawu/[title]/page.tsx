@@ -31,7 +31,7 @@ export default function Title() {
           onClick={() => router.push("/dhawu-mala")}
         >
           <IoArrowBackCircle color="white" size={15} />
-          <div className="relative w-fit h-fit flex">roŋiyirri</div>
+          <div className="relative w-fit h-fit flex">roŋi'ruŋiyi</div>
         </div>
       </div>
       <div className="relative w-fit h-fit flex items-center justify-center flex-row gap-3 text-white text-xs font-manga z-20 sm:flex-nowrap flex-wrap">

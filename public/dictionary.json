@@ -2718,5 +2718,119 @@
       "українська": "дихання",
       "gàidhlig (albannach)": "anail"
     }
+  },
+  {
+    "id": "manymak",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "bueno",
+      "english": "good",
+      "عربي": "جيد",
+      "עברית": "טוב",
+      "فارسی": "خوب",
+      "יידיש": "גוט",
+      "português": "bom",
+      "français": "bon",
+      "türkiye": "iyi",
+      "日本語": "良い (いい)",
+      "magyar": "jó",
+      "українська": "добрий",
+      "gàidhlig (albannach)": "math"
+    }
+  },
+  {
+    "id": "yätjkurru",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "malo",
+      "english": "bad",
+      "عربي": "سيء",
+      "עברית": "רע",
+      "فارسی": "بد",
+      "יידיש": "שלעכט",
+      "português": "mau",
+      "français": "mauvais",
+      "türkiye": "kötü",
+      "日本語": "悪い (わるい)",
+      "magyar": "rossz",
+      "українська": "поганий",
+      "gàidhlig (albannach)": "dona"
+    }
+  },
+  {
+    "id": "yindi",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "grande",
+      "english": "big",
+      "عربي": "كبير",
+      "עברית": "גדול",
+      "فارسی": "بزرگ",
+      "יידיש": "גרויס",
+      "português": "grande",
+      "français": "grand",
+      "türkiye": "büyük",
+      "日本語": "大きい (おおきい)",
+      "magyar": "nagy",
+      "українська": "великий",
+      "gàidhlig (albannach)": "mòr"
+    }
+  },
+  {
+    "id": "gorrmur'",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "caliente",
+      "english": "hot",
+      "عربي": "حار",
+      "עברית": "חם",
+      "فارسی": "داغ",
+      "יידיש": "הייס",
+      "português": "quente",
+      "français": "chaud",
+      "türkiye": "sıcak",
+      "日本語": "暑い / 熱い (あつい)",
+      "magyar": "meleg / forró",
+      "українська": "гарячий",
+      "gàidhlig (albannach)": "teth"
+    }
+  },
+  {
+    "id": "dharrpi",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "torcido",
+      "english": "crooked",
+      "عربي": "معوَج",
+      "עברית": "עקום",
+      "فارسی": "کج",
+      "יידיש": "קניקלט",
+      "português": "torto",
+      "français": "tordu",
+      "türkiye": "eğri",
+      "日本語": "曲がった (まがった)",
+      "magyar": "görbe",
+      "українська": "кривий",
+      "gàidhlig (albannach)": "cam"
+    }
+  },
+  {
+    "id": "weyin",
+    "translations": {
+      "djambarrpuyŋu": "-",
+      "español": "largo / alto",
+      "english": "long / tall",
+      "عربي": "طويل",
+      "עברית": "ארוך / גבוה",
+      "فارسی": "بلند / دراز",
+      "יידיש": "לאנג / הויך",
+      "português": "longo / alto",
+      "français": "long / grand",
+      "türkiye": "uzun",
+      "日本語": "長い / 背が高い (ながい / せがたかい)",
+      "magyar": "hosszú / magas",
+      "українська": "довгий / високий",
+      "gàidhlig (albannach)": "fada / àrd"
+    }
   }
 ]

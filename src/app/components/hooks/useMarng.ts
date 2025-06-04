@@ -26,12 +26,40 @@ const useMarng = () => {
 
     const q = value.toLowerCase().trim();
     const results = entries.filter((entry) => {
-      return Object.values(entry.translations).some((word) =>
+      return [entry.id, ...Object.values(entry.translations)].some((word) =>
         word.toLowerCase().includes(q)
       );
     });
 
     setFiltered(results);
+  };
+
+  const downloadJsonFromUrl = async () => {
+    try {
+      const res = await fetch("/dictionary.json");
+
+      if (!res.ok) throw new Error(`Fallo al cargar el JSON: ${res.status}`);
+
+      const json = await res.json();
+      const blob = new Blob([JSON.stringify(json, null, 2)], {
+        type: "application/json",
+      });
+
+      const url = URL.createObjectURL(blob);
+
+      const a = Object.assign(document.createElement("a"), {
+        href: url,
+        download: "dictionary",
+      });
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading JSON:", error);
+    }
   };
 
   useEffect(() => {
@@ -44,6 +72,7 @@ const useMarng = () => {
     search,
     handleSearch,
     filtered,
+    downloadJsonFromUrl,
   };
 };
 

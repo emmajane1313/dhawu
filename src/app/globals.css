@@ -172,3 +172,13 @@ input[type="range"]::-moz-range-thumb {
   width: 1rem;
   border-radius: 9999px;
 }
+
+#break {
+  word-break: break-all !important;
+}
+
+@media (min-width: 768px) {
+  #break {
+    word-break: break-word !important;
+  }
+}
