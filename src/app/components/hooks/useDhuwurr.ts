@@ -7,7 +7,7 @@ const useDhuwurr = (id: number) => {
 
   const downloadJsonFromUrl = async () => {
     try {
-      const res = await fetch(`/dhurru/${id}.json`);
+      const res = await fetch(`/dhuwurr/${id}.json`);
 
       if (!res.ok) throw new Error(`Fallo al cargar el JSON: ${res.status}`);
 
@@ -37,7 +37,7 @@ const useDhuwurr = (id: number) => {
     const fetchData = async () => {
       setDatosCargando(true);
       try {
-        const res = await fetch(`/dhurru/${id}.json`);
+        const res = await fetch(`/dhuwurr/${id}.json`);
         if (!res.ok)
           throw new Error(`Error ${res.status} al cargar ${id}.json`);
         const json = await res.json();

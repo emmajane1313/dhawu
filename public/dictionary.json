@@ -551,25 +551,6 @@
     }
   },
   {
-    "id": "manymak",
-    "translations": {
-      "djambarrpuyŋu": "-",
-      "español": "bien",
-      "english": "well / good",
-      "عربي": "كويس",
-      "עברית": "טוב",
-      "فارسی": "خوب",
-      "יידיש": "געזונט",
-      "português": "bem",
-      "français": "bien",
-      "türkiye": "iyi",
-      "日本語": "元気 (げんき)",
-      "magyar": "jól",
-      "українська": "добре",
-      "gàidhlig (albannach)": "gu math"
-    }
-  },
-  {
     "id": "gänaŋu",
     "translations": {
       "djambarrpuyŋu": "-",
@@ -1693,25 +1674,7 @@
       "gàidhlig (albannach)": "baidhseagal"
     }
   },
-  {
-    "id": "yindi",
-    "translations": {
-      "djambarrpuyŋu": "-",
-      "español": "grande",
-      "english": "big",
-      "عربي": "كبير",
-      "עברית": "גדול",
-      "فارسی": "بزرگ",
-      "יידיש": "גרויס",
-      "português": "grande",
-      "français": "grand",
-      "türkiye": "büyük",
-      "日本語": "大きい (おおきい)",
-      "magyar": "nagy",
-      "українська": "великий",
-      "gàidhlig (albannach)": "mòr"
-    }
-  },
+
   {
     "id": "bathala",
     "translations": {
@@ -2757,25 +2720,7 @@
       "gàidhlig (albannach)": "dona"
     }
   },
-  {
-    "id": "yindi",
-    "translations": {
-      "djambarrpuyŋu": "-",
-      "español": "grande",
-      "english": "big",
-      "عربي": "كبير",
-      "עברית": "גדול",
-      "فارسی": "بزرگ",
-      "יידיש": "גרויס",
-      "português": "grande",
-      "français": "grand",
-      "türkiye": "büyük",
-      "日本語": "大きい (おおきい)",
-      "magyar": "nagy",
-      "українська": "великий",
-      "gàidhlig (albannach)": "mòr"
-    }
-  },
+
   {
     "id": "gorrmur'",
     "translations": {

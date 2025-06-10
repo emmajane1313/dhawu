@@ -1,0 +1,54 @@
+[
+  {
+    "locale": "español",
+    "texto": "We first looked at the suffix -mirri back in Lesson 4, where it meant to have or to possess something. Now, here’s another important use for this same suffix.<br/><br/>And as you might be noticing by now — suffixes in Gupapuyŋu are flexible. They don’t correspond one-to-one with the many prepositions or function words we use in English. Instead, they move across categories of meaning. And the more you study them, the more you realise: at root level, it makes perfect sense why they do.<br/><br/>When we add -mirri not to a noun (as in Lesson 4), but to the quaternary form of a verb, the meaning shifts to refer to the person (or thing) that performs the action of the verb.<br/><br/>Think of it like adding “-er” in English:<br/>work → worker<br/>dance → dancer<br/>write → writer<br/><br/>And the interesting part — if you think about it carefully, this isn’t so different from possession after all. A worker is someone who has work. A dancer is someone who possesses dance — or the art or act of dancing. So we’re still operating inside that same conceptual space. And this is why this kind of system is actually very elegant — it avoids forcing arbitrary category splits like we do in English (noun? verb? agent noun? job title?).<br/><br/>And this reminds me of a similar structure in Turkish. In Turkish, to express the one who does an action, you often add the participle suffix -en / -an to the verb:<br/>yapmak (to do/make) → yapan → the one who does / maker<br/>Very similar to what -mirri does in Gupapuyŋu — turning the action into an identity or role.<br/><br/>djäma (to work) → djämamirri → worker<br/>wukirri (to write) → wukirrimirri → writer<br/>guŋga’yun (to help) → guŋga’yunamirri → helper<br/>buny’tjun (to smoke) → buny’tjunamirri → smoker<br/>ŋatha-bathan (to cook food) → ŋatha-bathanamirri → cook, chef<br/>burrmiḏiyama (to make peace) → burrmiḏiyanhamirri → peacemaker<br/>marŋgikuma (to teach) → marŋgikunhamirri → teacher<br/>gurrupan (to give) → gurrupanamirri → giver<br/>medicine-gurrupan (to give medicine) → medicine-gurrupanamirri → doctor / nurse<br/><br/>Sometimes, instead of -mirri, you’ll see the suffix -yŋu used in exactly this same function.<br/><br/>And you can also combine these new mirri-derived nouns with other nouns, and now you’re into adjective territory:djämamirri miyalk → worker woman → working woman → a woman that works<br/>manaŋinyamirri yolŋu → person who steals → thief<br/>waṉḏinyamirri miyalk → woman that runs → runner<br/>nhänhamirri mala → spectators (those who look)<br/>nhumanamirri waṯu → dog that sniffs/smells around<br/>gaḻ’yunamirri yothu → crawling baby"
+  },
+  {
+    "locale": "english",
+    "texto": ""
+  },
+  {
+    "locale": "عربي",
+    "texto": ""
+  },
+  {
+    "locale": "עברית",
+    "texto": ""
+  },
+  {
+    "locale": "فارسی",
+    "texto": ""
+  },
+  {
+    "locale": "יידיש",
+    "texto": ""
+  },
+  {
+    "locale": "português",
+    "texto": ""
+  },
+  {
+    "locale": "français",
+    "texto": ""
+  },
+  {
+    "locale": "türkiye",
+    "texto": ""
+  },
+  {
+    "locale": "日本語",
+    "texto": ""
+  },
+  {
+    "locale": "magyar",
+    "texto": ""
+  },
+  {
+    "locale": "українська",
+    "texto": ""
+  },
+  {
+    "locale": "gàidhlig (albannach)",
+    "texto": ""
+  }
+]

@@ -74,3 +74,64 @@ export interface DjamaEntry {
     "gàidhlig (albannach)": string;
   };
 }
+
+export interface Larramu {
+  contenido:
+    | DictionaryEntry
+    | DjamaEntry
+    | [
+        {
+          locale: "español";
+          texto: string;
+        },
+        {
+          locale: "english";
+          texto: string;
+        },
+        {
+          locale: "عربي";
+          texto: string;
+        },
+        {
+          locale: "עברית";
+          texto: string;
+        },
+        {
+          locale: "فارسی";
+          texto: string;
+        },
+        {
+          locale: "יידיש";
+          texto: string;
+        },
+        {
+          locale: "português";
+          texto: string;
+        },
+        {
+          locale: "français";
+          texto: string;
+        },
+        {
+          locale: "türkiye";
+          texto: string;
+        },
+        {
+          locale: "日本語";
+          texto: string;
+        },
+        {
+          locale: "magyar";
+          texto: string;
+        },
+        {
+          locale: "українська";
+          texto: string;
+        },
+        {
+          locale: "gàidhlig (albannach)";
+          texto: string;
+        }
+      ];
+  pagina: string;
+}

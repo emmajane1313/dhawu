@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { DictionaryEntry } from "../types/components.type";
 import data from "./../../../../public/dictionary.json";
+
 const useMarng = () => {
   const [entries, setEntries] = useState<DictionaryEntry[]>([]);
   const [search, setSearch] = useState("");

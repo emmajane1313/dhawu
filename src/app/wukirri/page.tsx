@@ -81,6 +81,26 @@ export default function Wukirri() {
             </div>
             <div
               className="relative w-full h-fit flex"
+              onClick={() => router.push("/wukirri/larruma-mala")}
+              title="Ḻarruma Mala"
+            >
+              <div className="relative w-full h-36 flex border border-white rounded-md cursor-point hover:opacity-80">
+                <Image
+                  alt="Rom"
+                  layout="fill"
+                  className="rounded-md"
+                  draggable={false}
+                  src={`${INTERNAL_INFURA_GATEWAY}QmNxA34i4Vp3Y8hxQP8uoyf8aGWLrCWcxPwHgcWxp35NzQ`}
+                  objectFit="cover"
+                  priority
+                />
+                <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
+                  Ḻarruma
+                </div>
+              </div>
+            </div>
+            <div
+              className="relative w-full h-fit flex"
               onClick={() => router.push("/wukirri/ai")}
               title="AI"
             >

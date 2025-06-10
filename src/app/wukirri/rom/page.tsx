@@ -37,6 +37,12 @@ export default function Rom() {
               "QmPa6h21Wen4y25m6ZxiPpaYDUiuvczHFnBDz8tTHvGBD9",
               "QmZKNALcdgrBhruFnitmpXZDsx4WSoms3DYBDt4yqvekkE",
               "QmYrhi2M1CvQkhmBbDoXCfgUVgv7EDqMCP2PG3WGnXyhka",
+              "QmfZQaufvxP4mZFWQDC1YE8gua8ryFpEhN1rRhxYkLCfbQ",
+              "QmVGJktdgfkpRHyLTzUZyZ76rJQDjGgRgEbTSqKAPYzBRB",
+              "QmQAYU1Ka5zXk28BuB3UFj5yLnrUqTiPS87Cjpo1vM449a",
+              "QmXMGPjMv8Hq5emiQYnVC3Sc1qNGvAraFssAzXBAYMabQw",
+              "QmWEWQxqdjnAhCzHEyhjHt6bnnEun8URCQ79JfvJNSrJ8c",
+              "QmWPwDJBERdf6BFojVSvzhqLkf7QhViy81jH6oex1BdWp7",
             ].map((elemento: string, indice: number) => {
               return (
                 <div
