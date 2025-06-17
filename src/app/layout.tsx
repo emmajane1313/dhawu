@@ -38,8 +38,8 @@ export const metadata: Metadata = {
     "Open Source LLMs",
     "DIGITALAX",
     "F3Manifesto",
-    "www.digitalax.xyz",
-    "www.f3manifesto.xyz",
+    "digitalax",
+    "f3manifesto",
     "Women",
     "Life",
     "Freedom",
@@ -56,8 +56,40 @@ export default function RootLayout({
 }>) {
   return (
     <html>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Person",
+              name: "Emma-Jane MacKinnon-Lee",
+              url: "https://emmajanemackinnonlee.com/",
+              sameAs: [
+                "https://emmajanemackinnonlee.com/",
+                "https://syntheticfutures.xyz/",
+                "https://web3fashion.xyz/",
+                "https://emancipa.xyz/",
+                "https://highlangu.com/",
+                "https://digitalax.xyz/",
+                "https://cc0web3fashion.com/",
+                "https://cc0web3.com/",
+                "https://cuntism.net/",
+                "https://dhawu.com/",
+                "https://casadeespejos.com/",
+                "https://emancipa.net/",
+                "https://dhawu.emancipa.xyz/",
+                "https://highlangu.emancipa.xyz/",
+                "https://twitter.com/emmajane1313",
+                "https://medium.com/@casadeespejos",
+                "https://www.flickr.com/photos/emmajanemackinnonlee/",
+              ],
+            }),
+          }}
+        />
+      </head>
       <body>
-        <Wrapper children={children}></Wrapper>
+        <Wrapper>{children}</Wrapper>
       </body>
     </html>
   );
