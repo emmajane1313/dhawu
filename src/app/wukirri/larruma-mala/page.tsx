@@ -30,7 +30,7 @@ export default function LarrumaMala() {
           <div className="relative w-full h-fit flex flex-col items-start justify-start gap-5">
             {filtered.map((entry, indice) => (
               <div
-                className="relative w-full h-fit flex flex-col gap-2 cursor-pointer hover:opacity-70"
+                className="relative w-full h-fit flex flex-col gap-2 cursor-point hover:opacity-70"
                 key={indice}
                 onClick={() => router.push(entry.pagina)}
               >

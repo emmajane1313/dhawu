@@ -57,7 +57,7 @@ const useLarruma = () => {
     }`;
   };
   const handleSearch = (value: string) => {
-    const q = value.toLowerCase().trim();
+    const q = value.toLowerCase();
     setSearch(q);
 
     if (q == "") {
