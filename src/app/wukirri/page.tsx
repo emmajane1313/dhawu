@@ -110,12 +110,32 @@ export default function Wukirri() {
                   layout="fill"
                   className="rounded-md"
                   draggable={false}
-                  src={`${INTERNAL_INFURA_GATEWAY}QmPLwkPsNKH1Kbs35vHbax3wE66dKR2BNDJdDTFLLJE9a5`}
+                  src={`${INTERNAL_INFURA_GATEWAY}QmQANFPz6VVgDoiRgfVVBACUQT8qhnipgai3niJ5AA2D16`}
                   objectFit="cover"
                   priority
                 />
                 <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
                   AI
+                </div>
+              </div>
+            </div>
+            <div
+              className="relative w-full h-fit flex"
+              onClick={() => router.push("/wukirri/ridjin")}
+              title="Ridjin"
+            >
+              <div className="relative w-full h-36 flex border border-white rounded-md cursor-point hover:opacity-80">
+                <Image
+                  alt="Ridjin"
+                  layout="fill"
+                  className="rounded-md"
+                  draggable={false}
+                  src={`${INTERNAL_INFURA_GATEWAY}QmcXPCF7Q43Ugjshsia4oaHQCcGKmV4uJkP6hnKCMk4Xku`}
+                  objectFit="cover"
+                  priority
+                />
+                <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
+                  Ridjin
                 </div>
               </div>
             </div>
