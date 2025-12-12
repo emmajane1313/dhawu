@@ -121,12 +121,12 @@ export default function Wukirri() {
             </div>
             <div
               className="relative w-full h-fit flex"
-              onClick={() => router.push("/wukirri/ridjin")}
-              title="Ridjin"
+              onClick={() => router.push("/wukirri/gurrutu")}
+              title="Gurruṯu"
             >
               <div className="relative w-full h-36 flex border border-white rounded-md cursor-point hover:opacity-80">
                 <Image
-                  alt="Ridjin"
+                  alt="Gurruṯu"
                   layout="fill"
                   className="rounded-md"
                   draggable={false}
@@ -135,7 +135,7 @@ export default function Wukirri() {
                   priority
                 />
                 <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                  Ridjin
+                  Gurruṯu
                 </div>
               </div>
             </div>

@@ -6,6 +6,8 @@ export const INTERNAL_INFURA_GATEWAY: string =
 
 export const VIDEOS_GURRUTU: Video[] = [];
 
+export const IDIOMAS = ["es", "en"] as const;
+
 export const VIDEOS: Video[] = [
   {
     title: "Nhe yol?",

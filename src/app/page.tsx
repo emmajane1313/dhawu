@@ -93,11 +93,11 @@ export default function Home() {
             </div>
             <div
               className="relative w-full h-full border border-white rounded-md cursor-point hover:opacity-80"
-              onClick={() => router.push("/gurrutu")}
-              title="Gurruṯu"
+              onClick={() => router.push("/ridjin")}
+              title="Ridjin"
             >
               <Image
-                alt="Gurruṯu"
+                alt="Ridjin"
                 layout="fill"
                 className="rounded-md"
                 draggable={false}
@@ -106,7 +106,7 @@ export default function Home() {
                 priority
               />
               <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                Gurruṯu
+                Ridjin
               </div>
             </div>
           </div>

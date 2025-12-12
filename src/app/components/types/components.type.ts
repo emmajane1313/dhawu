@@ -135,3 +135,5 @@ export interface Larramu {
       ];
   pagina: string;
 }
+
+export type LanguageMode = "es" | "en";
