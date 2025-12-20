@@ -291,6 +291,7 @@ export interface PluralPart {
     | "connector"
     | "unknown";
   source: string;
+  sourceWord?: string;
   gup: string;
   baseGup?: string;
   appliedSuffix?: string;
@@ -785,7 +786,7 @@ export function applyPluralToPhrase(
 
     const determinerPluralParts =
       determinerMatches.length > 0
-        ? nounParts.filter((p) => pluralNounWords.has(p.source.toLowerCase()))
+        ? nounParts.filter((p) => pluralNounWords.has((p.sourceWord || p.source).toLowerCase()))
         : [];
 
     const allPluralParts = [

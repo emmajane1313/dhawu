@@ -3,6 +3,7 @@ import { QuestionPatternResult, QuestionContext, AnswerInfo, AdditionalAnswer, Q
 import { LANG_CONFIG, QUESTION_GUP, PersonNumber, SUBJECT_PRONOUNS_GUP, determineHumanAssociativeSuffix, applyHumanAssociativeSuffix } from "../../constants";
 import { applyErgativeSuffix } from "../subject";
 import { findVerbGupWithPerson, findNounGup, VerbMatchWithPerson, findNounInfo, applyNha } from "./questionHelpers";
+import { determinePossessiveSuffix, applyPossessiveSuffix } from "../possession";
 
 function detectWithWhatTrigger(
   tokens: string[],
@@ -81,6 +82,9 @@ export function detectWithWhatQuestionPattern(
     questionSkipWords,
     pronounTriggers,
     instrumentalThing,
+    thisWords,
+    thatWords,
+    dualMarkers,
   } = LANG_CONFIG[mode];
 
   const withWhatTrigger = detectWithWhatTrigger(tokens, mode);
@@ -284,6 +288,7 @@ export function detectWithWhatQuestionPattern(
   const additionalAnswers: AdditionalAnswer[] = [];
   const answerConsumedIndices: number[] = [];
   const usedAnswerIndices = new Set<number>();
+  let isPossessorNext = false;
 
   if (questionMarkPos !== -1) {
     const afterQuestion = originalText.slice(questionMarkPos + 1).trim();
@@ -291,6 +296,7 @@ export function detectWithWhatQuestionPattern(
       const answerWords = afterQuestion.split(/\s+/);
       let determinerType: "this" | "that" | "definite" | null = null;
       let isPlural = false;
+      let isDual = false;
 
       for (const rawWord of answerWords) {
         const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
@@ -311,6 +317,51 @@ export function detectWithWhatQuestionPattern(
           continue;
         }
 
+        if (thisWords.includes(answerWord)) {
+          determinerType = "this";
+          const articleIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (articleIdx !== -1) {
+            consumedIndices.push(articleIdx);
+            usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (thatWords.includes(answerWord)) {
+          determinerType = "that";
+          const articleIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (articleIdx !== -1) {
+            consumedIndices.push(articleIdx);
+            usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (dualMarkers.includes(answerWord)) {
+          isDual = true;
+          const dualIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (dualIdx !== -1) {
+            consumedIndices.push(dualIdx);
+            usedAnswerIndices.add(dualIdx);
+          }
+          continue;
+        }
+
         if (definiteArticles.includes(answerWord)) {
           determinerType = "definite";
           if (pluralArticles.includes(answerWord)) isPlural = true;
@@ -324,6 +375,22 @@ export function detectWithWhatQuestionPattern(
             consumedIndices.push(articleIdx);
             usedAnswerIndices.add(articleIdx);
           }
+          continue;
+        }
+
+        const { possessionPreposition } = LANG_CONFIG[mode];
+        if (answerWord === possessionPreposition && answerInfo) {
+          const deIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (deIdx !== -1) {
+            consumedIndices.push(deIdx);
+            usedAnswerIndices.add(deIdx);
+          }
+          isPossessorNext = true;
           continue;
         }
 
@@ -356,6 +423,41 @@ export function detectWithWhatQuestionPattern(
         const baseGup = nounInfo?.gupKey || answerWord;
         const isHuman = nounInfo?.isHuman;
         const nounIsPlural = nounInfo?.isPlural || false;
+
+        if (isPossessorNext && answerInfo) {
+          const possessiveSuffixResult = determinePossessiveSuffix(baseGup, mode);
+          const possessiveSuffix = possessiveSuffixResult.suffixes[0];
+          const possessorWithSuffix = applyPossessiveSuffix(baseGup, possessiveSuffix);
+
+          const humanAssocSuffixes = determineHumanAssociativeSuffix(baseGup);
+          const possessorAlternatives: string[] = [];
+
+          if (possessiveSuffixResult.suffixes.length > 1) {
+            for (const altSuffix of possessiveSuffixResult.suffixes.slice(1)) {
+              possessorAlternatives.push(applyPossessiveSuffix(baseGup, altSuffix));
+            }
+          }
+
+          const possessedHasSuffix = answerInfo.appliedSuffix !== undefined && answerInfo.appliedSuffix !== "";
+          if (possessedHasSuffix) {
+            for (const assocSuffix of humanAssocSuffixes) {
+              possessorAlternatives.push(applyHumanAssociativeSuffix(baseGup, assocSuffix));
+            }
+          }
+
+          additionalAnswers.push({
+            baseGup: possessorWithSuffix,
+            rawBaseGup: baseGup,
+            appliedSuffix: possessiveSuffix,
+            isPossessor: true,
+            alternatives: possessorAlternatives.length > 0 ? possessorAlternatives : undefined,
+            sourceWord: answerWord,
+            explanation: `"${answerWord}" (possessor) → ${possessorWithSuffix}`,
+          });
+
+          isPossessorNext = false;
+          continue;
+        }
 
         let finalGup: string;
         let suffix: string | null = null;
@@ -407,6 +509,7 @@ export function detectWithWhatQuestionPattern(
           hasDefiniteArticle: determinerType !== null,
           determinerType,
           isPlural: isPlural || nounIsPlural,
+          isDual,
           isHuman,
           baseExplanation: answerExplanation,
           answerTokens: answerWords,
@@ -452,6 +555,9 @@ export function detectByWhomQuestionPattern(
     questionSkipWords,
     pronounTriggers,
     instrumentalPerson,
+    thisWords,
+    thatWords,
+    dualMarkers,
   } = LANG_CONFIG[mode];
 
   const byWhomTrigger = detectByWhomTrigger(tokens, mode);
@@ -666,6 +772,7 @@ export function detectByWhomQuestionPattern(
   const additionalAnswers: AdditionalAnswer[] = [];
   const answerConsumedIndices: number[] = [];
   const usedAnswerIndices = new Set<number>();
+  let isPossessorNextByWhom = false;
 
   if (questionMarkPos !== -1) {
     const afterQuestion = originalText.slice(questionMarkPos + 1).trim();
@@ -673,6 +780,7 @@ export function detectByWhomQuestionPattern(
       const answerWords = afterQuestion.split(/\s+/);
       let determinerType: "this" | "that" | "definite" | null = null;
       let isPlural = false;
+      let isDual = false;
 
       for (const rawWord of answerWords) {
         const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
@@ -693,6 +801,51 @@ export function detectByWhomQuestionPattern(
           continue;
         }
 
+        if (thisWords.includes(answerWord)) {
+          determinerType = "this";
+          const articleIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (articleIdx !== -1) {
+            consumedIndices.push(articleIdx);
+            usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (thatWords.includes(answerWord)) {
+          determinerType = "that";
+          const articleIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (articleIdx !== -1) {
+            consumedIndices.push(articleIdx);
+            usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (dualMarkers.includes(answerWord)) {
+          isDual = true;
+          const dualIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (dualIdx !== -1) {
+            consumedIndices.push(dualIdx);
+            usedAnswerIndices.add(dualIdx);
+          }
+          continue;
+        }
+
         if (definiteArticles.includes(answerWord)) {
           determinerType = "definite";
           if (pluralArticles.includes(answerWord)) isPlural = true;
@@ -706,6 +859,22 @@ export function detectByWhomQuestionPattern(
             consumedIndices.push(articleIdx);
             usedAnswerIndices.add(articleIdx);
           }
+          continue;
+        }
+
+        const { possessionPreposition: byWhomPossPrep } = LANG_CONFIG[mode];
+        if (answerWord === byWhomPossPrep && answerInfo) {
+          const deIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (deIdx !== -1) {
+            consumedIndices.push(deIdx);
+            usedAnswerIndices.add(deIdx);
+          }
+          isPossessorNextByWhom = true;
           continue;
         }
 
@@ -737,6 +906,41 @@ export function detectByWhomQuestionPattern(
         const nounInfo = findNounInfo(answerWord, mode);
         const baseGup = nounInfo?.gupKey || answerWord;
         const nounIsPlural = nounInfo?.isPlural || false;
+
+        if (isPossessorNextByWhom && answerInfo) {
+          const possessiveSuffixResult = determinePossessiveSuffix(baseGup, mode);
+          const possessiveSuffix = possessiveSuffixResult.suffixes[0];
+          const possessorWithSuffix = applyPossessiveSuffix(baseGup, possessiveSuffix);
+
+          const humanAssocSuffixes = determineHumanAssociativeSuffix(baseGup);
+          const possessorAlternatives: string[] = [];
+
+          if (possessiveSuffixResult.suffixes.length > 1) {
+            for (const altSuffix of possessiveSuffixResult.suffixes.slice(1)) {
+              possessorAlternatives.push(applyPossessiveSuffix(baseGup, altSuffix));
+            }
+          }
+
+          const possessedHasSuffix = answerInfo.appliedSuffix !== undefined && answerInfo.appliedSuffix !== "";
+          if (possessedHasSuffix) {
+            for (const assocSuffix of humanAssocSuffixes) {
+              possessorAlternatives.push(applyHumanAssociativeSuffix(baseGup, assocSuffix));
+            }
+          }
+
+          additionalAnswers.push({
+            baseGup: possessorWithSuffix,
+            rawBaseGup: baseGup,
+            appliedSuffix: possessiveSuffix,
+            isPossessor: true,
+            alternatives: possessorAlternatives.length > 0 ? possessorAlternatives : undefined,
+            sourceWord: answerWord,
+            explanation: `"${answerWord}" (possessor) → ${possessorWithSuffix}`,
+          });
+
+          isPossessorNextByWhom = false;
+          continue;
+        }
 
         const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
         const suffix = humanSuffixes[0];
@@ -770,6 +974,7 @@ export function detectByWhomQuestionPattern(
           hasDefiniteArticle: determinerType !== null,
           determinerType,
           isPlural: isPlural || nounIsPlural,
+          isDual,
           isHuman: true,
           baseExplanation: answerExplanation,
           answerTokens: answerWords,
@@ -816,6 +1021,9 @@ export function detectHowTransportQuestionPattern(
     pronounTriggers,
     instrumentalThing,
     allativeSuffixLabel,
+    thisWords,
+    thatWords,
+    dualMarkers,
   } = LANG_CONFIG[mode];
 
   const howWords = LANG_CONFIG[mode].howWords;
@@ -958,6 +1166,7 @@ export function detectHowTransportQuestionPattern(
   const additionalAnswers: AdditionalAnswer[] = [];
   const answerConsumedIndices: number[] = [];
   const usedAnswerIndices = new Set<number>();
+  let isPossessorNextHow = false;
 
   if (questionMarkPos !== -1) {
     const afterQuestion = originalText.slice(questionMarkPos + 1).trim();
@@ -965,6 +1174,7 @@ export function detectHowTransportQuestionPattern(
       const answerWords = afterQuestion.split(/\s+/);
       let determinerType: "this" | "that" | "definite" | null = null;
       let isPlural = false;
+      let isDual = false;
 
       for (const rawWord of answerWords) {
         const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
@@ -985,6 +1195,51 @@ export function detectHowTransportQuestionPattern(
           continue;
         }
 
+        if (thisWords.includes(answerWord)) {
+          determinerType = "this";
+          const articleIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (articleIdx !== -1) {
+            consumedIndices.push(articleIdx);
+            usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (thatWords.includes(answerWord)) {
+          determinerType = "that";
+          const articleIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (articleIdx !== -1) {
+            consumedIndices.push(articleIdx);
+            usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (dualMarkers.includes(answerWord)) {
+          isDual = true;
+          const dualIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (dualIdx !== -1) {
+            consumedIndices.push(dualIdx);
+            usedAnswerIndices.add(dualIdx);
+          }
+          continue;
+        }
+
         if (definiteArticles.includes(answerWord)) {
           determinerType = "definite";
           if (pluralArticles.includes(answerWord)) isPlural = true;
@@ -998,6 +1253,22 @@ export function detectHowTransportQuestionPattern(
             consumedIndices.push(articleIdx);
             usedAnswerIndices.add(articleIdx);
           }
+          continue;
+        }
+
+        const { possessionPreposition: howPossPrep } = LANG_CONFIG[mode];
+        if (answerWord === howPossPrep && answerInfo) {
+          const deIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (deIdx !== -1) {
+            consumedIndices.push(deIdx);
+            usedAnswerIndices.add(deIdx);
+          }
+          isPossessorNextHow = true;
           continue;
         }
 
@@ -1030,6 +1301,41 @@ export function detectHowTransportQuestionPattern(
         const baseGup = nounInfo?.gupKey || answerWord;
         const nounIsPlural = nounInfo?.isPlural || false;
 
+        if (isPossessorNextHow && answerInfo) {
+          const possessiveSuffixResult = determinePossessiveSuffix(baseGup, mode);
+          const possessiveSuffix = possessiveSuffixResult.suffixes[0];
+          const possessorWithSuffix = applyPossessiveSuffix(baseGup, possessiveSuffix);
+
+          const humanAssocSuffixes = determineHumanAssociativeSuffix(baseGup);
+          const possessorAlternatives: string[] = [];
+
+          if (possessiveSuffixResult.suffixes.length > 1) {
+            for (const altSuffix of possessiveSuffixResult.suffixes.slice(1)) {
+              possessorAlternatives.push(applyPossessiveSuffix(baseGup, altSuffix));
+            }
+          }
+
+          const possessedHasSuffix = answerInfo.appliedSuffix !== undefined && answerInfo.appliedSuffix !== "";
+          if (possessedHasSuffix) {
+            for (const assocSuffix of humanAssocSuffixes) {
+              possessorAlternatives.push(applyHumanAssociativeSuffix(baseGup, assocSuffix));
+            }
+          }
+
+          additionalAnswers.push({
+            baseGup: possessorWithSuffix,
+            rawBaseGup: baseGup,
+            appliedSuffix: possessiveSuffix,
+            isPossessor: true,
+            alternatives: possessorAlternatives.length > 0 ? possessorAlternatives : undefined,
+            sourceWord: answerWord,
+            explanation: `"${answerWord}" (possessor) → ${possessorWithSuffix}`,
+          });
+
+          isPossessorNextHow = false;
+          continue;
+        }
+
         const { suffixed, suffix: instSuffix } = applyErgativeSuffix(baseGup);
         const finalGup = suffixed;
         const suffix = instSuffix || "y";
@@ -1061,6 +1367,7 @@ export function detectHowTransportQuestionPattern(
           hasDefiniteArticle: determinerType !== null,
           determinerType,
           isPlural: isPlural || nounIsPlural,
+          isDual,
           baseExplanation: answerExplanation,
           answerTokens: answerWords,
           suffixType: "none",

@@ -7,6 +7,8 @@ export type QuestionType =
   | "where_from"
   | "what"
   | "what_purpose"
+  | "what_about"
+  | "where_belong"
   | "whom"
   | "to_whom"
   | "whose"
@@ -25,7 +27,7 @@ export interface QuestionMatch {
   explanation: string;
 }
 
-export type AnswerSuffixType = "locative" | "djal" | "allative" | "possessive" | "purpose" | "none";
+export type AnswerSuffixType = "locative" | "djal" | "allative" | "possessive" | "purpose" | "belonging" | "none";
 
 export interface AdditionalAnswer {
   baseGup: string;
@@ -33,6 +35,7 @@ export interface AdditionalAnswer {
   appliedSuffix?: string;
   isHuman?: boolean;
   isPlace?: boolean;
+  isPossessor?: boolean;
   suffixType?: AnswerSuffixType;
   alternatives?: string[];
   sourceWord?: string;
@@ -48,6 +51,7 @@ export interface AnswerInfo {
   hasDefiniteArticle: boolean;
   determinerType: "this" | "that" | "definite" | null;
   isPlural?: boolean;
+  isDual?: boolean;
   isHuman?: boolean;
   isPlace?: boolean;
   baseExplanation: string;

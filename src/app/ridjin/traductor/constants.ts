@@ -218,6 +218,67 @@ export const POSSESSIVE_PRONOUNS_GUP: Record<PersonNumber, string[]> = {
   "3_Plur": ["walalaŋgu", "maṉḏaŋgu"],
 };
 
+export const BELONGING_PRONOUNS_GUP: Record<PersonNumber, string[]> = {
+  "1_Sing": ["ŋarrakalaŋuwuy", "rrakalaŋuwuy"],
+  "2_Sing": ["nhokalaŋuwuy"],
+  "3_Sing": ["nhanukalaŋuwuy"],
+  "1+2_Dual": ["ŋalitjalaŋgalaŋuwuy"],
+  "1+3_Dual": ["ŋilinyalaŋgalaŋuwuy", "linyalaŋgalaŋuwuy", "ŋalinyalaŋgalaŋuwuy"],
+  "2_Dual": ["nhumalaŋgalaŋuwuy"],
+  "3_Dual": ["maṉḏaŋgalaŋuwuy"],
+  "1+2_Plur": ["ŋilimurruŋgalaŋuwuy", "ŋalimurruŋgalaŋuwuy"],
+  "1+3_Plur": ["ŋanapurruŋgalaŋuwuy", "napurruŋgalaŋuwuy"],
+  "2_Plur": ["nhumalaŋgalaŋuwuy"],
+  "3_Plur": ["walalaŋgalaŋuwuy"],
+};
+
+export const BELONGING_PRONOUN_TRIGGERS_ES: Record<string, PersonNumber> = {
+  "mí": "1_Sing",
+  "mi": "1_Sing",
+  "yo": "1_Sing",
+  "ti": "2_Sing",
+  "tú": "2_Sing",
+  "tu": "2_Sing",
+  "él": "3_Sing",
+  "el": "3_Sing",
+  "ella": "3_Sing",
+  "nosotros dos": "1+2_Dual",
+  "nosotras dos": "1+2_Dual",
+  "ustedes dos": "2_Dual",
+  "vosotros dos": "2_Dual",
+  "ellos dos": "3_Dual",
+  "ellas dos": "3_Dual",
+  "nosotros": "1+2_Plur",
+  "nosotras": "1+2_Plur",
+  "ustedes": "2_Plur",
+  "vosotros": "2_Plur",
+  "vosotras": "2_Plur",
+  "ellos": "3_Plur",
+  "ellas": "3_Plur",
+};
+
+export const BELONGING_PRONOUN_TRIGGERS_EN: Record<string, PersonNumber> = {
+  "me": "1_Sing",
+  "myself": "1_Sing",
+  "you": "2_Sing",
+  "yourself": "2_Sing",
+  "him": "3_Sing",
+  "her": "3_Sing",
+  "himself": "3_Sing",
+  "herself": "3_Sing",
+  "us two": "1+2_Dual",
+  "both of us": "1+2_Dual",
+  "you two": "2_Dual",
+  "both of you": "2_Dual",
+  "them two": "3_Dual",
+  "both of them": "3_Dual",
+  "us": "1+2_Plur",
+  "ourselves": "1+2_Plur",
+  "yourselves": "2_Plur",
+  "them": "3_Plur",
+  "themselves": "3_Plur",
+};
+
 export const COMITATIVE_PRONOUN_TRIGGERS_ES: Record<string, PersonNumber> = {
   conmigo: "1_Sing",
   contigo: "2_Sing",
@@ -479,6 +540,8 @@ export type QuestionType =
   | "where_from"
   | "what"
   | "what_purpose"
+  | "what_about"
+  | "where_belong"
   | "whom"
   | "to_whom"
   | "whose"
@@ -1462,6 +1525,9 @@ export const SUBJECT_PRONOUNS_GUP: Record<PersonNumber, string[]> = {
   "2_Plur": ["nhuma"],
   "3_Plur": ["walala"],
 };
+
+
+
 
 export const PRONOUN_TRIGGERS_ES: Record<string, PersonNumber> = {
   yo: "1_Sing",
@@ -2815,6 +2881,8 @@ export interface LanguageConfig {
   sourceOriginPronounsGup: Record<PersonNumber, string[]>;
   purposePronounTriggers: Record<string, PersonNumber>;
   purposePronounsGup: Record<PersonNumber, string[]>;
+  belongingPronounTriggers: Record<string, PersonNumber>;
+  belongingPronounsGup: Record<PersonNumber, string[]>;
   skipWordsWhereTo: string[];
   option: string;
   trad: string;
@@ -2877,6 +2945,10 @@ export interface LanguageConfig {
   instrumentalTriggers: string[];
   instrumentalThing: string;
   instrumentalPerson: string;
+  belongingTriggers: string[];
+  belongingLabel: string;
+  pronounBelonging: string;
+  aboutTriggers: string[];
   transportTriggers: string[];
   vehicles: string[];
   transportLabel: string;
@@ -2937,6 +3009,7 @@ export interface LanguageConfig {
   clitics: string[];
   hasQuestionInversion: boolean;
   whoseCompoundPattern: { preposition: string; words: string[] } | null;
+  possessionPreposition: string;
   hasLessFulSuffixes: boolean;
   miriwWithout: string;
   miriwNoHave: string;
@@ -3009,6 +3082,7 @@ export interface LanguageConfig {
   whyTriggers: string[];
   withWhatTriggers: string[];
   byWhomTriggers: string[];
+  whatAboutTriggers: string[];
   estarBeForms: string[];
   pluralArticles: string[];
   questionSkipWords: string[];
@@ -3041,6 +3115,13 @@ export interface LanguageConfig {
   indirectObjectPrepositions: string[];
   indirectObjectLabel: string;
   disclaimerNote: string;
+  ambiguousIrSerForms: string[];
+  timesTriggers: string[];
+  timesQuantifiers: Record<string, string>;
+  fixedTimesPhrases: Record<string, { gup: string; isQuestion: boolean }>;
+  timesLabel: string;
+  agentNounSuffixes: AgentNounSuffix[];
+  agentNounLabel: string;
 }
 
 export const LOCATIVE_TRIGGERS_ES = [
@@ -3526,6 +3607,80 @@ export const INSTRUMENTAL_TRIGGERS_EN = [
   "via",
 ];
 
+export const BELONGING_TRIGGERS_ES = [
+  "para",
+  "para el",
+  "para la",
+  "para los",
+  "para las",
+  "para un",
+  "para una",
+  "de",
+  "del",
+  "de la",
+  "de los",
+  "de las",
+  "de un",
+  "de una",
+  "sobre",
+  "sobre el",
+  "sobre la",
+  "sobre los",
+  "sobre las",
+  "sobre un",
+  "sobre una",
+  "acerca de",
+  "acerca del",
+  "acerca de la",
+  "acerca de los",
+  "acerca de las",
+];
+
+export const BELONGING_TRIGGERS_EN = [
+  "for",
+  "for the",
+  "for a",
+  "for an",
+  "of",
+  "of the",
+  "of a",
+  "of an",
+  "about",
+  "about the",
+  "about a",
+  "about an",
+  "regarding",
+  "regarding the",
+  "concerning",
+  "concerning the",
+];
+
+export const ABOUT_TRIGGERS_ES = [
+  "sobre",
+  "sobre el",
+  "sobre la",
+  "sobre los",
+  "sobre las",
+  "sobre un",
+  "sobre una",
+  "acerca de",
+  "acerca del",
+  "acerca de la",
+  "acerca de los",
+  "acerca de las",
+];
+
+export const ABOUT_TRIGGERS_EN = [
+  "about",
+  "about the",
+  "about a",
+  "about an",
+  "regarding",
+  "regarding the",
+  "concerning",
+  "concerning the",
+];
+
 export const VEHICLES_ES = [
   "avión",
   "avion",
@@ -3572,9 +3727,9 @@ export const VEHICLES_EN = [
   "jet",
 ];
 
-export const TRANSPORT_TRIGGERS_ES = ["en", "por"];
+export const TRANSPORT_TRIGGERS_ES = ["en", "por", "con"];
 
-export const TRANSPORT_TRIGGERS_EN = ["by", "in", "on"];
+export const TRANSPORT_TRIGGERS_EN = ["by", "in", "on", "with"];
 
 export const DIRECTION_AWAY_TRIGGERS_ES = [
   "hacia allá",
@@ -4374,6 +4529,9 @@ export const WITH_WHAT_TRIGGERS_EN = ["with what"];
 export const BY_WHOM_TRIGGERS_ES = ["por quién", "por quien"];
 export const BY_WHOM_TRIGGERS_EN = ["by whom", "by who"];
 
+export const WHAT_ABOUT_TRIGGERS_ES = ["sobre qué", "qué sobre", "acerca de qué"];
+export const WHAT_ABOUT_TRIGGERS_EN = ["what about", "about what"];
+
 export const ESTAR_FORMS_ES = [
   "está",
   "esta",
@@ -4436,6 +4594,8 @@ export const QUESTION_GUP: Record<
   by_whom: { gup: "yolkala", es: "por quién", en: "by whom", alternatives: ["yolkuwala", "yolkugala"] },
   when: { gup: "wanhami", es: "cuándo", en: "when" },
   why: { gup: "nhäku", es: "por qué", en: "why", alternatives: ["nhaku"] },
+  what_about: { gup: "nhäpuy", es: "sobre qué", en: "what about", alternatives: ["nhäwuy"] },
+  where_belong: { gup: "wanhaŋuwuy", es: "de dónde pertenece", en: "where belong", alternatives: ["wanhaŋupuy"] },
 };
 
 export const HACER_FUTURE_ES: Record<string, PersonNumber> = {
@@ -4601,6 +4761,130 @@ function detectWantKnowEN(tokens: string[]): {
   return null;
 }
 
+export const TIMES_TRIGGERS_ES = ["vez", "veces"];
+export const TIMES_TRIGGERS_EN = ["time", "times"];
+
+export const TIMES_QUANTIFIERS_ES: Record<string, string> = {
+  "una": "waŋgany",
+  "un": "waŋgany",
+  "uno": "waŋgany",
+  "1": "waŋgany",
+  "dos": "märrma'",
+  "2": "märrma'",
+  "tres": "ḻurrkun'",
+  "3": "ḻurrkun'",
+  "cuatro": "dämbu-märrma'",
+  "4": "dämbu-märrma'",
+  "cinco": "dämbu-märrma'-waŋgany",
+  "5": "dämbu-märrma'-waŋgany",
+  "diez": "dämbu-dämbu-märrma'",
+  "10": "dämbu-dämbu-märrma'",
+  "muchas": "dharrwa",
+  "muchos": "dharrwa",
+  "mucho": "dharrwa",
+  "varias": "dharrwa",
+  "varios": "dharrwa",
+  "algunas": "ḻurrkun'",
+  "algunos": "ḻurrkun'",
+  "pocas": "ḻurrkun'",
+  "pocos": "ḻurrkun'",
+  "cuántas": "nhämunha'",
+  "cuantas": "nhämunha'",
+  "cuántos": "nhämunha'",
+  "cuantos": "nhämunha'",
+  "primera": "waŋgany",
+  "primer": "waŋgany",
+  "primero": "waŋgany",
+  "segunda": "märrma'",
+  "segundo": "märrma'",
+  "tercera": "ḻurrkun'",
+  "tercero": "ḻurrkun'",
+};
+
+export const TIMES_QUANTIFIERS_EN: Record<string, string> = {
+  "one": "waŋgany",
+  "a": "waŋgany",
+  "1": "waŋgany",
+  "two": "märrma'",
+  "2": "märrma'",
+  "three": "ḻurrkun'",
+  "3": "ḻurrkun'",
+  "four": "dämbu-märrma'",
+  "4": "dämbu-märrma'",
+  "five": "dämbu-märrma'-waŋgany",
+  "5": "dämbu-märrma'-waŋgany",
+  "ten": "dämbu-dämbu-märrma'",
+  "10": "dämbu-dämbu-märrma'",
+  "many": "dharrwa",
+  "several": "dharrwa",
+  "some": "ḻurrkun'",
+  "few": "ḻurrkun'",
+  "a few": "ḻurrkun'",
+  "how many": "nhämunha'",
+  "first": "waŋgany",
+  "second": "märrma'",
+  "third": "ḻurrkun'",
+};
+
+export const FIXED_TIMES_PHRASES_ES: Record<string, { gup: string; isQuestion: boolean }> = {
+  "a veces": { gup: "ḻurrkun'mirri", isQuestion: false },
+  "algunas veces": { gup: "ḻurrkun'mirri", isQuestion: false },
+  "a menudo": { gup: "dharrwamirri", isQuestion: false },
+  "muchas veces": { gup: "dharrwamirri", isQuestion: false },
+  "varias veces": { gup: "dharrwamirri", isQuestion: false },
+  "una vez": { gup: "waŋganymirri", isQuestion: false },
+  "primera vez": { gup: "waŋganymirri", isQuestion: false },
+  "por primera vez": { gup: "waŋganymirri", isQuestion: false },
+  "dos veces": { gup: "märrma'mirri", isQuestion: false },
+  "segunda vez": { gup: "märrma'mirri", isQuestion: false },
+  "tres veces": { gup: "ḻurrkun'mirri", isQuestion: false },
+  "tercera vez": { gup: "ḻurrkun'mirri", isQuestion: false },
+  "cuántas veces": { gup: "nhämunha'mirri", isQuestion: true },
+  "cuantas veces": { gup: "nhämunha'mirri", isQuestion: true },
+};
+
+export const FIXED_TIMES_PHRASES_EN: Record<string, { gup: string; isQuestion: boolean }> = {
+  "sometimes": { gup: "ḻurrkun'mirri", isQuestion: false },
+  "often": { gup: "dharrwamirri", isQuestion: false },
+  "many times": { gup: "dharrwamirri", isQuestion: false },
+  "several times": { gup: "dharrwamirri", isQuestion: false },
+  "once": { gup: "waŋganymirri", isQuestion: false },
+  "one time": { gup: "waŋganymirri", isQuestion: false },
+  "first time": { gup: "waŋganymirri", isQuestion: false },
+  "for the first time": { gup: "waŋganymirri", isQuestion: false },
+  "twice": { gup: "märrma'mirri", isQuestion: false },
+  "two times": { gup: "märrma'mirri", isQuestion: false },
+  "second time": { gup: "märrma'mirri", isQuestion: false },
+  "three times": { gup: "ḻurrkun'mirri", isQuestion: false },
+  "third time": { gup: "ḻurrkun'mirri", isQuestion: false },
+  "a few times": { gup: "ḻurrkun'mirri", isQuestion: false },
+  "how many times": { gup: "nhämunha'mirri", isQuestion: true },
+};
+
+export interface AgentNounSuffix {
+  suffix: string;
+  verbEnding: string;
+}
+
+export const AGENT_NOUN_SUFFIXES_ES: AgentNounSuffix[] = [
+  { suffix: "adora", verbEnding: "ar" },
+  { suffix: "ador", verbEnding: "ar" },
+  { suffix: "edora", verbEnding: "er" },
+  { suffix: "edor", verbEnding: "er" },
+  { suffix: "idora", verbEnding: "ir" },
+  { suffix: "idor", verbEnding: "ir" },
+  { suffix: "ora", verbEnding: "ar" },
+  { suffix: "or", verbEnding: "ar" },
+  { suffix: "ante", verbEnding: "ar" },
+  { suffix: "ente", verbEnding: "er" },
+  { suffix: "iente", verbEnding: "ir" },
+];
+
+export const AGENT_NOUN_SUFFIXES_EN: AgentNounSuffix[] = [
+  { suffix: "er", verbEnding: "" },
+  { suffix: "or", verbEnding: "" },
+];
+
 export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
   es: {
     pronouns: PRONOUNS_ES,
@@ -4642,6 +4926,8 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     sourceOriginPronounsGup: SOURCE_ORIGIN_PRONOUNS_GUP,
     purposePronounTriggers: PURPOSE_PRONOUN_TRIGGERS_ES,
     purposePronounsGup: POSSESSIVE_PRONOUNS_GUP,
+    belongingPronounTriggers: BELONGING_PRONOUN_TRIGGERS_ES,
+    belongingPronounsGup: BELONGING_PRONOUNS_GUP,
     upPositionTriggers: UP_POSITION_TRIGGERS_ES,
     thereIsPhrases: THERE_IS_PHRASES_ES,
     thereIsNoPhrases: THERE_IS_NO_PHRASES_ES,
@@ -4700,6 +4986,10 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     instrumentalTriggers: INSTRUMENTAL_TRIGGERS_ES,
     instrumentalThing: "instrumental (cosa)",
     instrumentalPerson: "instrumental (persona)",
+    belongingTriggers: BELONGING_TRIGGERS_ES,
+    belongingLabel: "perteneciente a / para",
+    pronounBelonging: "pronombre belonging",
+    aboutTriggers: ABOUT_TRIGGERS_ES,
     transportTriggers: TRANSPORT_TRIGGERS_ES,
     vehicles: VEHICLES_ES,
     transportLabel: "transporte (vehículo)",
@@ -4809,6 +5099,7 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
       preposition: "de",
       words: ["quién", "quien", "quiénes", "quienes"],
     },
+    possessionPreposition: "de",
     skipWordsWho: SKIP_WORDS_WHO_ES,
     hasLessFulSuffixes: false,
     miriwWithout: "sin/no existe → sufijo -miriw",
@@ -4883,6 +5174,7 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     whyTriggers: WHY_TRIGGERS_ES,
     withWhatTriggers: WITH_WHAT_TRIGGERS_ES,
     byWhomTriggers: BY_WHOM_TRIGGERS_ES,
+    whatAboutTriggers: WHAT_ABOUT_TRIGGERS_ES,
     estarBeForms: ESTAR_FORMS_ES,
     pluralArticles: PLURAL_ARTICLES_ES,
     questionSkipWords: QUESTION_SKIP_WORDS_ES,
@@ -4917,6 +5209,13 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     indirectObjectPrepositions: ["a", "para"],
     indirectObjectLabel: "objeto indirecto",
     disclaimerNote: "Ojo: este diccionario aún está en desarrollo. Con el tiempo continuará mejorándose. Las entradas en castellano están verificadas. El inglés y otros idiomas se añadirán gradualmente. Y también, nota que el orden de las palabras en una frase de Gupapuyŋu no está fijo, se puede colocar la palabra que se quiere enfatizar primero.",
+    ambiguousIrSerForms: ["fui", "fuiste", "fue", "fuimos", "fuisteis", "fueron"],
+    timesTriggers: TIMES_TRIGGERS_ES,
+    timesQuantifiers: TIMES_QUANTIFIERS_ES,
+    fixedTimesPhrases: FIXED_TIMES_PHRASES_ES,
+    timesLabel: "veces (-mirri)",
+    agentNounSuffixes: AGENT_NOUN_SUFFIXES_ES,
+    agentNounLabel: "agente (-mirri)",
   },
   en: {
     pronouns: PRONOUNS_EN,
@@ -4952,6 +5251,8 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     sourceOriginPronounsGup: SOURCE_ORIGIN_PRONOUNS_GUP,
     purposePronounTriggers: PURPOSE_PRONOUN_TRIGGERS_EN,
     purposePronounsGup: POSSESSIVE_PRONOUNS_GUP,
+    belongingPronounTriggers: BELONGING_PRONOUN_TRIGGERS_EN,
+    belongingPronounsGup: BELONGING_PRONOUNS_GUP,
     skipWordsWhereTo: SKIP_WORDS_WHERE_TO_EN,
     upPositionTriggers: UP_POSITION_TRIGGERS_EN,
     thereIsPhrases: THERE_IS_PHRASES_EN,
@@ -5015,6 +5316,10 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     instrumentalTriggers: INSTRUMENTAL_TRIGGERS_EN,
     instrumentalThing: "instrumental (thing)",
     instrumentalPerson: "instrumental (person)",
+    belongingTriggers: BELONGING_TRIGGERS_EN,
+    belongingLabel: "belonging to / for",
+    pronounBelonging: "pronoun belonging",
+    aboutTriggers: ABOUT_TRIGGERS_EN,
     transportTriggers: TRANSPORT_TRIGGERS_EN,
     vehicles: VEHICLES_EN,
     transportLabel: "transport (vehicle)",
@@ -5089,6 +5394,7 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     clitics: ["'s", "'ll", "'ve", "'d", "'re", "'m", "n't"],
     hasQuestionInversion: false,
     whoseCompoundPattern: null,
+    possessionPreposition: "of",
     hasLessFulSuffixes: true,
     miriwWithout: "without/doesn't exist → suffix -miriw",
     miriwNoHave: "not have → suffix -miriw",
@@ -5163,6 +5469,7 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     whyTriggers: WHY_TRIGGERS_EN,
     withWhatTriggers: WITH_WHAT_TRIGGERS_EN,
     byWhomTriggers: BY_WHOM_TRIGGERS_EN,
+    whatAboutTriggers: WHAT_ABOUT_TRIGGERS_EN,
     estarBeForms: BE_FORMS_EN,
     pluralArticles: PLURAL_ARTICLES_EN,
     questionSkipWords: QUESTION_SKIP_WORDS_EN,
@@ -5189,5 +5496,12 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     indirectObjectPrepositions: ["to", "for"],
     indirectObjectLabel: "indirect object",
     disclaimerNote: "Note: This dictionary is still in development. It will continue to improve over time. Spanish entries have been verified. English and other languages will be added gradually. Also note that word order in Gupapuyŋu sentences is not fixed, the word you want to emphasize can be placed first.",
+    ambiguousIrSerForms: [],
+    timesTriggers: TIMES_TRIGGERS_EN,
+    timesQuantifiers: TIMES_QUANTIFIERS_EN,
+    fixedTimesPhrases: FIXED_TIMES_PHRASES_EN,
+    timesLabel: "times (-mirri)",
+    agentNounSuffixes: AGENT_NOUN_SUFFIXES_EN,
+    agentNounLabel: "agent noun (-mirri)",
   },
 };

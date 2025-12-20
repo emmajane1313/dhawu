@@ -23,6 +23,7 @@ export default function Ridjin() {
     try {
       const res = translate(inputText, idioma);
       setResult(res);
+      console.log(res.combinations.map((res) => res.output))
     } catch (e) {
       console.error("Error:", e);
       setError("Error al traducir");

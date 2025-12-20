@@ -15,6 +15,7 @@ export interface DefinitePart {
     | "connector"
     | "unknown";
   source: string;
+  sourceWord?: string;
   gup: string;
   baseGup?: string;
   appliedSuffix?: string;
@@ -98,8 +99,9 @@ export function applyDefiniteDemonstratives(
     const matchedParts: { part: DefinitePart; match: DeterminerMatch }[] = [];
 
     for (const part of nounParts) {
+      const matchWord = (part.sourceWord || part.source).toLowerCase();
       const match = determinerMatches.find(
-        (m) => m.nounWord.toLowerCase() === part.source.toLowerCase()
+        (m) => m.nounWord.toLowerCase() === matchWord
       );
       if (match) {
         matchedParts.push({ part, match });

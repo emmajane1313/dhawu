@@ -1,17 +1,18 @@
 import { LanguageMode } from "@/app/components/types/components.type";
-import { QuestionPatternResult, QuestionContext, AnswerInfo, AdditionalAnswer } from "./types";
-import { LANG_CONFIG, QUESTION_GUP, POSSESSIVE_PRONOUNS_GUP, PersonNumber, SUBJECT_PRONOUNS_GUP } from "../../constants";
-import { determinePossessiveSuffix, applyPossessiveSuffix } from "../possession";
-import { findVerbGupWithPerson, findNounGup, VerbMatchWithPerson } from "./questionHelpers";
+import { QuestionPatternResult, QuestionContext, AnswerInfo, AdditionalAnswer, QuestionSubjectInfo } from "./types";
+import { LANG_CONFIG, QUESTION_GUP, PersonNumber, SUBJECT_PRONOUNS_GUP, BELONGING_PRONOUNS_GUP } from "../../constants";
+import { determineBelongingSuffix, applyBelongingSuffix } from "../belonging";
+import { determineHumanAssociativeSuffix, applyHumanAssociativeSuffix } from "../../constants";
+import { findNounGup, findNounInfo } from "./questionHelpers";
 
-function detectWhyTrigger(
+function detectWhatAboutTrigger(
   tokens: string[],
   mode: LanguageMode
 ): { idx: number; length: number } | null {
-  const { whyTriggers } = LANG_CONFIG[mode];
+  const { whatAboutTriggers } = LANG_CONFIG[mode];
   const lowerTokens = tokens.map((t) => t.toLowerCase());
 
-  for (const trigger of whyTriggers) {
+  for (const trigger of whatAboutTriggers) {
     const triggerParts = trigger.split(" ");
     if (triggerParts.length > 1) {
       for (let i = 0; i <= lowerTokens.length - triggerParts.length; i++) {
@@ -36,7 +37,7 @@ function detectWhyTrigger(
   return null;
 }
 
-export function detectWhyQuestionPattern(
+export function detectWhatAboutQuestionPattern(
   ctx: QuestionContext
 ): QuestionPatternResult | null {
   const { tokens, mode, originalText } = ctx;
@@ -47,18 +48,18 @@ export function detectWhyQuestionPattern(
     definiteArticles,
     pluralArticles,
     questionSkipWords,
-    purposePronounTriggers,
     thisWords,
     thatWords,
     dualMarkers,
+    belongingPronounTriggers,
   } = LANG_CONFIG[mode];
 
-  const whyTrigger = detectWhyTrigger(tokens, mode);
-  if (!whyTrigger) return null;
+  const whatAboutTrigger = detectWhatAboutTrigger(tokens, mode);
+  if (!whatAboutTrigger) return null;
 
   const consumedIndices: number[] = [];
-  for (let i = 0; i < whyTrigger.length; i++) {
-    consumedIndices.push(whyTrigger.idx + i);
+  for (let i = 0; i < whatAboutTrigger.length; i++) {
+    consumedIndices.push(whatAboutTrigger.idx + i);
   }
 
   const questionMarkPos = originalText.indexOf("?");
@@ -73,11 +74,11 @@ export function detectWhyQuestionPattern(
     tokensBeforeQuestion = wordsBeforeQuestion.length;
   }
 
-  let verbMatch: VerbMatchWithPerson | null = null;
-  let explicitSubjectGup: string | null = null;
-  let explicitSubjectSource: string | null = null;
+  let subjectGup: string | null = null;
+  let subjectSource: string | null = null;
+  let subjectIsHuman = false;
   const { pronounTriggers } = LANG_CONFIG[mode];
-  const startIdx = whyTrigger.idx + whyTrigger.length;
+  const startIdx = whatAboutTrigger.idx + whatAboutTrigger.length;
 
   for (let i = startIdx; i < tokensBeforeQuestion; i++) {
     const word = lowerTokens[i];
@@ -92,64 +93,40 @@ export function detectWhyQuestionPattern(
     }
 
     const pronounPersonNumber = pronounTriggers?.[word] as PersonNumber | undefined;
-    if (pronounPersonNumber && !explicitSubjectGup) {
+    if (pronounPersonNumber && !subjectGup) {
       const pronounForms = SUBJECT_PRONOUNS_GUP[pronounPersonNumber];
-      explicitSubjectGup = pronounForms[0];
-      explicitSubjectSource = tokens[i];
+      subjectGup = pronounForms[0];
+      subjectSource = tokens[i];
+      subjectIsHuman = true;
       consumedIndices.push(i);
       continue;
     }
 
-    const verb = findVerbGupWithPerson(word, mode);
-    if (verb) {
-      verbMatch = verb;
+    if (!subjectGup) {
+      const nounInfo = findNounInfo(word, mode);
+      if (nounInfo) {
+        subjectGup = nounInfo.gupKey;
+        subjectSource = tokens[i];
+        subjectIsHuman = nounInfo.isHuman || false;
+      } else {
+        subjectGup = findNounGup(word, mode) || word;
+        subjectSource = tokens[i];
+      }
       consumedIndices.push(i);
       break;
     }
-
-    if (!explicitSubjectGup) {
-      const nounGup = findNounGup(word, mode);
-      if (nounGup) {
-        explicitSubjectGup = nounGup;
-        explicitSubjectSource = tokens[i];
-      } else {
-        explicitSubjectGup = word;
-        explicitSubjectSource = tokens[i];
-      }
-      consumedIndices.push(i);
-      continue;
-    }
   }
 
-  let subjectGup: string | null = explicitSubjectGup;
-  let subjectSource: string | null = explicitSubjectSource;
-  let impliedPersonNumber: PersonNumber | null = null;
-
-  if (!subjectGup && verbMatch?.personNumber) {
-    impliedPersonNumber = verbMatch.personNumber;
-    const pronounForms = SUBJECT_PRONOUNS_GUP[impliedPersonNumber];
-    subjectGup = pronounForms[0];
-    subjectSource = "[implied from verb]";
-  }
-
-  const whyInfo = QUESTION_GUP.why;
-  const gupParts = [whyInfo.gup];
+  const whatAboutInfo = QUESTION_GUP.what_about;
+  const gupParts = [whatAboutInfo.gup];
   if (subjectGup) {
     gupParts.push(subjectGup);
   }
-  if (verbMatch) {
-    gupParts.push(verbMatch.gup);
-  }
   gupParts.push("?");
 
-  let explanation = `${tokens[whyTrigger.idx]} → ${whyInfo.gup} (${whyInfo[mode]})`;
-  if (subjectSource && subjectSource !== "[implied from verb]") {
+  let explanation = `${tokens[whatAboutTrigger.idx]} → ${whatAboutInfo.gup} (${whatAboutInfo[mode]})`;
+  if (subjectSource) {
     explanation += `, ${subjectSource} → ${subjectGup}`;
-  } else if (subjectSource === "[implied from verb]" && impliedPersonNumber) {
-    explanation += `, Sujeto implícito por conjugación → ${subjectGup}`;
-  }
-  if (verbMatch) {
-    explanation += `, ${verbMatch.source} → ${verbMatch.gup}`;
   }
 
   let answerInfo: AnswerInfo | undefined;
@@ -271,29 +248,81 @@ export function detectWhyQuestionPattern(
           usedAnswerIndices.add(answerIdx);
         }
 
-        const personNumber = purposePronounTriggers?.[answerWord] as PersonNumber | undefined;
+        const belongingPersonNumber = belongingPronounTriggers?.[answerWord] as PersonNumber | undefined;
+        if (belongingPersonNumber) {
+          const pronounForms = BELONGING_PRONOUNS_GUP[belongingPersonNumber];
+          const finalGup = pronounForms[0];
+          const alternatives = pronounForms.length > 1 ? pronounForms.slice(1) : undefined;
+
+          if (answerInfo) {
+            additionalAnswers.push({
+              baseGup: finalGup,
+              rawBaseGup: finalGup,
+              suffixType: "belonging",
+              isHuman: true,
+              alternatives,
+              sourceWord: answerWord,
+              explanation: `${answerWord} → ${finalGup} (${LANG_CONFIG[mode].pronounBelonging})`,
+            });
+            continue;
+          }
+
+          answerExplanation = `${answerWord} → ${finalGup} (${LANG_CONFIG[mode].pronounBelonging})`;
+          answerInfo = {
+            baseGup: finalGup,
+            rawBaseGup: finalGup,
+            alternatives,
+            hasDefiniteArticle: determinerType !== null,
+            determinerType,
+            isPlural,
+            isDual,
+            isHuman: true,
+            baseExplanation: answerExplanation,
+            answerTokens: answerWords,
+            suffixType: "belonging",
+          };
+          continue;
+        }
+
+        const nounInfo = findNounInfo(answerWord, mode);
+
+        const baseGup = nounInfo?.gupKey || findNounGup(answerWord, mode) || answerWord;
+        const isHuman = nounInfo?.isHuman || false;
+        const nounIsPlural = nounInfo?.isPlural || false;
 
         let finalGup: string;
-        let baseGup: string;
-        let suffix: string | null = null;
-        let isPronoun = false;
+        let suffix: string;
         let allSuffixes: string[] | undefined;
-        let allPronounForms: string[] | undefined;
 
-        if (personNumber) {
-          const pronounForms = POSSESSIVE_PRONOUNS_GUP[personNumber];
-          finalGup = pronounForms[0];
-          baseGup = finalGup;
-          isPronoun = true;
-          if (pronounForms.length > 1) {
-            allPronounForms = pronounForms;
+        if (isHuman) {
+          const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
+          const humanSuffix = humanSuffixes[0];
+          const humanGup = applyHumanAssociativeSuffix(baseGup, humanSuffix);
+          const humanGupWithNgu = humanGup + "ŋu";
+          const belongingResult = determineBelongingSuffix(humanGupWithNgu, mode);
+          const belongingSuffix = belongingResult.suffixes[0];
+          finalGup = applyBelongingSuffix(humanGupWithNgu, belongingSuffix);
+          suffix = humanSuffix + "ŋu" + belongingSuffix;
+
+          const alternatives: string[] = [];
+          for (const hs of humanSuffixes) {
+            const hGup = applyHumanAssociativeSuffix(baseGup, hs);
+            const hGupNgu = hGup + "ŋu";
+            const bResult = determineBelongingSuffix(hGupNgu, mode);
+            for (const bs of bResult.suffixes) {
+              const altGup = applyBelongingSuffix(hGupNgu, bs);
+              if (altGup !== finalGup) {
+                alternatives.push(altGup);
+              }
+            }
+          }
+          if (alternatives.length > 0) {
+            allSuffixes = [suffix, ...alternatives.map((_, i) => `alt${i}`)];
           }
         } else {
-          const nounGup = findNounGup(answerWord, mode);
-          baseGup = nounGup || answerWord;
-          const suffixResult = determinePossessiveSuffix(baseGup, mode);
+          const suffixResult = determineBelongingSuffix(baseGup, mode);
           const suffixes = suffixResult.suffixes;
-          finalGup = applyPossessiveSuffix(baseGup, suffixes[0]);
+          finalGup = applyBelongingSuffix(baseGup, suffixes[0]);
           suffix = suffixes[0];
           if (suffixes.length > 1) {
             allSuffixes = suffixes;
@@ -301,48 +330,40 @@ export function detectWhyQuestionPattern(
         }
 
         if (answerInfo) {
-          const addExplanation = isPronoun
-            ? `${answerWord} → ${finalGup} (${LANG_CONFIG[mode].pronounPurpose})`
-            : `${baseGup} + -${suffix} = ${finalGup} (${LANG_CONFIG[mode].purpose})`;
+          const addExplanation = `${baseGup} + -${suffix} = ${finalGup} (${LANG_CONFIG[mode].belongingLabel})`;
           additionalAnswers.push({
             baseGup: finalGup,
             rawBaseGup: baseGup,
-            appliedSuffix: suffix || undefined,
-            suffixType: "purpose",
-            alternatives: isPronoun && allPronounForms && allPronounForms.length > 1
-              ? allPronounForms.slice(1)
-              : allSuffixes && allSuffixes.length > 1
-                ? allSuffixes.slice(1).map((s) => applyPossessiveSuffix(baseGup, s as "wa" | "wu" | "ku" | "gu"))
-                : undefined,
+            appliedSuffix: suffix,
+            suffixType: "belonging",
+            isHuman,
+            alternatives: allSuffixes && allSuffixes.length > 1
+              ? allSuffixes.slice(1).map((s) => applyBelongingSuffix(baseGup, s as "buy" | "puy" | "wuy"))
+              : undefined,
             sourceWord: answerWord,
             explanation: addExplanation,
           });
           continue;
         }
 
-        answerExplanation = isPronoun
-          ? `${answerWord} → ${finalGup} (${LANG_CONFIG[mode].pronounPurpose})`
-          : suffix
-            ? `${baseGup} + -${suffix} = ${finalGup} (${LANG_CONFIG[mode].purpose})`
-            : `${baseGup} (${LANG_CONFIG[mode].purpose})`;
+        answerExplanation = `${baseGup} + -${suffix} = ${finalGup} (${LANG_CONFIG[mode].belongingLabel})`;
 
         answerInfo = {
           baseGup: finalGup,
           rawBaseGup: baseGup,
-          appliedSuffix: suffix || undefined,
+          appliedSuffix: suffix,
           allSuffixes,
-          alternatives: isPronoun && allPronounForms && allPronounForms.length > 1
-            ? allPronounForms.slice(1)
-            : allSuffixes && allSuffixes.length > 1
-              ? allSuffixes.slice(1).map((s) => applyPossessiveSuffix(baseGup, s as "wa" | "wu" | "ku" | "gu"))
-              : undefined,
+          alternatives: allSuffixes && allSuffixes.length > 1
+            ? allSuffixes.slice(1).map((s) => applyBelongingSuffix(baseGup, s as "buy" | "puy" | "wuy"))
+            : undefined,
           hasDefiniteArticle: determinerType !== null,
           determinerType,
-          isPlural,
+          isPlural: isPlural || nounIsPlural,
           isDual,
+          isHuman,
           baseExplanation: answerExplanation,
           answerTokens: answerWords,
-          suffixType: "purpose",
+          suffixType: "belonging",
         };
       }
 
@@ -358,13 +379,24 @@ export function detectWhyQuestionPattern(
     }
   }
 
+  let subjectInfo: QuestionSubjectInfo | undefined;
+  if (subjectGup && subjectSource) {
+    subjectInfo = {
+      gup: subjectGup,
+      source: subjectSource,
+      isHuman: subjectIsHuman,
+    };
+  }
+
   return {
     detected: true,
-    questionType: "why",
+    questionType: "what_about",
     gupOutput: gupParts.join(" "),
     explanation,
     consumedIndices,
     answerInfo,
+    hasExplicitSubject: !!subjectGup,
+    subjectInfo,
     isComplexPattern: true,
   };
 }

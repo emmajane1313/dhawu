@@ -275,7 +275,20 @@ function findMultiWordNounMatch(
 ): MultiWordNounMatch | null {
   const { pluralKey } = LANG_CONFIG[mode];
 
-  for (let len = Math.min(4, words.length - startIndex); len >= 2; len--) {
+  let maxLen = 0;
+  for (let j = startIndex; j < words.length; j++) {
+    const w = words[j];
+    if (
+      isConnector(w, mode) ||
+      isPronoun(w, mode) ||
+      isCopulaVerb(w, mode) ||
+      tryMatchVerb(normalizeToken(w), mode) !== null ||
+      LANG_CONFIG[mode].definiteArticles.includes(normalizeToken(w))
+    ) break;
+    maxLen++;
+  }
+
+  for (let len = maxLen; len >= 2; len--) {
     const phrase = words.slice(startIndex, startIndex + len).join(" ");
     const normalized = phrase.toLowerCase();
 
@@ -486,7 +499,66 @@ function classifyToken(word: string, mode: LanguageMode): Token {
     };
   }
 
+  const agentNounResult = detectAgentNounInTokenizer(word, mode);
+  if (agentNounResult) {
+    return {
+      original: word,
+      normalized,
+      type: "noun",
+      gupKey: agentNounResult.agentGup,
+      nounMatch: { gupKey: agentNounResult.agentGup, isPlural: false, isHuman: true },
+    };
+  }
+
   return { original: word, normalized, type: "unknown" };
+}
+
+function detectAgentNounInTokenizer(
+  word: string,
+  mode: LanguageMode
+): { agentGup: string; verbGup: string } | null {
+  const config = LANG_CONFIG[mode];
+  const { agentNounSuffixes } = config;
+  const wordLower = word.toLowerCase();
+
+  const sortedSuffixes = [...agentNounSuffixes].sort(
+    (a, b) => b.suffix.length - a.suffix.length
+  );
+
+  for (const suffixInfo of sortedSuffixes) {
+    if (wordLower.endsWith(suffixInfo.suffix)) {
+      const stem = wordLower.slice(0, -suffixInfo.suffix.length);
+      if (stem.length < 2) continue;
+
+      const derivedVerb = stem + suffixInfo.verbEnding;
+      const stemOnly = stem;
+
+      for (const entry of Object.values(LEXICON.verbs)) {
+        const verbForms = mode === "es" ? entry.es : entry.en;
+        for (const form of verbForms) {
+          const infinitiveLower = form.infinitive.toLowerCase();
+          if (
+            infinitiveLower === derivedVerb ||
+            infinitiveLower === stemOnly ||
+            infinitiveLower === stemOnly + "e"
+          ) {
+            const baseGup = entry.forms[3];
+            return {
+              agentGup: baseGup + "mirri",
+              verbGup: baseGup,
+            };
+          }
+        }
+      }
+
+      return {
+        agentGup: derivedVerb + "mirri",
+        verbGup: derivedVerb,
+      };
+    }
+  }
+
+  return null;
 }
 
 function splitIntoWords(text: string): string[] {

@@ -17,7 +17,9 @@ import {
   LocativeVerbType,
   LOCATIVE_VERBS,
   QUESTION_GUP,
+  AgentNounSuffix,
 } from "./constants";
+import { LEXICON } from "./lexicon";
 import {
   detectQuestionPattern as detectQuestionPatternFromRules,
   AnswerInfo,
@@ -104,6 +106,31 @@ export interface InstrumentalMatch {
   explanation: string;
 }
 
+export interface BelongingMatch {
+  triggerPhrase: string;
+  triggerIndices: number[];
+  belongsToNounIndices: number[];
+  mainNounIndices: number[];
+  explanation: string;
+  isAboutTrigger: boolean;
+  isPronoun?: boolean;
+  pronounPersonNumber?: PersonNumber;
+  pronounWord?: string;
+}
+
+export interface TimesMatch {
+  quantifierWord: string;
+  quantifierIndex: number;
+  timesWord: string;
+  timesIndex: number;
+  consumedIndices: number[];
+  gupBase: string;
+  gupWithMirri: string;
+  explanation: string;
+  isQuestion: boolean;
+  isFixedPhrase: boolean;
+}
+
 export interface TransportMatch {
   triggerPhrase: string;
   triggerIndices: number[];
@@ -173,7 +200,9 @@ export interface QuestionMatch {
     | "when"
     | "why"
     | "with_what"
-    | "by_whom";
+    | "by_whom"
+    | "what_about"
+    | "where_belong";
   questionWordIndex: number;
   questionWordEndIndex?: number;
   gup: string;
@@ -208,6 +237,7 @@ export interface FraseContext {
   locativeMatch: LocativeMatch | null;
   conWithMatch: ConWithMatch | null;
   instrumentalMatch: InstrumentalMatch | null;
+  belongingMatch: BelongingMatch | null;
   transportMatch: TransportMatch | null;
   comitativePronounMatch: ComitativePronounMatch | null;
   humanAllativePronounMatch: HumanAllativePronounMatch | null;
@@ -1025,17 +1055,26 @@ export function analyzeFraseContext(
   const humanAblativePronounMatch = humanAllativePronounMatch
     ? null
     : detectHumanAblativePronounPattern(tokens, mode);
-  const sourceOriginPronounMatch = humanAllativePronounMatch || humanAblativePronounMatch
-    ? null
-    : detectSourceOriginPronounPattern(tokens, mode);
-  const purposePronounMatch = humanAllativePronounMatch || humanAblativePronounMatch || sourceOriginPronounMatch
-    ? null
-    : detectPurposePronounPattern(tokens, mode);
-  const comitativePronounMatch = humanAllativePronounMatch || humanAblativePronounMatch || sourceOriginPronounMatch || purposePronounMatch
-    ? null
-    : detectComitativePronounPattern(tokens, mode);
+  const sourceOriginPronounMatch =
+    humanAllativePronounMatch || humanAblativePronounMatch
+      ? null
+      : detectSourceOriginPronounPattern(tokens, mode);
+  const purposePronounMatch =
+    humanAllativePronounMatch ||
+    humanAblativePronounMatch ||
+    sourceOriginPronounMatch
+      ? null
+      : detectPurposePronounPattern(tokens, mode);
+  const comitativePronounMatch =
+    humanAllativePronounMatch ||
+    humanAblativePronounMatch ||
+    sourceOriginPronounMatch ||
+    purposePronounMatch
+      ? null
+      : detectComitativePronounPattern(tokens, mode);
   const conWithMatch = detectConWithPattern(tokens, mode);
   const instrumentalMatch = detectInstrumentalPattern(tokens, mode);
+  const belongingMatch = detectBelongingPattern(tokens, mode);
   const transportMatch = detectTransportPattern(tokens, mode);
   const locativeCopulaMatch = detectLocativeCopulaPattern(
     tokens,
@@ -1061,6 +1100,7 @@ export function analyzeFraseContext(
     locativeMatch,
     conWithMatch,
     instrumentalMatch,
+    belongingMatch,
     transportMatch,
     comitativePronounMatch,
     humanAllativePronounMatch,
@@ -1258,6 +1298,114 @@ export function detectInstrumentalPattern(
   return null;
 }
 
+export function detectBelongingPattern(
+  tokens: Token[],
+  mode: LanguageMode
+): BelongingMatch | null {
+  const config = LANG_CONFIG[mode];
+  const {
+    belongingTriggers,
+    aboutTriggers,
+    purposePronounTriggers,
+    possessiveOfDeTriggers,
+    belongingPronounTriggers,
+  } = config;
+
+  const sortedTriggers = [...belongingTriggers].sort(
+    (a, b) => b.split(" ").length - a.split(" ").length
+  );
+
+  for (const trigger of sortedTriggers) {
+    const result = hasPhrase(tokens, trigger);
+    if (result.found) {
+      const triggerIdx = result.indices[0];
+      const lastTriggerIdx = Math.max(...result.indices);
+
+      const nextIdx = lastTriggerIdx + 1;
+      if (nextIdx >= tokens.length) continue;
+
+      const nextToken = tokens[nextIdx];
+      const nextWord = nextToken.original.toLowerCase();
+
+      const belongingPronounPN = belongingPronounTriggers?.[nextWord] as PersonNumber | undefined;
+      if (belongingPronounPN) {
+        const isAboutTrigger = aboutTriggers.some(
+          (t) => t.toLowerCase() === trigger.toLowerCase()
+        );
+        return {
+          triggerPhrase: trigger,
+          triggerIndices: result.indices,
+          belongsToNounIndices: [nextIdx],
+          mainNounIndices: triggerIdx > 0 ? [triggerIdx - 1] : [],
+          explanation: `"${trigger}" + ${nextWord} → ${config.pronounBelonging}`,
+          isAboutTrigger,
+          isPronoun: true,
+          pronounPersonNumber: belongingPronounPN,
+          pronounWord: nextWord,
+        };
+      }
+
+      const isPronoun = !!(
+        purposePronounTriggers?.[nextWord] ||
+        possessiveOfDeTriggers?.[nextWord] ||
+        config.pronouns.includes(nextWord)
+      );
+      if (isPronoun) continue;
+
+      const isNextNounLike =
+        nextToken.type === "noun" ||
+        nextToken.type === "unknown" ||
+        nextToken.type === "adjective";
+
+      if (!isNextNounLike) continue;
+
+      if (triggerIdx > 0) {
+        const prevToken = tokens[triggerIdx - 1];
+        const isPrevNounLike =
+          prevToken.type === "noun" ||
+          prevToken.type === "unknown" ||
+          prevToken.type === "adjective";
+
+        if (!isPrevNounLike) continue;
+
+        const belongsToNounIndices: number[] = [nextIdx];
+        const mainNounIndices: number[] = [triggerIdx - 1];
+
+        const isAboutTrigger = aboutTriggers.some(
+          (t) => t.toLowerCase() === trigger.toLowerCase()
+        );
+
+        return {
+          triggerPhrase: trigger,
+          triggerIndices: result.indices,
+          belongsToNounIndices,
+          mainNounIndices,
+          explanation: `"${trigger}" → ${config.belongingLabel}`,
+          isAboutTrigger,
+        };
+      } else {
+        const belongsToNounIndices: number[] = [nextIdx];
+        const mainNounIndices: number[] = [];
+
+        const isAboutTrigger = aboutTriggers.some(
+          (t) => t.toLowerCase() === trigger.toLowerCase()
+        );
+
+        return {
+          triggerPhrase: trigger,
+          triggerIndices: result.indices,
+          belongsToNounIndices,
+          mainNounIndices,
+          explanation: `"${trigger}" → ${config.belongingLabel}`,
+          isAboutTrigger,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
 export function detectTransportPattern(
   tokens: Token[],
   mode: LanguageMode
@@ -1277,9 +1425,20 @@ export function detectTransportPattern(
       const nounIndices: number[] = [];
       let isKnownVehicle = false;
 
+      const { definiteArticles, pluralArticles } = config;
+      const allArticles = new Set([...definiteArticles, ...pluralArticles]);
+
       for (let j = i + 1; j < tokens.length; j++) {
         const t = tokens[j];
-        if (t.type === "noun" || t.type === "unknown" || t.type === "adjective") {
+        const tLower = t.original.toLowerCase();
+        if (allArticles.has(tLower)) {
+          continue;
+        }
+        if (
+          t.type === "noun" ||
+          t.type === "unknown" ||
+          t.type === "adjective"
+        ) {
           nounIndices.push(j);
           const nounLower = t.original.toLowerCase();
           if (vehicles.includes(nounLower)) {
@@ -1300,7 +1459,9 @@ export function detectTransportPattern(
           nounIndices,
           isKnownVehicle,
           hasMovementVerb,
-          explanation: `"${lower}" + ${isKnownVehicle ? config.transportLabel : config.transportOption}`,
+          explanation: `"${lower}" + ${
+            isKnownVehicle ? config.transportLabel : config.transportOption
+          }`,
         };
       }
     }
@@ -1309,11 +1470,14 @@ export function detectTransportPattern(
   return null;
 }
 
-const PRONOUN_PATTERN_CONFIG: Record<PronounPatternType, {
-  triggersKey: keyof typeof LANG_CONFIG.es;
-  gupKey: keyof typeof LANG_CONFIG.es;
-  label: string;
-}> = {
+const PRONOUN_PATTERN_CONFIG: Record<
+  PronounPatternType,
+  {
+    triggersKey: keyof typeof LANG_CONFIG.es;
+    gupKey: keyof typeof LANG_CONFIG.es;
+    label: string;
+  }
+> = {
   comitative: {
     triggersKey: "comitativePronounTriggers",
     gupKey: "comitativePronounsGup",
@@ -1342,7 +1506,10 @@ const PRONOUN_PATTERN_CONFIG: Record<PronounPatternType, {
 };
 
 function normalizeText(str: string): string {
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
 
 export function detectPronounPattern(
@@ -1383,13 +1550,17 @@ export function detectPronounPattern(
           }
         }
         if (matches) {
-          const lastTriggerWord = triggerWords[triggerWords.length - 1].toLowerCase();
+          const lastTriggerWord =
+            triggerWords[triggerWords.length - 1].toLowerCase();
           const nextTokenIdx = i + triggerWords.length;
           const nextToken = tokens[nextTokenIdx];
 
           const normalizedLastWord = normalizeText(lastTriggerWord);
-          if (normalizedLastWord === "el" && nextToken &&
-              (nextToken.type === "noun" || nextToken.type === "unknown")) {
+          if (
+            normalizedLastWord === "el" &&
+            nextToken &&
+            (nextToken.type === "noun" || nextToken.type === "unknown")
+          ) {
             continue;
           }
 
@@ -1650,7 +1821,11 @@ export function detectIndirectObjectPattern(
   mode: LanguageMode
 ): IndirectObjectMatch | null {
   const config = LANG_CONFIG[mode];
-  const { indirectObjectClitics, indirectObjectPrepositions, indirectObjectLabel } = config;
+  const {
+    indirectObjectClitics,
+    indirectObjectPrepositions,
+    indirectObjectLabel,
+  } = config;
 
   const verbIdx = tokens.findIndex((t) => t.type === "verb");
   if (verbIdx === -1) return null;
@@ -1686,7 +1861,8 @@ export function detectIndirectObjectPattern(
         nextToken.type === "unknown"
       ) {
         const nextWordLower = nextToken.original.toLowerCase();
-        let personNumber: PersonNumber | null = config.pronounTriggers[nextWordLower] || null;
+        let personNumber: PersonNumber | null =
+          config.pronounTriggers[nextWordLower] || null;
 
         if (!personNumber && config.objectPronounTriggers) {
           const objTypes = config.objectPronounTriggers[nextWordLower];
@@ -1705,6 +1881,200 @@ export function detectIndirectObjectPattern(
           explanation: `"${tokens[i].original} ${nextToken.original}" → ${indirectObjectLabel}`,
         };
       }
+    }
+  }
+
+  return null;
+}
+
+export function detectTimesPattern(
+  tokens: Token[],
+  mode: LanguageMode
+): TimesMatch | null {
+  const config = LANG_CONFIG[mode];
+  const { timesTriggers, timesQuantifiers, fixedTimesPhrases, timesLabel } = config;
+  const lowerTokens = tokens.map((t) => t.original.toLowerCase());
+
+  const sortedPhrases = Object.keys(fixedTimesPhrases).sort(
+    (a, b) => b.split(" ").length - a.split(" ").length
+  );
+
+  for (const phrase of sortedPhrases) {
+    const phraseWords = phrase.split(" ");
+    for (let i = 0; i <= lowerTokens.length - phraseWords.length; i++) {
+      let matches = true;
+      for (let j = 0; j < phraseWords.length; j++) {
+        if (lowerTokens[i + j] !== phraseWords[j]) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches) {
+        const fixedInfo = fixedTimesPhrases[phrase];
+        const consumedIndices: number[] = [];
+        for (let j = 0; j < phraseWords.length; j++) {
+          consumedIndices.push(i + j);
+        }
+        const sourcePhrase = tokens
+          .slice(i, i + phraseWords.length)
+          .map((t) => t.original)
+          .join(" ");
+
+        return {
+          quantifierWord: sourcePhrase,
+          quantifierIndex: i,
+          timesWord: sourcePhrase,
+          timesIndex: i + phraseWords.length - 1,
+          consumedIndices,
+          gupBase: fixedInfo.gup.replace(/mirri$/, ""),
+          gupWithMirri: fixedInfo.gup,
+          explanation: `${sourcePhrase} → ${fixedInfo.gup} (${timesLabel})`,
+          isQuestion: fixedInfo.isQuestion,
+          isFixedPhrase: true,
+        };
+      }
+    }
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    const word = lowerTokens[i];
+
+    if (timesTriggers.includes(word)) {
+      if (i > 0) {
+        const prevWord = lowerTokens[i - 1];
+        const gupBase = timesQuantifiers[prevWord];
+
+        if (gupBase) {
+          const gupWithMirri = gupBase + "mirri";
+          const isQuestion = prevWord.startsWith("cuánt") ||
+                            prevWord.startsWith("cuant") ||
+                            prevWord === "how many" ||
+                            prevWord.includes("nhämunha");
+
+          return {
+            quantifierWord: tokens[i - 1].original,
+            quantifierIndex: i - 1,
+            timesWord: tokens[i].original,
+            timesIndex: i,
+            consumedIndices: [i - 1, i],
+            gupBase,
+            gupWithMirri,
+            explanation: `${tokens[i - 1].original} ${tokens[i].original} → ${gupWithMirri} (${timesLabel})`,
+            isQuestion,
+            isFixedPhrase: false,
+          };
+        }
+
+        const unknownGup = prevWord + "mirri";
+        return {
+          quantifierWord: tokens[i - 1].original,
+          quantifierIndex: i - 1,
+          timesWord: tokens[i].original,
+          timesIndex: i,
+          consumedIndices: [i - 1, i],
+          gupBase: prevWord,
+          gupWithMirri: unknownGup,
+          explanation: `${tokens[i - 1].original} ${tokens[i].original} → ${unknownGup} (${timesLabel})`,
+          isQuestion: false,
+          isFixedPhrase: false,
+        };
+      }
+    }
+  }
+
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const word = lowerTokens[i];
+    const nextWord = lowerTokens[i + 1];
+    const twoWordPhrase = `${word} ${nextWord}`;
+
+    if (timesQuantifiers[twoWordPhrase]) {
+      const gupBase = timesQuantifiers[twoWordPhrase];
+
+      for (let j = i + 2; j < tokens.length; j++) {
+        if (timesTriggers.includes(lowerTokens[j])) {
+          const gupWithMirri = gupBase + "mirri";
+          const isQuestion = twoWordPhrase === "how many" ||
+                            twoWordPhrase.startsWith("cuánt") ||
+                            twoWordPhrase.startsWith("cuant");
+
+          return {
+            quantifierWord: `${tokens[i].original} ${tokens[i + 1].original}`,
+            quantifierIndex: i,
+            timesWord: tokens[j].original,
+            timesIndex: j,
+            consumedIndices: [i, i + 1, j],
+            gupBase,
+            gupWithMirri,
+            explanation: `${tokens[i].original} ${tokens[i + 1].original} ${tokens[j].original} → ${gupWithMirri} (${timesLabel})`,
+            isQuestion,
+            isFixedPhrase: false,
+          };
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+export interface AgentNounMatch {
+  originalWord: string;
+  derivedVerb: string;
+  verbGup: string;
+  agentGup: string;
+  explanation: string;
+}
+
+export function detectAgentNoun(
+  word: string,
+  mode: LanguageMode
+): AgentNounMatch | null {
+  const config = LANG_CONFIG[mode];
+  const { agentNounSuffixes, agentNounLabel } = config;
+  const wordLower = word.toLowerCase();
+
+  const sortedSuffixes = [...agentNounSuffixes].sort(
+    (a, b) => b.suffix.length - a.suffix.length
+  );
+
+  for (const suffixInfo of sortedSuffixes) {
+    if (wordLower.endsWith(suffixInfo.suffix)) {
+      const stem = wordLower.slice(0, -suffixInfo.suffix.length);
+      if (stem.length < 2) continue;
+
+      const derivedVerb = stem + suffixInfo.verbEnding;
+      const stemOnly = stem;
+
+      for (const entry of Object.values(LEXICON.verbs)) {
+        const verbForms = mode === "es" ? entry.es : entry.en;
+        for (const form of verbForms) {
+          const infinitiveLower = form.infinitive.toLowerCase();
+          if (
+            infinitiveLower === derivedVerb ||
+            infinitiveLower === stemOnly ||
+            infinitiveLower === stemOnly + "e"
+          ) {
+            const baseGup = entry.forms[3];
+            const agentGup = baseGup + "mirri";
+            return {
+              originalWord: word,
+              derivedVerb: form.infinitive,
+              verbGup: baseGup,
+              agentGup,
+              explanation: `${word} → ${form.infinitive} → ${baseGup} + -mirri = ${agentGup} (${agentNounLabel})`,
+            };
+          }
+        }
+      }
+
+      const fallbackGup = derivedVerb + "mirri";
+      return {
+        originalWord: word,
+        derivedVerb,
+        verbGup: derivedVerb,
+        agentGup: fallbackGup,
+        explanation: `${word} → ${derivedVerb} → ${fallbackGup} (${agentNounLabel})`,
+      };
     }
   }
 

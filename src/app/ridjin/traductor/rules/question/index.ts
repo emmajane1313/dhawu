@@ -17,6 +17,7 @@ import { detectWantKnowPattern } from "./wantKnowPattern";
 import { detectWhyQuestionPattern } from "./whyPattern";
 import { detectWhomForQuestionPattern } from "./whomForPattern";
 import { detectWithWhatQuestionPattern, detectByWhomQuestionPattern, detectHowTransportQuestionPattern } from "./withWhatPattern";
+import { detectWhatAboutQuestionPattern } from "./whatAboutPattern";
 
 export type { QuestionType, QuestionMatch, QuestionPatternResult, QuestionContext, AnswerInfo };
 export { detectWhereQuestionPattern } from "./wherePattern";
@@ -29,6 +30,7 @@ export { detectWantKnowPattern } from "./wantKnowPattern";
 export { detectWhyQuestionPattern } from "./whyPattern";
 export { detectWhomForQuestionPattern } from "./whomForPattern";
 export { detectWithWhatQuestionPattern, detectByWhomQuestionPattern, detectHowTransportQuestionPattern } from "./withWhatPattern";
+export { detectWhatAboutQuestionPattern } from "./whatAboutPattern";
 
 export function detectQuestionWord(
   tokens: string[],
@@ -96,6 +98,9 @@ export function detectQuestionPattern(
 
   const whyResult = detectWhyQuestionPattern(ctx);
   if (whyResult?.detected) return whyResult;
+
+  const whatAboutResult = detectWhatAboutQuestionPattern(ctx);
+  if (whatAboutResult?.detected) return whatAboutResult;
 
   const whomForResult = detectWhomForQuestionPattern(ctx);
   if (whomForResult?.detected) return whomForResult;

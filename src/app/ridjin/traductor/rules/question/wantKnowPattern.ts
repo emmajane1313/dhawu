@@ -92,6 +92,7 @@ export function detectWantKnowPattern(
   const {
     thisWords,
     thatWords,
+    dualMarkers,
     definiteArticles,
     pluralArticles,
     questionSkipWords,
@@ -118,6 +119,7 @@ export function detectWantKnowPattern(
       const answerWords = afterQuestion.split(/\s+/);
       let determinerType: "this" | "that" | "definite" | null = null;
       let isPlural = false;
+      let isDual = false;
 
       for (const rawWord of answerWords) {
         const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
@@ -164,6 +166,21 @@ export function detectWantKnowPattern(
           if (articleIdx !== -1) {
             consumedIndices.push(articleIdx);
             usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (dualMarkers.includes(answerWord)) {
+          isDual = true;
+          const dualIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (dualIdx !== -1) {
+            consumedIndices.push(dualIdx);
+            usedAnswerIndices.add(dualIdx);
           }
           continue;
         }
@@ -245,6 +262,7 @@ export function detectWantKnowPattern(
           hasDefiniteArticle: determinerType !== null,
           determinerType,
           isPlural: isPlural || nounIsPlural,
+          isDual,
           baseExplanation: answerExplanation,
           answerTokens: answerWords,
           suffixType: "djal",

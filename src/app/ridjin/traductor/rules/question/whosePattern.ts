@@ -75,6 +75,7 @@ export function detectWhoseQuestionPattern(
     pluralArticles,
     questionSkipWords,
     possessiveTriggers,
+    dualMarkers,
   } = LANG_CONFIG[mode];
   const whoseTrigger = detectWhoseTrigger(tokens, mode);
   if (!whoseTrigger) return null;
@@ -168,6 +169,7 @@ export function detectWhoseQuestionPattern(
       const answerWords = afterQuestion.split(/\s+/);
       let determinerType: "this" | "that" | "definite" | null = null;
       let isPlural = false;
+      let isDual = false;
 
       for (const rawWord of answerWords) {
         const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
@@ -214,6 +216,21 @@ export function detectWhoseQuestionPattern(
           if (articleIdx !== -1) {
             consumedIndices.push(articleIdx);
             usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (dualMarkers.includes(answerWord)) {
+          isDual = true;
+          const dualIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (dualIdx !== -1) {
+            consumedIndices.push(dualIdx);
+            usedAnswerIndices.add(dualIdx);
           }
           continue;
         }
@@ -343,6 +360,7 @@ export function detectWhoseQuestionPattern(
           hasDefiniteArticle: determinerType !== null,
           determinerType,
           isPlural,
+          isDual,
           baseExplanation: answerExplanation,
           answerTokens: answerWords,
           suffixType: "possessive",

@@ -48,6 +48,9 @@ export function detectWhomForQuestionPattern(
     pluralArticles,
     questionSkipWords,
     purposePronounTriggers,
+    thisWords,
+    thatWords,
+    dualMarkers,
   } = LANG_CONFIG[mode];
 
   const whomForTrigger = detectWhomForTrigger(tokens, mode);
@@ -259,6 +262,7 @@ export function detectWhomForQuestionPattern(
       const answerWords = afterQuestion.split(/\s+/);
       let determinerType: "this" | "that" | "definite" | null = null;
       let isPlural = false;
+      let isDual = false;
 
       for (const rawWord of answerWords) {
         const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
@@ -291,6 +295,51 @@ export function detectWhomForQuestionPattern(
           if (articleIdx !== -1) {
             consumedIndices.push(articleIdx);
             usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (thisWords.includes(answerWord)) {
+          determinerType = "this";
+          const articleIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (articleIdx !== -1) {
+            consumedIndices.push(articleIdx);
+            usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (thatWords.includes(answerWord)) {
+          determinerType = "that";
+          const articleIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (articleIdx !== -1) {
+            consumedIndices.push(articleIdx);
+            usedAnswerIndices.add(articleIdx);
+          }
+          continue;
+        }
+
+        if (dualMarkers.includes(answerWord)) {
+          isDual = true;
+          const dualIdx = lowerTokens.findIndex(
+            (t, i) =>
+              i >= tokensBeforeQuestion &&
+              !usedAnswerIndices.has(i) &&
+              t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+          );
+          if (dualIdx !== -1) {
+            consumedIndices.push(dualIdx);
+            usedAnswerIndices.add(dualIdx);
           }
           continue;
         }
@@ -388,6 +437,7 @@ export function detectWhomForQuestionPattern(
           hasDefiniteArticle: determinerType !== null,
           determinerType,
           isPlural,
+          isDual,
           baseExplanation: answerExplanation,
           answerTokens: answerWords,
           suffixType: "purpose",

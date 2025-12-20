@@ -107,8 +107,9 @@ export function processObjects(
       const word = tokens[i].original.toLowerCase();
       const nextToken = tokens[i + 1];
 
+      const personalATriggers = ["a", ...config.contractionWords];
       if (
-        word === "a" &&
+        personalATriggers.includes(word) &&
         (nextToken.type === "noun" || nextToken.type === "unknown")
       ) {
         if (verbMotionType === "motion") {

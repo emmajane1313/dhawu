@@ -12,6 +12,7 @@ import {
   LocativeMatch,
   ConWithMatch,
   InstrumentalMatch,
+  BelongingMatch,
   TransportMatch,
   ComitativePronounMatch,
   detectComitativePronounPattern,
@@ -21,12 +22,20 @@ import {
   PurposePronounMatch,
   LocativeCopulaMatch,
   IndirectObjectMatch,
+  TimesMatch,
+  detectTimesPattern,
+  AgentNounMatch,
+  detectAgentNoun,
 } from "./patternMatcher";
 import { AnswerInfo } from "./rules/question/index";
 import {
   determinePossessiveSuffix,
   applyPossessiveSuffix,
 } from "./rules/possession";
+import {
+  determineBelongingSuffix,
+  applyBelongingSuffix,
+} from "./rules/belonging";
 import { getNegationWords } from "./patterns";
 import {
   processSubjects,
@@ -67,9 +76,12 @@ import {
   OBJECT_PRONOUNS_GUP,
   OBJECT_PRONOUN_TRIGGERS_ES,
   SUBJECT_PRONOUNS_GUP,
+  BELONGING_PRONOUNS_GUP,
+  PersonNumber,
   DjalSuffixType,
   filterTypesByDual,
   POSSESSIVE_PRONOUNS_GUP,
+  COMITATIVE_PRONOUNS_GUP,
   MirriMiriwType,
   LANG_CONFIG,
   applyLocativeSuffix,
@@ -274,23 +286,31 @@ function generateAnswerVariants(
     additionalAnswers,
   } = answerInfo;
 
-  let baseVariants: string[] = alternatives && alternatives.length > 0
-    ? [...new Set([baseGup, ...alternatives])]
-    : [baseGup];
+  let baseVariants: string[] =
+    alternatives && alternatives.length > 0
+      ? [...new Set([baseGup, ...alternatives])]
+      : [baseGup];
 
   if (isPlural && rawBaseGup) {
     const pluralVariants: string[] = [];
     const pluralBase = addWurruPlural(rawBaseGup);
-    const suffixesToApply = allSuffixes && allSuffixes.length > 0
-      ? allSuffixes
-      : (appliedSuffix ? [appliedSuffix] : []);
+    const suffixesToApply =
+      allSuffixes && allSuffixes.length > 0
+        ? allSuffixes
+        : appliedSuffix
+        ? [appliedSuffix]
+        : [];
 
     if (suffixesToApply.length > 0) {
       for (const suffix of suffixesToApply) {
         const pluralWithSuffix = validarFonologia(pluralBase + suffix);
         pluralVariants.push(pluralWithSuffix);
       }
-      const malaResults = buildMalaPlural(rawBaseGup, isHuman ?? false, suffixesToApply[0]);
+      const malaResults = buildMalaPlural(
+        rawBaseGup,
+        isHuman ?? false,
+        suffixesToApply[0]
+      );
       for (const malaResult of malaResults) {
         pluralVariants.push(malaResult.full);
       }
@@ -336,31 +356,52 @@ function generateAnswerVariants(
   }
 
   if (additionalAnswers && additionalAnswers.length > 0) {
-    const additionalOptions: string[][] = additionalAnswers.map((a) => {
-      if (a.alternatives && a.alternatives.length > 0) {
-        return [a.baseGup, ...a.alternatives];
-      }
-      return [a.baseGup];
-    });
-
-    const additionalCombinations: string[][] = additionalOptions.reduce<string[][]>(
-      (acc, options) => {
-        if (acc.length === 0) return options.map((o) => [o]);
-        const result: string[][] = [];
-        for (const existing of acc) {
-          for (const option of options) {
-            result.push([...existing, option]);
-          }
+    const additionalOptions: { options: string[]; isPossessor: boolean }[] =
+      additionalAnswers.map((a) => {
+        if (a.alternatives && a.alternatives.length > 0) {
+          return {
+            options: [a.baseGup, ...a.alternatives],
+            isPossessor: a.isPossessor === true,
+          };
         }
-        return result;
-      },
-      []
-    );
+        return { options: [a.baseGup], isPossessor: a.isPossessor === true };
+      });
+
+    const additionalCombinations: {
+      parts: string[];
+      isPossessorFlags: boolean[];
+    }[] = additionalOptions.reduce<
+      { parts: string[]; isPossessorFlags: boolean[] }[]
+    >((acc, item) => {
+      if (acc.length === 0)
+        return item.options.map((o) => ({
+          parts: [o],
+          isPossessorFlags: [item.isPossessor],
+        }));
+      const result: { parts: string[]; isPossessorFlags: boolean[] }[] = [];
+      for (const existing of acc) {
+        for (const option of item.options) {
+          result.push({
+            parts: [...existing.parts, option],
+            isPossessorFlags: [...existing.isPossessorFlags, item.isPossessor],
+          });
+        }
+      }
+      return result;
+    }, []);
 
     const results: string[] = [];
     for (const baseVariant of finalVariants) {
-      for (const additionalCombo of additionalCombinations) {
-        results.push([baseVariant, ...additionalCombo].join(" ga "));
+      for (const combo of additionalCombinations) {
+        let result = baseVariant;
+        for (let i = 0; i < combo.parts.length; i++) {
+          if (combo.isPossessorFlags[i]) {
+            result = combo.parts[i] + " " + result;
+          } else {
+            result = result + " ga " + combo.parts[i];
+          }
+        }
+        results.push(result);
       }
     }
     return results;
@@ -397,7 +438,10 @@ function generateAnswerParts(
     if (i === 0) {
       rawSource = answerInfo.answerTokens?.[0] || word;
       partExplanation = answerInfo.baseExplanation;
-    } else if (answerInfo.additionalAnswers && answerInfo.additionalAnswers[i - 1]) {
+    } else if (
+      answerInfo.additionalAnswers &&
+      answerInfo.additionalAnswers[i - 1]
+    ) {
       const addAnswer = answerInfo.additionalAnswers[i - 1];
       rawSource = addAnswer.sourceWord || word;
       partExplanation = addAnswer.explanation;
@@ -407,7 +451,9 @@ function generateAnswerParts(
 
     let baseGup: string | undefined;
     let appliedSuffix: string | undefined;
-    let suffixAlternatives: { gup: string; suffix: string; explanation: string }[] | undefined;
+    let suffixAlternatives:
+      | { gup: string; suffix: string; explanation: string }[]
+      | undefined;
     let isHuman: boolean | undefined;
     let isPlace: boolean | undefined;
 
@@ -418,7 +464,11 @@ function generateAnswerParts(
       isPlace = answerInfo.isPlace;
 
       if (answerInfo.suffixType === "djal") {
-        if (answerInfo.allSuffixes && answerInfo.allSuffixes.length > 1 && baseGup) {
+        if (
+          answerInfo.allSuffixes &&
+          answerInfo.allSuffixes.length > 1 &&
+          baseGup
+        ) {
           suffixAlternatives = [];
           for (const suffix of answerInfo.allSuffixes) {
             const altGup = applyDjalSuffix(baseGup, suffix as DjalSuffixType);
@@ -431,7 +481,10 @@ function generateAnswerParts(
           }
           if (suffixAlternatives.length === 0) suffixAlternatives = undefined;
         }
-      } else if (answerInfo.alternatives && answerInfo.alternatives.length > 0) {
+      } else if (
+        answerInfo.alternatives &&
+        answerInfo.alternatives.length > 0
+      ) {
         const allOptions = [answerInfo.baseGup, ...answerInfo.alternatives];
         suffixAlternatives = [];
         for (const alt of allOptions) {
@@ -444,11 +497,19 @@ function generateAnswerParts(
           suffixAlternatives.push({
             gup: alt,
             suffix: suffix || "∅",
-            explanation: isPronounAlt ? `${alt} (pronombre)` : suffix ? `${baseGup} + -${suffix}` : `${baseGup} (lugar)`,
+            explanation: isPronounAlt
+              ? `${alt} (pronombre)`
+              : suffix
+              ? `${baseGup} + -${suffix}`
+              : `${baseGup} (lugar)`,
           });
         }
         if (suffixAlternatives.length === 0) suffixAlternatives = undefined;
-      } else if (answerInfo.allSuffixes && answerInfo.allSuffixes.length > 1 && baseGup) {
+      } else if (
+        answerInfo.allSuffixes &&
+        answerInfo.allSuffixes.length > 1 &&
+        baseGup
+      ) {
         suffixAlternatives = [];
         for (const suffix of answerInfo.allSuffixes) {
           const altGup = validarFonologia(baseGup + suffix);
@@ -476,18 +537,28 @@ function generateAnswerParts(
           if (suffixAlternatives.length === 0) suffixAlternatives = undefined;
         }
       }
-    } else if (answerInfo.additionalAnswers && answerInfo.additionalAnswers[i - 1]) {
+    } else if (
+      answerInfo.additionalAnswers &&
+      answerInfo.additionalAnswers[i - 1]
+    ) {
       const addAnswer = answerInfo.additionalAnswers[i - 1];
       baseGup = addAnswer.rawBaseGup;
       appliedSuffix = addAnswer.appliedSuffix;
       isHuman = addAnswer.isHuman;
       isPlace = addAnswer.isPlace;
 
-      if (addAnswer.suffixType === "locative" && addAnswer.isHuman === undefined && addAnswer.isPlace === undefined && baseGup) {
+      if (
+        addAnswer.suffixType === "locative" &&
+        addAnswer.isHuman === undefined &&
+        addAnswer.isPlace === undefined &&
+        baseGup
+      ) {
         suffixAlternatives = [];
         const placeAlt = baseGup;
         const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
-        const humanAlts = humanSuffixes.map((s) => applyHumanAssociativeSuffix(baseGup!, s));
+        const humanAlts = humanSuffixes.map((s) =>
+          applyHumanAssociativeSuffix(baseGup!, s)
+        );
         const nonhumanAlt = applyLocativeSuffix(baseGup);
         for (const alt of [placeAlt, ...humanAlts, nonhumanAlt]) {
           if (alt === word) continue;
@@ -503,7 +574,8 @@ function generateAnswerParts(
           suffixAlternatives.push({
             gup: alt,
             suffix,
-            explanation: suffix === "∅" ? `${baseGup} (lugar)` : `${baseGup} + -${suffix}`,
+            explanation:
+              suffix === "∅" ? `${baseGup} (lugar)` : `${baseGup} + -${suffix}`,
           });
         }
         if (suffixAlternatives.length === 0) suffixAlternatives = undefined;
@@ -554,8 +626,14 @@ function generateAnswerParts(
   return parts;
 }
 
-function expandSuffixAlternatives(frases: TranslatedFrase[]): TranslatedFrase[][] {
-  const partsWithAlts: { fraseIdx: number; partIdx: number; part: TranslationPart }[] = [];
+function expandSuffixAlternatives(
+  frases: TranslatedFrase[]
+): TranslatedFrase[][] {
+  const partsWithAlts: {
+    fraseIdx: number;
+    partIdx: number;
+    part: TranslationPart;
+  }[] = [];
 
   for (let fi = 0; fi < frases.length; fi++) {
     const frase = frases[fi];
@@ -569,16 +647,25 @@ function expandSuffixAlternatives(frases: TranslatedFrase[]): TranslatedFrase[][
 
   if (partsWithAlts.length === 0) return [frases];
 
-  const optionsPerPart: { gup: string; suffix: string; explanation: string }[][] = partsWithAlts.map(
-    ({ part }) => [
-      { gup: part.gup, suffix: part.appliedSuffix || "", explanation: part.explanation },
-      ...part.suffixAlternatives!,
-    ]
-  );
+  const optionsPerPart: {
+    gup: string;
+    suffix: string;
+    explanation: string;
+  }[][] = partsWithAlts.map(({ part }) => [
+    {
+      gup: part.gup,
+      suffix: part.appliedSuffix || "",
+      explanation: part.explanation,
+    },
+    ...part.suffixAlternatives!,
+  ]);
 
-  let combinations: { gup: string; suffix: string; explanation: string }[][] = [[]];
+  let combinations: { gup: string; suffix: string; explanation: string }[][] = [
+    [],
+  ];
   for (const options of optionsPerPart) {
-    const newCombos: { gup: string; suffix: string; explanation: string }[][] = [];
+    const newCombos: { gup: string; suffix: string; explanation: string }[][] =
+      [];
     for (const combo of combinations) {
       for (const opt of options) {
         newCombos.push([...combo, opt]);
@@ -593,7 +680,9 @@ function expandSuffixAlternatives(frases: TranslatedFrase[]): TranslatedFrase[][
     const newFrases = frases.map((f, fi) => ({
       ...f,
       parts: f.parts.map((p, pi) => {
-        const altIdx = partsWithAlts.findIndex((pa) => pa.fraseIdx === fi && pa.partIdx === pi);
+        const altIdx = partsWithAlts.findIndex(
+          (pa) => pa.fraseIdx === fi && pa.partIdx === pi
+        );
         if (altIdx >= 0) {
           const chosen = combo[altIdx];
           return {
@@ -613,7 +702,9 @@ function expandSuffixAlternatives(frases: TranslatedFrase[]): TranslatedFrase[][
   return results;
 }
 
-function expandOptionalDirections(frases: TranslatedFrase[]): TranslatedFrase[][] {
+function expandOptionalDirections(
+  frases: TranslatedFrase[]
+): TranslatedFrase[][] {
   const hasOptionalDir = frases.some((f) =>
     f.parts.some((p) => p.isOptionalDirection === true)
   );
@@ -644,17 +735,27 @@ function expandFraseVariants(
     const suffixExpandedVariants = expandSuffixAlternatives(frases);
 
     for (const suffixExpanded of suffixExpandedVariants) {
-      const directionExpandedVariants = expandOptionalDirections(suffixExpanded);
+      const directionExpandedVariants =
+        expandOptionalDirections(suffixExpanded);
 
       for (const expandedFrases of directionExpandedVariants) {
-        const { output, parts } = buildOutput(tokens, expandedFrases, mode, adjNounGroups);
+        const { output, parts } = buildOutput(
+          tokens,
+          expandedFrases,
+          mode,
+          adjNounGroups
+        );
         const answerInfo = expandedFrases.find((f) => f.answerInfo)?.answerInfo;
 
         if (answerInfo) {
           const answerVariants = generateAnswerVariants(answerInfo, mode);
           for (const answerGup of answerVariants) {
             const finalOutput = output + "? " + answerGup;
-            const answerParts = generateAnswerParts(answerInfo, answerGup, mode);
+            const answerParts = generateAnswerParts(
+              answerInfo,
+              answerGup,
+              mode
+            );
             results.push({
               frases: expandedFrases,
               parts: [...parts, ...answerParts],
@@ -663,7 +764,9 @@ function expandFraseVariants(
           }
         } else {
           let finalOutput = output;
-          const hasQuestionPattern = expandedFrases.some((f) => f.isQuestionPattern);
+          const hasQuestionPattern = expandedFrases.some(
+            (f) => f.isQuestionPattern
+          );
           if (hasQuestionPattern && !finalOutput.includes("?")) {
             finalOutput += "?";
           } else if (punctuation) {
@@ -740,6 +843,7 @@ interface FraseProcessingContext {
   purposePronounMatch: PurposePronounMatch | null;
   locativeCopulaMatch: LocativeCopulaMatch | null;
   indirectObjectMatch: IndirectObjectMatch | null;
+  timesMatch: TimesMatch | null;
   locativeVerbResults: LocativeVerbResult[];
   motionDestinations: MotionDestination[];
   motionDirection: MotionDirection;
@@ -748,7 +852,14 @@ interface FraseProcessingContext {
   unknownLocativeChoice?: UnknownLocativeChoice;
   copulaSubjectChoice?: CopulaSubjectChoice;
   motionDestinationChoice?: UnknownConWithChoice;
-  mirriAlternative?: { type: "object-mirri" } | { type: "subject-possessive"; possessiveForm: string; subjectLocalIndex: number };
+  mirriAlternative?:
+    | { type: "object-mirri" }
+    | {
+        type: "subject-possessive";
+        possessiveForm: string;
+        subjectLocalIndex: number;
+      };
+  isAmbiguousIrSer: boolean;
 }
 
 function applyRulesWithAlternatives(
@@ -805,7 +916,12 @@ function applyRulesWithAlternatives(
           });
         }
         if (qm.isComplexPattern) {
-          results.push({ tokenIndices: frase.tokenIndices, parts, answerInfo, isQuestionPattern: true });
+          results.push({
+            tokenIndices: frase.tokenIndices,
+            parts,
+            answerInfo,
+            isQuestionPattern: true,
+          });
           continue;
         }
       }
@@ -817,7 +933,12 @@ function applyRulesWithAlternatives(
         explanation: `"${copulaMatch.copulaWord}" → ${option.gup} (${option.explanation})`,
         globalIndex: ctx.globalIndices[copulaMatch.copulaIndex],
       });
-      results.push({ tokenIndices: frase.tokenIndices, parts, answerInfo, isQuestionPattern: !!ctx.context.questionMatch });
+      results.push({
+        tokenIndices: frase.tokenIndices,
+        parts,
+        answerInfo,
+        isQuestionPattern: !!ctx.context.questionMatch,
+      });
     }
     return results;
   }
@@ -831,8 +952,15 @@ function applyRulesWithAlternatives(
 
   let questionOutputAlternatives: (string | null)[] = [null];
   const qm = ctx.context.questionMatch;
-  if (qm?.isComplexPattern && qm.patternOptions && qm.patternOptions.length > 0) {
-    questionOutputAlternatives = [null, ...qm.patternOptions.map((opt) => opt.gup)];
+  if (
+    qm?.isComplexPattern &&
+    qm.patternOptions &&
+    qm.patternOptions.length > 0
+  ) {
+    questionOutputAlternatives = [
+      null,
+      ...qm.patternOptions.map((opt) => opt.gup),
+    ];
   }
 
   let modalSuffixAlternatives: DjalSuffixType[][] = [[]];
@@ -848,30 +976,51 @@ function applyRulesWithAlternatives(
     }
   }
 
-  const locativeVerbAlternatives: (LocativeVerbResult | null)[] =
-    ctx.locativeVerbResults.length > 0 ? ctx.locativeVerbResults : [null];
+  const locativeVerbAlternatives: (LocativeVerbResult | null)[] = (() => {
+    if (ctx.isAmbiguousIrSer) {
+      return [null, ...ctx.locativeVerbResults];
+    }
+    return ctx.locativeVerbResults.length > 0
+      ? ctx.locativeVerbResults
+      : [null];
+  })();
 
   type MirriAlternativeType =
     | { type: "object-mirri" }
-    | { type: "subject-possessive"; possessiveForm: string; subjectLocalIndex: number };
+    | {
+        type: "subject-possessive";
+        possessiveForm: string;
+        subjectLocalIndex: number;
+      };
   const mirriAlternatives: MirriAlternativeType[] = (() => {
     const alts: MirriAlternativeType[] = [{ type: "object-mirri" }];
     if (ctx.mirriMiriwMatch?.suffixType === "mirri") {
-      const explicitSubjects = ctx.subjectResults.filter(s => s.type === "noun" || s.type === "name");
+      const explicitSubjects = ctx.subjectResults.filter(
+        (s) => s.type === "noun" || s.type === "name"
+      );
       if (explicitSubjects.length > 0) {
         for (const subj of explicitSubjects) {
           const baseGup = subj.baseGup || subj.gup;
           const suffixResult = determinePossessiveSuffix(baseGup, ctx.mode);
           for (const suffix of suffixResult.suffixes) {
             const possessiveForm = applyPossessiveSuffix(baseGup, suffix);
-            alts.push({ type: "subject-possessive", possessiveForm, subjectLocalIndex: subj.localIndex });
+            alts.push({
+              type: "subject-possessive",
+              possessiveForm,
+              subjectLocalIndex: subj.localIndex,
+            });
           }
         }
       } else if (ctx.mirriMiriwMatch.personNumber) {
-        const possessiveForms = POSSESSIVE_PRONOUNS_GUP[ctx.mirriMiriwMatch.personNumber];
+        const possessiveForms =
+          POSSESSIVE_PRONOUNS_GUP[ctx.mirriMiriwMatch.personNumber];
         if (possessiveForms) {
           for (const form of possessiveForms) {
-            alts.push({ type: "subject-possessive", possessiveForm: form, subjectLocalIndex: -1 });
+            alts.push({
+              type: "subject-possessive",
+              possessiveForm: form,
+              subjectLocalIndex: -1,
+            });
           }
         }
       }
@@ -896,54 +1045,54 @@ function applyRulesWithAlternatives(
                 for (const suffixCombo of modalSuffixAlternatives) {
                   for (const locVerbAlt of locativeVerbAlternatives) {
                     for (const mirriAlt of mirriAlternatives) {
-                    const parts = buildParts(
-                      {
-                        ...ctx,
-                        subjectResults: altSubjects,
-                        objectResults: altObjects,
-                        unknownConWithChoice: conWithAlt,
-                        unknownLocativeChoice: locativeAlt,
-                        mirriAlternative: mirriAlt,
-                        copulaSubjectChoice: copulaAlt,
-                        motionDestinationChoice: motionDestAlt,
-                      },
-                      suffixCombo,
-                      locVerbAlt,
-                      questionOutputAlt
-                    );
+                      const parts = buildParts(
+                        {
+                          ...ctx,
+                          subjectResults: altSubjects,
+                          objectResults: altObjects,
+                          unknownConWithChoice: conWithAlt,
+                          unknownLocativeChoice: locativeAlt,
+                          mirriAlternative: mirriAlt,
+                          copulaSubjectChoice: copulaAlt,
+                          motionDestinationChoice: motionDestAlt,
+                        },
+                        suffixCombo,
+                        locVerbAlt,
+                        questionOutputAlt
+                      );
 
-                  const baseTranslation: DefiniteTranslation = {
-                    gup: parts.map((p) => p.gup).join(" "),
-                    parts: parts as DefinitePart[],
-                    explanation: "",
-                  };
+                      const baseTranslation: DefiniteTranslation = {
+                        gup: parts.map((p) => p.gup).join(" "),
+                        parts: parts as DefinitePart[],
+                        explanation: "",
+                      };
 
-                  const definiteVariants = applyDefiniteDemonstratives(
-                    [baseTranslation],
-                    fraseTokenStrings,
-                    mode,
-                    determinerMatches
-                  );
+                      const definiteVariants = applyDefiniteDemonstratives(
+                        [baseTranslation],
+                        fraseTokenStrings,
+                        mode,
+                        determinerMatches
+                      );
 
-                  for (const defVariant of definiteVariants) {
-                    const pluralVariants = applyPluralToPhrase(
-                      [defVariant as PluralTranslation],
-                      fraseTokenStrings,
-                      mode,
-                      hasVerb,
-                      determinerMatches
-                    );
-                      for (const variant of pluralVariants) {
-                        results.push({
-                          tokenIndices: frase.tokenIndices,
-                          parts: variant.parts as TranslationPart[],
-                          answerInfo,
-                          isQuestionPattern: !!ctx.context.questionMatch,
-                        });
+                      for (const defVariant of definiteVariants) {
+                        const pluralVariants = applyPluralToPhrase(
+                          [defVariant as PluralTranslation],
+                          fraseTokenStrings,
+                          mode,
+                          hasVerb,
+                          determinerMatches
+                        );
+                        for (const variant of pluralVariants) {
+                          results.push({
+                            tokenIndices: frase.tokenIndices,
+                            parts: variant.parts as TranslationPart[],
+                            answerInfo,
+                            isQuestionPattern: !!ctx.context.questionMatch,
+                          });
+                        }
                       }
                     }
                   }
-                    }
                 }
               }
             }
@@ -987,7 +1136,11 @@ function buildFraseContext(
   }
 
   const isCopula = context.copulaMatch !== null;
-  if (isCopula) {
+  const { ambiguousIrSerForms } = LANG_CONFIG[mode];
+  const copulaWord = context.copulaMatch?.copulaWord?.toLowerCase() ?? "";
+  const isAmbiguousIrSer = isCopula && ambiguousIrSerForms.includes(copulaWord);
+
+  if (isCopula && !isAmbiguousIrSer) {
     skipLocalIndices.add(context.copulaMatch!.copulaIndex);
     if (context.copulaMatch!.subjectIndex !== null) {
       skipLocalIndices.add(context.copulaMatch!.subjectIndex);
@@ -1005,7 +1158,7 @@ function buildFraseContext(
   const modalVerbInfo = detectModalVerb(fraseTokens, verbIdx);
 
   const verbResult =
-    isCopula || modalVerbInfo
+    (isCopula && !isAmbiguousIrSer) || modalVerbInfo
       ? null
       : processVerb(
           fraseTokens,
@@ -1101,16 +1254,24 @@ function buildFraseContext(
   const { directionWord, fromTriggers, toTriggers } = LANG_CONFIG[mode];
   const lowerTokens = fraseTokens.map((t) => t.original.toLowerCase());
 
-  const questionConsumedSet = new Set(context.questionMatch?.consumedIndices || []);
-  const locativeTriggerSet = new Set(context.locativeMatch?.triggerIndices || []);
+  const questionConsumedSet = new Set(
+    context.questionMatch?.consumedIndices || []
+  );
+  const locativeTriggerSet = new Set(
+    context.locativeMatch?.triggerIndices || []
+  );
   const locativeNounSet = new Set(context.locativeMatch?.nounIndices || []);
   const knownVehicleNounSet = new Set(
-    context.transportMatch?.isKnownVehicle ? context.transportMatch.nounIndices : []
+    context.transportMatch?.isKnownVehicle
+      ? context.transportMatch.nounIndices
+      : []
   );
 
   for (let i = 0; i < fraseTokens.length - 1; i++) {
     if (questionConsumedSet.has(i)) continue;
-    if (locativeTriggerSet.has(i)) continue;
+    if (locativeTriggerSet.has(i)) {
+      continue;
+    }
 
     const token = fraseTokens[i];
     const tokenLower = token.original.toLowerCase();
@@ -1121,7 +1282,10 @@ function buildFraseContext(
     const textFromHere = lowerTokens.slice(i).join(" ");
 
     for (const fromTrigger of fromTriggers) {
-      if (textFromHere.startsWith(fromTrigger + " ") || textFromHere === fromTrigger) {
+      if (
+        textFromHere.startsWith(fromTrigger + " ") ||
+        textFromHere === fromTrigger
+      ) {
         goalDirection = "away";
         isDirectionTrigger = true;
         break;
@@ -1129,7 +1293,10 @@ function buildFraseContext(
     }
     if (!isDirectionTrigger) {
       for (const toTrigger of toTriggers) {
-        if (textFromHere.startsWith(toTrigger + " ") || textFromHere === toTrigger) {
+        if (
+          textFromHere.startsWith(toTrigger + " ") ||
+          textFromHere === toTrigger
+        ) {
           goalDirection = "towards";
           isDirectionTrigger = true;
           break;
@@ -1160,7 +1327,19 @@ function buildFraseContext(
           const alreadyInLocative = locativeNounSet.has(j);
           const alreadyInQuestion = questionConsumedSet.has(j);
           const isKnownVehicle = knownVehicleNounSet.has(j);
-          if (!alreadyInLocative && !alreadyInQuestion && !isKnownVehicle) {
+          const isHumanObjectAfterTransitiveVerb =
+            isTransitive &&
+            verbMotionType !== "motion" &&
+            verbIdx >= 0 &&
+            i > verbIdx &&
+            t.nounMatch?.isHuman === true;
+       
+          if (
+            !alreadyInLocative &&
+            !alreadyInQuestion &&
+            !isKnownVehicle &&
+            !isHumanObjectAfterTransitiveVerb
+          ) {
             motionDestinationIndices.push({
               triggerIdx: i,
               nounIdx: j,
@@ -1330,6 +1509,13 @@ function buildFraseContext(
     }
   }
 
+  const belongingMatch = context.belongingMatch;
+  if (belongingMatch) {
+    for (const idx of belongingMatch.triggerIndices) {
+      skipLocalIndices.add(idx);
+    }
+  }
+
   const transportMatch = context.transportMatch;
   if (transportMatch) {
     for (const idx of transportMatch.triggerIndices) {
@@ -1378,6 +1564,13 @@ function buildFraseContext(
     skipLocalIndices.add(indirectObjectMatch.triggerIndex);
     if (indirectObjectMatch.nounIndex !== null) {
       skipLocalIndices.add(indirectObjectMatch.nounIndex);
+    }
+  }
+
+  const timesMatch = detectTimesPattern(fraseTokens, mode);
+  if (timesMatch) {
+    for (const idx of timesMatch.consumedIndices) {
+      skipLocalIndices.add(idx);
     }
   }
 
@@ -1493,10 +1686,12 @@ function buildFraseContext(
     purposePronounMatch,
     locativeCopulaMatch,
     indirectObjectMatch,
+    timesMatch,
     locativeVerbResults,
     motionDestinations: motionDestinationIndices,
     motionDirection,
     directionTriggerIndices,
+    isAmbiguousIrSer,
   };
 }
 
@@ -1827,19 +2022,26 @@ function buildParts(
         type: "subject",
         source: ctx.mirriMiriwMatch.triggerPhrase,
         gup: possessiveGup,
-        explanation: `"${ctx.mirriMiriwMatch.triggerPhrase}" → ${possessiveGup} (${LANG_CONFIG[ctx.mode].possessive})`,
-        globalIndex: ctx.globalIndices[ctx.mirriMiriwMatch.triggerIndices[0]] || 0,
+        explanation: `"${
+          ctx.mirriMiriwMatch.triggerPhrase
+        }" → ${possessiveGup} (${LANG_CONFIG[ctx.mode].possessive})`,
+        globalIndex:
+          ctx.globalIndices[ctx.mirriMiriwMatch.triggerIndices[0]] || 0,
         role: "subject_intransitive" as GrammaticalRole,
         isHuman: true,
       });
     } else if (subjectLocalIndex >= 0) {
-      const originalSubject = ctx.subjectResults.find(s => s.localIndex === subjectLocalIndex);
+      const originalSubject = ctx.subjectResults.find(
+        (s) => s.localIndex === subjectLocalIndex
+      );
       if (originalSubject) {
         parts.push({
           type: "subject",
           source: originalSubject.source,
           gup: possessiveGup,
-          explanation: `"${originalSubject.source}" → ${possessiveGup} (${LANG_CONFIG[ctx.mode].possessive})`,
+          explanation: `"${originalSubject.source}" → ${possessiveGup} (${
+            LANG_CONFIG[ctx.mode].possessive
+          })`,
           globalIndex: ctx.globalIndices[subjectLocalIndex] || 0,
           role: "subject_intransitive" as GrammaticalRole,
           isHuman: originalSubject.isHuman,
@@ -1850,9 +2052,15 @@ function buildParts(
 
   if (ctx.context.questionMatch) {
     const qm = ctx.context.questionMatch;
-    let gupOutput = questionOutputOverride
-      || (qm.isComplexPattern && qm.patternOutput ? qm.patternOutput : qm.gup);
-    if (qm.isComplexPattern && ctx.copulaSubjectChoice?.gup && !questionOutputOverride && !qm.hasExplicitSubject) {
+    let gupOutput =
+      questionOutputOverride ||
+      (qm.isComplexPattern && qm.patternOutput ? qm.patternOutput : qm.gup);
+    if (
+      qm.isComplexPattern &&
+      ctx.copulaSubjectChoice?.gup &&
+      !questionOutputOverride &&
+      !qm.hasExplicitSubject
+    ) {
       const outputParts = gupOutput.split(" ");
       outputParts.splice(1, 0, ctx.copulaSubjectChoice.gup);
       gupOutput = outputParts.join(" ");
@@ -1922,7 +2130,17 @@ function buildParts(
     return parts;
   }
 
-  buildStandardParts(ctx, parts);
+  if (ctx.timesMatch) {
+    parts.push({
+      type: "adverb",
+      source: `${ctx.timesMatch.quantifierWord} ${ctx.timesMatch.timesWord}`,
+      gup: ctx.timesMatch.gupWithMirri,
+      explanation: ctx.timesMatch.explanation,
+      globalIndex: ctx.globalIndices[ctx.timesMatch.quantifierIndex] ?? -1,
+    });
+  }
+
+  buildStandardParts(ctx, parts, locativeVerbChoice);
   return parts;
 }
 
@@ -1985,8 +2203,14 @@ function buildImpliedSubjectParts(
   ctx: FraseProcessingContext,
   parts: TranslationPart[]
 ): void {
-  const { context, subjectResults, verbResult, modalVerbInfo, globalIndices, mirriAlternative } =
-    ctx;
+  const {
+    context,
+    subjectResults,
+    verbResult,
+    modalVerbInfo,
+    globalIndices,
+    mirriAlternative,
+  } = ctx;
 
   if (context.questionMatch?.isComplexPattern) {
     return;
@@ -1997,7 +2221,26 @@ function buildImpliedSubjectParts(
   }
 
   const impliedSubject = subjectResults.find((s) => s.type === "implied");
-  if (impliedSubject && !context.copulaMatch) {
+  const hasExplicitSubject = subjectResults.some((s) => s.type !== "implied");
+
+  const { possessionMatch, isTransitive, fraseTokens } = ctx;
+  const verbLocalIndex =
+    ctx.verbResult?.localIndex ?? ctx.modalVerbInfo?.verbLocalIndex ?? -1;
+  let possessedIsAgentOfTransitive = false;
+  if (possessionMatch && isTransitive && verbLocalIndex >= 0) {
+    const possessedToken = fraseTokens[possessionMatch.possessedIndex];
+    const possessedIsHuman = possessedToken?.nounMatch?.isHuman === true;
+    const possessedIsBeforeVerb =
+      possessionMatch.possessedIndex < verbLocalIndex;
+    possessedIsAgentOfTransitive = possessedIsHuman && possessedIsBeforeVerb;
+  }
+
+  if (
+    impliedSubject &&
+    !context.copulaMatch &&
+    !hasExplicitSubject &&
+    !possessedIsAgentOfTransitive
+  ) {
     const verbLocalIndex =
       verbResult?.localIndex ?? modalVerbInfo?.verbLocalIndex ?? -1;
     const verbGlobalIndex =
@@ -2031,6 +2274,7 @@ interface SuffixApplicationContext {
   locativeMatch: LocativeMatch | null;
   conWithMatch: ConWithMatch | null;
   instrumentalMatch: InstrumentalMatch | null;
+  belongingMatch: BelongingMatch | null;
   transportMatch: TransportMatch | null;
   isObject?: boolean;
   isHuman?: boolean;
@@ -2041,7 +2285,13 @@ interface SuffixApplicationContext {
   verbMotionType?: "motion" | "stationary";
   motionDestinations?: MotionDestination[];
   motionDestinationChoice?: UnknownConWithChoice;
-  mirriAlternative?: { type: "object-mirri" } | { type: "subject-possessive"; possessiveForm: string; subjectLocalIndex: number };
+  mirriAlternative?:
+    | { type: "object-mirri" }
+    | {
+        type: "subject-possessive";
+        possessiveForm: string;
+        subjectLocalIndex: number;
+      };
 }
 
 interface SuffixApplicationResult {
@@ -2062,6 +2312,7 @@ function applySuffixBasedOnContext(
     locativeMatch,
     conWithMatch,
     instrumentalMatch,
+    belongingMatch,
     transportMatch,
     isObject,
     isHuman,
@@ -2077,7 +2328,11 @@ function applySuffixBasedOnContext(
 
   const config = LANG_CONFIG[mode];
 
-  if (mirriMiriwMatch && mirriAlternative?.type !== "subject-possessive" && isObject) {
+  if (
+    mirriMiriwMatch &&
+    mirriAlternative?.type !== "subject-possessive" &&
+    isObject
+  ) {
     const finalGup = applyMirriMiriwSuffix(baseGup, mirriMiriwMatch.suffixType);
     const suffixMeaning =
       mirriMiriwMatch.suffixType === "mirri"
@@ -2090,7 +2345,12 @@ function applySuffixBasedOnContext(
     };
   }
 
-  if (transportMatch && transportMatch.nounIndices.includes(localIdx) && transportMatch.isKnownVehicle) {
+  
+  if (
+    transportMatch &&
+    transportMatch.nounIndices.includes(localIdx) &&
+    transportMatch.isKnownVehicle
+  ) {
     const { suffixed, suffix } = applyErgativeSuffix(baseGup);
     return {
       gup: suffixed,
@@ -2100,7 +2360,9 @@ function applySuffixBasedOnContext(
   }
 
   const motionDest = motionDestinations?.find((d) => d.nounIdx === localIdx);
-  if (motionDest) {
+  const hasMotion = motionDest && !isObject;
+
+  if (hasMotion) {
     const goalDir = motionDest.goalDirection;
 
     if (motionDest.isHuman === true) {
@@ -2108,39 +2370,54 @@ function applySuffixBasedOnContext(
         const suffixes = determineHumanAblativeSuffix(baseGup);
         const suffix = suffixes[0];
         const finalGup = applyHumanAblativeSuffix(baseGup, suffix);
-        const alternatives = suffixes.length > 1
-          ? suffixes.slice(1).map((s) => ({
-              gup: applyHumanAblativeSuffix(baseGup, s),
-              suffix: s,
-              explanation: `${baseGup} + -${s} = ${applyHumanAblativeSuffix(baseGup, s)} (${config.ablativeSuffixLabel})`,
-            }))
-          : undefined;
+        const alternatives =
+          suffixes.length > 1
+            ? suffixes.slice(1).map((s) => ({
+                gup: applyHumanAblativeSuffix(baseGup, s),
+                suffix: s,
+                explanation: `${baseGup} + -${s} = ${applyHumanAblativeSuffix(
+                  baseGup,
+                  s
+                )} (${config.ablativeSuffixLabel})`,
+              }))
+            : undefined;
         return {
           gup: finalGup,
           suffix,
           explanation: `${baseGup} + -${suffix} = ${finalGup} (${config.ablativeSuffixLabel})`,
-          alternatives: alternatives && alternatives.length > 0 ? alternatives : undefined,
+          alternatives:
+            alternatives && alternatives.length > 0 ? alternatives : undefined,
         };
       }
-      if (verbMotionType === "motion" || motionDestinationChoice?.type === "human") {
+      if (
+        verbMotionType === "motion" ||
+        motionDestinationChoice?.type === "human"
+      ) {
         const suffixes = determineHumanAssociativeSuffix(baseGup);
         const suffix =
           motionDestinationChoice?.type === "human"
             ? motionDestinationChoice.suffix
             : suffixes[0];
         const finalGup = applyHumanAssociativeSuffix(baseGup, suffix);
-        const alternatives = suffixes.length > 1
-          ? suffixes.filter((s) => s !== suffix).map((s) => ({
-              gup: applyHumanAssociativeSuffix(baseGup, s),
-              suffix: s,
-              explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(baseGup, s)} (${config.withPerson})`,
-            }))
-          : undefined;
+        const alternatives =
+          suffixes.length > 1
+            ? suffixes
+                .filter((s) => s !== suffix)
+                .map((s) => ({
+                  gup: applyHumanAssociativeSuffix(baseGup, s),
+                  suffix: s,
+                  explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(
+                    baseGup,
+                    s
+                  )} (${config.withPerson})`,
+                }))
+            : undefined;
         return {
           gup: finalGup,
           suffix,
           explanation: `${baseGup} + -${suffix} = ${finalGup} (${config.withPerson})`,
-          alternatives: alternatives && alternatives.length > 0 ? alternatives : undefined,
+          alternatives:
+            alternatives && alternatives.length > 0 ? alternatives : undefined,
         };
       }
     } else if (motionDest.isHuman === false || isPlace === true) {
@@ -2167,11 +2444,23 @@ function applySuffixBasedOnContext(
         const humanOptions = suffixes.map((s) => ({
           gup: applyHumanAssociativeSuffix(baseGup, s),
           suffix: s as string,
-          explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(baseGup, s)} (${config.withPerson})`,
+          explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(
+            baseGup,
+            s
+          )} (${config.withPerson})`,
         }));
-        const allAlternatives: { gup: string; suffix: string; explanation: string }[] = [...humanOptions];
-        if (transportMatch && transportMatch.nounIndices.includes(localIdx) && !transportMatch.isKnownVehicle) {
-          const { suffixed: transportGup, suffix: transportSuffix } = applyErgativeSuffix(baseGup);
+        const allAlternatives: {
+          gup: string;
+          suffix: string;
+          explanation: string;
+        }[] = [...humanOptions];
+        if (
+          transportMatch &&
+          transportMatch.nounIndices.includes(localIdx) &&
+          !transportMatch.isKnownVehicle
+        ) {
+          const { suffixed: transportGup, suffix: transportSuffix } =
+            applyErgativeSuffix(baseGup);
           allAlternatives.push({
             gup: transportGup,
             suffix: transportSuffix || "y",
@@ -2182,7 +2471,8 @@ function applySuffixBasedOnContext(
           gup: liliGup,
           suffix: "lili",
           explanation: `${baseGup} + -lili = ${liliGup} (${config.allativeSuffixLabel})`,
-          alternatives: allAlternatives.length > 0 ? allAlternatives : undefined,
+          alternatives:
+            allAlternatives.length > 0 ? allAlternatives : undefined,
         };
       }
       if (goalDir === "away") {
@@ -2191,7 +2481,10 @@ function applySuffixBasedOnContext(
         const humanOptions = suffixes.map((s) => ({
           gup: applyHumanAblativeSuffix(baseGup, s),
           suffix: s,
-          explanation: `${baseGup} + -${s} = ${applyHumanAblativeSuffix(baseGup, s)} (${config.ablativeSuffixLabel})`,
+          explanation: `${baseGup} + -${s} = ${applyHumanAblativeSuffix(
+            baseGup,
+            s
+          )} (${config.ablativeSuffixLabel})`,
         }));
         return {
           gup: nguruGup,
@@ -2204,7 +2497,18 @@ function applySuffixBasedOnContext(
   }
 
   if (locativeMatch && locativeMatch.nounIndices.includes(localIdx)) {
+    const motionDest = motionDestinations?.find((d) => d.nounIdx === localIdx);
+    const goalDirection = motionDest?.goalDirection;
+   
     if (verbMotionType === "motion") {
+      if (goalDirection === "away") {
+        const finalGup = applyAblativeSuffix(baseGup);
+        return {
+          gup: finalGup,
+          suffix: "ŋuru",
+          explanation: `${baseGup} + -ŋuru = ${finalGup} (${config.ablativeSuffixLabel})`,
+        };
+      }
       const finalGup = applyAllativeSuffix(baseGup);
       return {
         gup: finalGup,
@@ -2217,13 +2521,17 @@ function applySuffixBasedOnContext(
       const suffixes = determineHumanAssociativeSuffix(baseGup);
       const suffix = suffixes[0];
       const finalGup = applyHumanAssociativeSuffix(baseGup, suffix);
-      const alternatives = suffixes.length > 1
-        ? suffixes.slice(1).map((s) => ({
-            gup: applyHumanAssociativeSuffix(baseGup, s),
-            suffix: s,
-            explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(baseGup, s)} (${config.withPerson})`,
-          }))
-        : undefined;
+      const alternatives =
+        suffixes.length > 1
+          ? suffixes.slice(1).map((s) => ({
+              gup: applyHumanAssociativeSuffix(baseGup, s),
+              suffix: s,
+              explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(
+                baseGup,
+                s
+              )} (${config.withPerson})`,
+            }))
+          : undefined;
       return {
         gup: finalGup,
         suffix,
@@ -2241,7 +2549,11 @@ function applySuffixBasedOnContext(
 
     if (unknownLocativeChoice?.type === "place") {
       const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
-      const alternatives = [
+      const alternatives: {
+        gup: string;
+        suffix: string;
+        explanation: string;
+      }[] = [
         ...humanSuffixes.map((s) => ({
           gup: applyHumanAssociativeSuffix(baseGup, s),
           suffix: s,
@@ -2253,6 +2565,34 @@ function applySuffixBasedOnContext(
           explanation: `${baseGup} + -ŋura (${config.locativeSuffix})`,
         },
       ];
+      if (
+        belongingMatch &&
+        belongingMatch.belongsToNounIndices.includes(localIdx)
+      ) {
+        const belongingSuffixResult = determineBelongingSuffix(baseGup, mode);
+        for (const s of belongingSuffixResult.suffixes) {
+          alternatives.push({
+            gup: applyBelongingSuffix(baseGup, s),
+            suffix: s,
+            explanation: `${baseGup} + -${s} = ${applyBelongingSuffix(
+              baseGup,
+              s
+            )} (${config.belongingLabel})`,
+          });
+        }
+        if (belongingMatch.isAboutTrigger) {
+          const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
+          for (const hs of humanSuffixes) {
+            const humanGup = applyHumanAssociativeSuffix(baseGup, hs);
+            const finalGup = humanGup + "puy";
+            alternatives.push({
+              gup: finalGup,
+              suffix: hs + "+puy",
+              explanation: `${baseGup} + -${hs} + -puy = ${finalGup} (${config.belongingLabel} humano)`,
+            });
+          }
+        }
+      }
       return {
         gup: baseGup,
         explanation: `${baseGup} → ${config.ifPlaceNameNoNgura}`,
@@ -2264,13 +2604,23 @@ function applySuffixBasedOnContext(
       const suffix = unknownLocativeChoice.suffix as HumanAssociativeSuffixType;
       const finalGup = applyHumanAssociativeSuffix(baseGup, suffix);
       const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
-      const alternatives = [
-        { gup: baseGup, suffix: "∅", explanation: `${baseGup} (${config.ifPlaceNameNoNgura})` },
-        ...humanSuffixes.filter((s) => s !== suffix).map((s) => ({
-          gup: applyHumanAssociativeSuffix(baseGup, s),
-          suffix: s,
-          explanation: `${baseGup} + -${s} (${config.withPerson})`,
-        })),
+      const alternatives: {
+        gup: string;
+        suffix: string;
+        explanation: string;
+      }[] = [
+        {
+          gup: baseGup,
+          suffix: "∅",
+          explanation: `${baseGup} (${config.ifPlaceNameNoNgura})`,
+        },
+        ...humanSuffixes
+          .filter((s) => s !== suffix)
+          .map((s) => ({
+            gup: applyHumanAssociativeSuffix(baseGup, s),
+            suffix: s,
+            explanation: `${baseGup} + -${s} (${config.withPerson})`,
+          })),
         {
           gup: applyLocativeSuffix(baseGup),
           suffix: "ŋura",
@@ -2288,14 +2638,38 @@ function applySuffixBasedOnContext(
     if (unknownLocativeChoice?.type === "nonhuman") {
       const finalGup = applyLocativeSuffix(baseGup);
       const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
-      const alternatives = [
-        { gup: baseGup, suffix: "∅", explanation: `${baseGup} (${config.ifPlaceNameNoNgura})` },
+      const alternatives: {
+        gup: string;
+        suffix: string;
+        explanation: string;
+      }[] = [
+        {
+          gup: baseGup,
+          suffix: "∅",
+          explanation: `${baseGup} (${config.ifPlaceNameNoNgura})`,
+        },
         ...humanSuffixes.map((s) => ({
           gup: applyHumanAssociativeSuffix(baseGup, s),
           suffix: s,
           explanation: `${baseGup} + -${s} (${config.withPerson})`,
         })),
       ];
+      if (
+        belongingMatch &&
+        belongingMatch.belongsToNounIndices.includes(localIdx)
+      ) {
+        const belongingSuffixResult = determineBelongingSuffix(baseGup, mode);
+        for (const s of belongingSuffixResult.suffixes) {
+          alternatives.push({
+            gup: applyBelongingSuffix(baseGup, s),
+            suffix: s,
+            explanation: `${baseGup} + -${s} = ${applyBelongingSuffix(
+              baseGup,
+              s
+            )} (${config.belongingLabel})`,
+          });
+        }
+      }
       return {
         gup: finalGup,
         suffix: "ŋura",
@@ -2313,17 +2687,60 @@ function applySuffixBasedOnContext(
       };
     }
 
-    if (isHuman === undefined && isPlace === undefined && !unknownLocativeChoice) {
+    if (
+      isHuman === undefined &&
+      isPlace === undefined &&
+      !unknownLocativeChoice
+    ) {
       const nguraGup = applyLocativeSuffix(baseGup);
       const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
-      const alternatives = [
-        { gup: baseGup, suffix: "∅", explanation: `${baseGup} (${config.ifPlaceNameNoNgura})` },
+      const alternatives: {
+        gup: string;
+        suffix: string;
+        explanation: string;
+      }[] = [
+        {
+          gup: baseGup,
+          suffix: "∅",
+          explanation: `${baseGup} (${config.ifPlaceNameNoNgura})`,
+        },
         ...humanSuffixes.map((s) => ({
           gup: applyHumanAssociativeSuffix(baseGup, s),
           suffix: s,
-          explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(baseGup, s)} (${config.withPerson})`,
+          explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(
+            baseGup,
+            s
+          )} (${config.withPerson})`,
         })),
       ];
+      if (
+        belongingMatch &&
+        belongingMatch.belongsToNounIndices.includes(localIdx)
+      ) {
+        const belongingSuffixResult = determineBelongingSuffix(baseGup, mode);
+        for (const s of belongingSuffixResult.suffixes) {
+          alternatives.push({
+            gup: applyBelongingSuffix(baseGup, s),
+            suffix: s,
+            explanation: `${baseGup} + -${s} = ${applyBelongingSuffix(
+              baseGup,
+              s
+            )} (${config.belongingLabel})`,
+          });
+        }
+        if (belongingMatch.isAboutTrigger) {
+          const aboutHumanSuffixes = determineHumanAssociativeSuffix(baseGup);
+          for (const hs of aboutHumanSuffixes) {
+            const humanGup = applyHumanAssociativeSuffix(baseGup, hs);
+            const aboutFinalGup = humanGup + "puy";
+            alternatives.push({
+              gup: aboutFinalGup,
+              suffix: hs + "+puy",
+              explanation: `${baseGup} + -${hs} + -puy = ${aboutFinalGup} (${config.belongingLabel} humano)`,
+            });
+          }
+        }
+      }
       return {
         gup: nguraGup,
         suffix: "ŋura",
@@ -2337,11 +2754,13 @@ function applySuffixBasedOnContext(
       const finalGup = applyHumanAssociativeSuffix(baseGup, suffix);
       const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
       const alternatives = [
-        ...humanSuffixes.filter((s) => s !== suffix).map((s) => ({
-          gup: applyHumanAssociativeSuffix(baseGup, s),
-          suffix: s,
-          explanation: `${baseGup} + -${s} (${config.withPerson})`,
-        })),
+        ...humanSuffixes
+          .filter((s) => s !== suffix)
+          .map((s) => ({
+            gup: applyHumanAssociativeSuffix(baseGup, s),
+            suffix: s,
+            explanation: `${baseGup} + -${s} (${config.withPerson})`,
+          })),
         {
           gup: applyLocativeSuffix(baseGup),
           suffix: "ŋura",
@@ -2385,13 +2804,17 @@ function applySuffixBasedOnContext(
       const suffixes = determineHumanAssociativeSuffix(baseGup);
       const suffix = suffixes[0];
       const finalGup = applyHumanAssociativeSuffix(baseGup, suffix);
-      const alternatives = suffixes.length > 1
-        ? suffixes.slice(1).map((s) => ({
-            gup: applyHumanAssociativeSuffix(baseGup, s),
-            suffix: s,
-            explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(baseGup, s)} (${config.withPerson})`,
-          }))
-        : undefined;
+      const alternatives =
+        suffixes.length > 1
+          ? suffixes.slice(1).map((s) => ({
+              gup: applyHumanAssociativeSuffix(baseGup, s),
+              suffix: s,
+              explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(
+                baseGup,
+                s
+              )} (${config.withPerson})`,
+            }))
+          : undefined;
       return {
         gup: finalGup,
         suffix,
@@ -2402,7 +2825,8 @@ function applySuffixBasedOnContext(
     if (isHuman === false) {
       const thingSuffix = hasNegation ? "miriw" : "mirri";
       const finalGup = applyMirriMiriwSuffix(baseGup, thingSuffix);
-      const { suffixed: instrumentalGup, suffix: instrumentalSuffix } = applyErgativeSuffix(baseGup);
+      const { suffixed: instrumentalGup, suffix: instrumentalSuffix } =
+        applyErgativeSuffix(baseGup);
       return {
         gup: finalGup,
         suffix: thingSuffix,
@@ -2419,12 +2843,16 @@ function applySuffixBasedOnContext(
     if (isHuman === undefined && !unknownConWithChoice) {
       const thingSuffix = hasNegation ? "miriw" : "mirri";
       const thingGup = applyMirriMiriwSuffix(baseGup, thingSuffix);
-      const { suffixed: instrumentalGup, suffix: instrumentalSuffix } = applyErgativeSuffix(baseGup);
+      const { suffixed: instrumentalGup, suffix: instrumentalSuffix } =
+        applyErgativeSuffix(baseGup);
       const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
       const humanOptions = humanSuffixes.map((s) => ({
         gup: applyHumanAssociativeSuffix(baseGup, s),
         suffix: s,
-        explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(baseGup, s)} (${config.withPerson})`,
+        explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(
+          baseGup,
+          s
+        )} (${config.withPerson})`,
       }));
       return {
         gup: thingGup,
@@ -2445,13 +2873,16 @@ function applySuffixBasedOnContext(
       const finalGup = applyHumanAssociativeSuffix(baseGup, suffix);
       const humanSuffixes = determineHumanAssociativeSuffix(baseGup);
       const thingSuffix = hasNegation ? "miriw" : "mirri";
-      const { suffixed: instrumentalGup, suffix: instrumentalSuffix } = applyErgativeSuffix(baseGup);
+      const { suffixed: instrumentalGup, suffix: instrumentalSuffix } =
+        applyErgativeSuffix(baseGup);
       const alternatives = [
-        ...humanSuffixes.filter((s) => s !== suffix).map((s) => ({
-          gup: applyHumanAssociativeSuffix(baseGup, s),
-          suffix: s,
-          explanation: `${baseGup} + -${s} (${config.withPerson})`,
-        })),
+        ...humanSuffixes
+          .filter((s) => s !== suffix)
+          .map((s) => ({
+            gup: applyHumanAssociativeSuffix(baseGup, s),
+            suffix: s,
+            explanation: `${baseGup} + -${s} (${config.withPerson})`,
+          })),
         {
           gup: applyMirriMiriwSuffix(baseGup, thingSuffix),
           suffix: thingSuffix,
@@ -2480,7 +2911,8 @@ function applySuffixBasedOnContext(
       };
     }
     if (unknownConWithChoice?.type === "instrumental") {
-      const { suffixed: instrumentalGup, suffix: instrumentalSuffix } = applyErgativeSuffix(baseGup);
+      const { suffixed: instrumentalGup, suffix: instrumentalSuffix } =
+        applyErgativeSuffix(baseGup);
       return {
         gup: instrumentalGup,
         suffix: instrumentalSuffix || "y",
@@ -2494,13 +2926,17 @@ function applySuffixBasedOnContext(
       const suffixes = determineHumanAssociativeSuffix(baseGup);
       const suffix = suffixes[0];
       const finalGup = applyHumanAssociativeSuffix(baseGup, suffix);
-      const alternatives = suffixes.length > 1
-        ? suffixes.slice(1).map((s) => ({
-            gup: applyHumanAssociativeSuffix(baseGup, s),
-            suffix: s,
-            explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(baseGup, s)} (${config.instrumentalPerson})`,
-          }))
-        : undefined;
+      const alternatives =
+        suffixes.length > 1
+          ? suffixes.slice(1).map((s) => ({
+              gup: applyHumanAssociativeSuffix(baseGup, s),
+              suffix: s,
+              explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(
+                baseGup,
+                s
+              )} (${config.instrumentalPerson})`,
+            }))
+          : undefined;
       return {
         gup: finalGup,
         suffix,
@@ -2522,7 +2958,10 @@ function applySuffixBasedOnContext(
       const humanOptions = humanSuffixes.map((s) => ({
         gup: applyHumanAssociativeSuffix(baseGup, s),
         suffix: s,
-        explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(baseGup, s)} (${config.instrumentalPerson})`,
+        explanation: `${baseGup} + -${s} = ${applyHumanAssociativeSuffix(
+          baseGup,
+          s
+        )} (${config.instrumentalPerson})`,
       }));
       return {
         gup: suffixed,
@@ -2557,12 +2996,83 @@ function applySuffixBasedOnContext(
     }
   }
 
+  if (
+    belongingMatch &&
+    belongingMatch.isPronoun &&
+    belongingMatch.pronounPersonNumber &&
+    belongingMatch.belongsToNounIndices.includes(localIdx)
+  ) {
+    const pronounForms = BELONGING_PRONOUNS_GUP[belongingMatch.pronounPersonNumber];
+    const alternatives = pronounForms.map((form) => ({
+      gup: form,
+      suffix: "",
+      explanation: `${belongingMatch.pronounWord} → ${form} (${config.pronounBelonging})`,
+    }));
+    return {
+      gup: pronounForms[0],
+      explanation: `${belongingMatch.pronounWord} → ${pronounForms[0]}`,
+      alternatives: alternatives.length > 1 ? alternatives : undefined,
+    };
+  }
+
+  if (
+    belongingMatch &&
+    belongingMatch.belongsToNounIndices.includes(localIdx)
+  ) {
+    const belongingAlternatives: {
+      gup: string;
+      suffix: string;
+      explanation: string;
+    }[] = [];
+
+    if (isHuman !== true) {
+      const belongingSuffixResult = determineBelongingSuffix(baseGup, mode);
+      for (const s of belongingSuffixResult.suffixes) {
+        belongingAlternatives.push({
+          gup: applyBelongingSuffix(baseGup, s),
+          suffix: s,
+          explanation: `${baseGup} + -${s} = ${applyBelongingSuffix(
+            baseGup,
+            s
+          )} (${config.belongingLabel})`,
+        });
+      }
+    }
+
+    if (belongingMatch.isAboutTrigger && isHuman !== false) {
+      const aboutHumanSuffixes = determineHumanAssociativeSuffix(baseGup);
+      for (const hs of aboutHumanSuffixes) {
+        const humanGup = applyHumanAssociativeSuffix(baseGup, hs);
+        const humanGupWithNgu = humanGup + "ŋu";
+        const belongingOptions = ["puy", "wuy"];
+        for (const bSuffix of belongingOptions) {
+          const aboutFinalGup = humanGupWithNgu + bSuffix;
+          const fullSuffix = hs + "ŋu" + bSuffix;
+          belongingAlternatives.push({
+            gup: aboutFinalGup,
+            suffix: fullSuffix,
+            explanation: `${baseGup} + -${hs}ŋu + -${bSuffix} = ${aboutFinalGup} (${config.belongingLabel} humano)`,
+          });
+        }
+      }
+    }
+
+    if (belongingAlternatives.length > 0) {
+      return {
+        gup: baseGup,
+        explanation: "",
+        alternatives: belongingAlternatives,
+      };
+    }
+  }
+
   return { gup: baseGup, explanation: "" };
 }
 
 function buildStandardParts(
   ctx: FraseProcessingContext,
-  parts: TranslationPart[]
+  parts: TranslationPart[],
+  locativeVerbChoice: LocativeVerbResult | null = null
 ): void {
   const {
     fraseTokens,
@@ -2625,7 +3135,9 @@ function buildStandardParts(
 
   const possessionHandled = new Set<number>();
 
-  const questionConsumed = new Set(context.questionMatch?.consumedIndices || []);
+  const questionConsumed = new Set(
+    context.questionMatch?.consumedIndices || []
+  );
 
   for (let localIdx = 0; localIdx < fraseTokens.length; localIdx++) {
     const token = fraseTokens[localIdx];
@@ -2653,21 +3165,34 @@ function buildStandardParts(
       const possessiveGup = gupForms[0];
 
       const verbLocalIdx = verbResult?.localIndex ?? -1;
-      const possessedIsAfterVerb = verbLocalIdx >= 0 && possessivePronounMatch.possessedIndex > verbLocalIdx;
+      const possessedIsAfterVerb =
+        verbLocalIdx >= 0 &&
+        possessivePronounMatch.possessedIndex > verbLocalIdx;
       const possessedLexiconEntry = LEXICON.nouns[possessedGup];
-      const possessedIsHumanFromToken = possessedToken.nounMatch?.isHuman === true;
-      const possessedIsHumanFromLexicon = possessedLexiconEntry?.isHuman === true;
-      const possessedIsHuman = possessedIsHumanFromToken || possessedIsHumanFromLexicon;
+      const possessedIsHumanFromToken =
+        possessedToken.nounMatch?.isHuman === true;
+      const possessedIsHumanFromLexicon =
+        possessedLexiconEntry?.isHuman === true;
+      const possessedIsHuman =
+        possessedIsHumanFromToken || possessedIsHumanFromLexicon;
       const possessedIsUnknownType = possessedToken.type === "unknown";
-      const possessedShowOptions = possessedIsUnknownType && !possessedIsHumanFromToken;
-      const possessedNeedsNha = isTransitive && possessedIsAfterVerb && (possessedIsHuman || possessedIsUnknownType);
+      const possessedShowOptions =
+        possessedIsUnknownType && !possessedIsHumanFromToken;
+      const possessedNeedsNha =
+        isTransitive &&
+        possessedIsAfterVerb &&
+        (possessedIsHuman || possessedIsUnknownType);
 
       let finalPossessedGup = possessedGup;
       let possessedSuffix: string | undefined;
       let possessedExplanation = `${possessedGup} (${LANG_CONFIG[mode].possessed})`;
-      let possessedNhaOptions: { gup: string; explanation: string }[] | undefined;
+      let possessedNhaOptions:
+        | { gup: string; explanation: string }[]
+        | undefined;
 
-      let possessedSuffixAlternatives: { gup: string; suffix: string; explanation: string }[] | undefined;
+      let possessedSuffixAlternatives:
+        | { gup: string; suffix: string; explanation: string }[]
+        | undefined;
 
       if (possessedNeedsNha) {
         finalPossessedGup = validarFonologia(possessedGup + "nha");
@@ -2677,17 +3202,83 @@ function buildStandardParts(
 
         if (possessedShowOptions) {
           possessedSuffixAlternatives = [
-            { gup: possessedGup, suffix: "", explanation: `${possessedGup} (${LANG_CONFIG[mode].possessed}, ${LANG_CONFIG[mode].nonHuman})` }
+            {
+              gup: possessedGup,
+              suffix: "",
+              explanation: `${possessedGup} (${LANG_CONFIG[mode].possessed}, ${LANG_CONFIG[mode].nonHuman})`,
+            },
           ];
+        }
+      }
+
+      const possessedIdx = possessivePronounMatch.possessedIndex;
+      const pronounIdx = possessivePronounMatch.pronounIndex;
+      const possessedHasLocative =
+        (locativeMatch?.nounIndices.includes(possessedIdx) ||
+          locativeMatch?.nounIndices.includes(pronounIdx)) ??
+        false;
+      const possessedHasInstrumental =
+        (context.instrumentalMatch?.nounIndices.includes(possessedIdx) ||
+          context.instrumentalMatch?.nounIndices.includes(pronounIdx)) ??
+        false;
+      const possessedHasTransport =
+        (context.transportMatch?.nounIndices.includes(possessedIdx) ||
+          context.transportMatch?.nounIndices.includes(pronounIdx)) ??
+        false;
+      const possessedHasAllative =
+        motionDestinations?.some(
+          (d) => d.nounIdx === possessedIdx || d.nounIdx === pronounIdx
+        ) ?? false;
+      const possessedIsAgentTransitive =
+        isTransitive && possessedIsHuman && possessedIdx < verbLocalIdx;
+
+      const possessedHasGrammaticalSuffix =
+        possessedHasLocative ||
+        possessedHasInstrumental ||
+        possessedHasTransport ||
+        possessedHasAllative ||
+        possessedIsAgentTransitive;
+
+      const pronounSuffixAlternatives: {
+        gup: string;
+        suffix: string;
+        explanation: string;
+      }[] = [];
+
+      if (gupForms.length > 1) {
+        for (const form of gupForms.slice(1)) {
+          pronounSuffixAlternatives.push({
+            gup: form,
+            suffix: "",
+            explanation: `${possessivePronounMatch.pronounWord} = ${form} (${LANG_CONFIG[mode].possessive})`,
+          });
+        }
+      }
+
+      if (possessedHasGrammaticalSuffix) {
+        const comitativeForms =
+          COMITATIVE_PRONOUNS_GUP[possessivePronounMatch.personNumber];
+        if (comitativeForms && comitativeForms.length > 0) {
+          for (const form of comitativeForms) {
+            pronounSuffixAlternatives.push({
+              gup: form,
+              suffix: "",
+              explanation: `${possessivePronounMatch.pronounWord} = ${form} (${LANG_CONFIG[mode].withPerson})`,
+            });
+          }
         }
       }
 
       parts.push({
         type: "noun",
         source: `${possessivePronounMatch.pronounWord} (possessive)`,
+        sourceWord: possessivePronounMatch.pronounWord,
         gup: possessiveGup,
         explanation: `${possessivePronounMatch.pronounWord} = ${possessiveGup} (${LANG_CONFIG[mode].possessive})`,
-        alternatives: gupForms.length > 1 ? gupForms.slice(1) : undefined,
+        suffixAlternatives:
+          pronounSuffixAlternatives.length > 0
+            ? pronounSuffixAlternatives
+            : undefined,
         globalIndex: globalIndices[possessivePronounMatch.pronounIndex],
         role: "possessor" as GrammaticalRole,
         isKnownNoun: false,
@@ -2696,6 +3287,7 @@ function buildStandardParts(
       parts.push({
         type: "noun",
         source: `${possessivePronounMatch.possessedWord} (possessed)`,
+        sourceWord: possessivePronounMatch.possessedWord,
         gup: finalPossessedGup,
         baseGup: possessedGup,
         appliedSuffix: possessedSuffix,
@@ -2722,21 +3314,76 @@ function buildStandardParts(
       const possessorWithSuffix = applyPossessiveSuffix(possessorGup, suffix);
 
       const verbLocalIdx = verbResult?.localIndex ?? -1;
-      const possessedIsAfterVerb = verbLocalIdx >= 0 && possessionMatch.possessedIndex > verbLocalIdx;
+      const possessedIsAfterVerb =
+        verbLocalIdx >= 0 && possessionMatch.possessedIndex > verbLocalIdx;
       const possessedLexiconEntry = LEXICON.nouns[possessedGup];
-      const possessedIsHumanFromToken = possessedToken.nounMatch?.isHuman === true;
-      const possessedIsHumanFromLexicon = possessedLexiconEntry?.isHuman === true;
-      const possessedIsHuman = possessedIsHumanFromToken || possessedIsHumanFromLexicon;
+      const possessedIsHumanFromToken =
+        possessedToken.nounMatch?.isHuman === true;
+      const possessedIsHumanFromLexicon =
+        possessedLexiconEntry?.isHuman === true;
+      const possessedIsHuman =
+        possessedIsHumanFromToken || possessedIsHumanFromLexicon;
       const possessedIsUnknownType = possessedToken.type === "unknown";
-      const possessedShowOptions = possessedIsUnknownType && !possessedIsHumanFromToken;
-      const possessedNeedsNha = isTransitive && possessedIsAfterVerb && (possessedIsHuman || possessedIsUnknownType);
+      const possessedShowOptions =
+        possessedIsUnknownType && !possessedIsHumanFromToken;
+      const possessedNeedsNha =
+        isTransitive &&
+        possessedIsAfterVerb &&
+        (possessedIsHuman || possessedIsUnknownType);
+      const possessedNeedsErgative =
+        isTransitive &&
+        !possessedIsAfterVerb &&
+        verbLocalIdx >= 0 &&
+        possessedIsHuman;
 
       let finalPossessedGup = possessedGup;
       let possessedSuffix: string | undefined;
       let possessedExplanation = `${possessedGup} (${LANG_CONFIG[mode].possessed})`;
-      let possessedSuffixAlternatives: { gup: string; suffix: string; explanation: string }[] | undefined;
+      let possessedSuffixAlternatives:
+        | { gup: string; suffix: string; explanation: string }[]
+        | undefined;
 
-      if (possessedNeedsNha) {
+      const possessedIdx = possessionMatch.possessedIndex;
+      const possessedHasLocative =
+        locativeMatch?.nounIndices.includes(possessedIdx) ?? false;
+      const possessedHasInstrumental =
+        context.instrumentalMatch?.nounIndices.includes(possessedIdx) ?? false;
+      const possessedHasTransport =
+        context.transportMatch?.nounIndices.includes(possessedIdx) ?? false;
+      const possessedIsKnownVehicle =
+        possessedHasTransport && context.transportMatch?.isKnownVehicle;
+      const possessedMotionDest = motionDestinations?.find(
+        (d) => d.nounIdx === possessedIdx
+      );
+      const possessedHasAllative = !!possessedMotionDest;
+     
+
+      if (possessedIsKnownVehicle) {
+        const ergResult = applyErgativeSuffix(possessedGup);
+        finalPossessedGup = ergResult.suffixed;
+        possessedSuffix = ergResult.suffix || "y";
+        possessedExplanation = `${possessedGup} + -${possessedSuffix} = ${finalPossessedGup} (${LANG_CONFIG[mode].possessed} + ${LANG_CONFIG[mode].transportLabel})`;
+      } else if (possessedHasAllative && possessedMotionDest) {
+        const goalDir = possessedMotionDest.goalDirection;
+        if (goalDir === "away") {
+          finalPossessedGup = applyAblativeSuffix(possessedGup);
+          possessedSuffix = "ŋuru";
+          possessedExplanation = `${possessedGup} + -ŋuru = ${finalPossessedGup} (${LANG_CONFIG[mode].possessed} + ${LANG_CONFIG[mode].ablativeSuffixLabel})`;
+        } else {
+          finalPossessedGup = applyAllativeSuffix(possessedGup);
+          possessedSuffix = "lili";
+          possessedExplanation = `${possessedGup} + -lili = ${finalPossessedGup} (${LANG_CONFIG[mode].possessed} + ${LANG_CONFIG[mode].allativeSuffixLabel})`;
+        }
+      } else if (possessedHasLocative) {
+        finalPossessedGup = applyLocativeSuffix(possessedGup);
+        possessedSuffix = "ŋura";
+        possessedExplanation = `${possessedGup} + -ŋura = ${finalPossessedGup} (${LANG_CONFIG[mode].possessed} + ${LANG_CONFIG[mode].locativeSuffix})`;
+      } else if (possessedNeedsErgative) {
+        const ergResult = applyErgativeSuffix(possessedGup);
+        finalPossessedGup = ergResult.suffixed;
+        possessedSuffix = ergResult.suffix || "thu";
+        possessedExplanation = `${possessedGup} + -${possessedSuffix} = ${finalPossessedGup} (${LANG_CONFIG[mode].possessed} + ${LANG_CONFIG[mode].ergative})`;
+      } else if (possessedNeedsNha) {
         finalPossessedGup = validarFonologia(possessedGup + "nha");
         possessedSuffix = "nha";
         const humanLabel = LANG_CONFIG[mode].nhaPerson;
@@ -2744,27 +3391,84 @@ function buildStandardParts(
 
         if (possessedShowOptions) {
           possessedSuffixAlternatives = [
-            { gup: possessedGup, suffix: "", explanation: `${possessedGup} (${LANG_CONFIG[mode].possessed}, ${LANG_CONFIG[mode].nonHuman})` }
+            {
+              gup: possessedGup,
+              suffix: "",
+              explanation: `${possessedGup} (${LANG_CONFIG[mode].possessed}, ${LANG_CONFIG[mode].nonHuman})`,
+            },
           ];
         }
       }
+      const possessedIsAgentTransitive =
+        isTransitive &&
+        possessedIsHuman &&
+        possessionMatch.possessedIndex < verbLocalIdx;
 
-      const possessorAlternatives = suffixResult.suffixes.length > 1
-        ? suffixResult.suffixes.slice(1).map((s) => ({
+      const possessedHasGrammaticalSuffix =
+        possessedHasLocative ||
+        possessedHasInstrumental ||
+        possessedHasTransport ||
+        possessedHasAllative ||
+        possessedIsAgentTransitive;
+
+      const possessorAlternatives: {
+        gup: string;
+        suffix: string;
+        explanation: string;
+      }[] = [];
+
+      if (suffixResult.suffixes.length > 1) {
+        for (const s of suffixResult.suffixes.slice(1)) {
+          possessorAlternatives.push({
             gup: applyPossessiveSuffix(possessorGup, s),
             suffix: s,
-            explanation: `${possessorGup} + -${s} = ${applyPossessiveSuffix(possessorGup, s)} (${LANG_CONFIG[mode].possessor})`,
-          }))
-        : undefined;
+            explanation: `${possessorGup} + -${s} = ${applyPossessiveSuffix(
+              possessorGup,
+              s
+            )} (${LANG_CONFIG[mode].possessor})`,
+          });
+        }
+      }
+
+      if (possessedHasGrammaticalSuffix) {
+        const humanAssocSuffixes =
+          determineHumanAssociativeSuffix(possessorGup);
+        for (const s of humanAssocSuffixes) {
+          const assocGup = applyHumanAssociativeSuffix(possessorGup, s);
+          possessorAlternatives.push({
+            gup: assocGup,
+            suffix: s,
+            explanation: `${possessorGup} + -${s} = ${assocGup} (${LANG_CONFIG[mode].withPerson})`,
+          });
+        }
+      }
+
+      const possessorIsHuman = possessorToken.nounMatch?.isHuman === true;
+      if (!possessorIsHuman) {
+        const belongingSuffixResult = determineBelongingSuffix(
+          possessorGup,
+          mode
+        );
+        for (const s of belongingSuffixResult.suffixes) {
+          const belongingGup = applyBelongingSuffix(possessorGup, s);
+          possessorAlternatives.push({
+            gup: belongingGup,
+            suffix: s,
+            explanation: `${possessorGup} + -${s} = ${belongingGup} (${LANG_CONFIG[mode].belongingLabel})`,
+          });
+        }
+      }
 
       parts.push({
         type: "noun",
         source: `${possessionMatch.possessorWord} (possessor)`,
+        sourceWord: possessionMatch.possessorWord,
         gup: possessorWithSuffix,
         baseGup: possessorGup,
         appliedSuffix: suffix,
         explanation: `${possessorGup} + -${suffix} = ${possessorWithSuffix} (${LANG_CONFIG[mode].possessor})`,
-        suffixAlternatives: possessorAlternatives,
+        suffixAlternatives:
+          possessorAlternatives.length > 0 ? possessorAlternatives : undefined,
         globalIndex: globalIndices[possessionMatch.possessorIndex],
         role: "possessor" as GrammaticalRole,
         isKnownNoun: possessorToken.type === "noun",
@@ -2773,6 +3477,7 @@ function buildStandardParts(
       parts.push({
         type: "noun",
         source: `${possessionMatch.possessedWord} (possessed)`,
+        sourceWord: possessionMatch.possessedWord,
         gup: finalPossessedGup,
         baseGup: possessedGup,
         appliedSuffix: possessedSuffix,
@@ -2811,7 +3516,10 @@ function buildStandardParts(
 
     const subjectResult = subjectByIndex.get(localIdx);
     if (subjectResult) {
-      if (mirriAlternative?.type === "subject-possessive" && mirriAlternative.subjectLocalIndex === localIdx) {
+      if (
+        mirriAlternative?.type === "subject-possessive" &&
+        mirriAlternative.subjectLocalIndex === localIdx
+      ) {
         continue;
       }
       const hasVerb = verbResult !== null;
@@ -2830,6 +3538,7 @@ function buildStandardParts(
         locativeMatch,
         conWithMatch,
         instrumentalMatch: context.instrumentalMatch,
+        belongingMatch: context.belongingMatch,
         transportMatch: context.transportMatch,
         isHuman: subjectResult.isHuman,
         unknownConWithChoice,
@@ -2870,8 +3579,15 @@ function buildStandardParts(
     if (objectResult) {
       const objectSourceLower = objectResult.source.toLowerCase();
       const { definiteArticles, pluralArticles, skipWords } = LANG_CONFIG[mode];
-      const allArticles = new Set([...definiteArticles, ...pluralArticles, ...skipWords]);
-      if (allArticles.has(objectSourceLower)) {
+      const allArticles = new Set([
+        ...definiteArticles,
+        ...pluralArticles,
+        ...skipWords,
+      ]);
+      if (
+        allArticles.has(objectSourceLower) &&
+        objectResult.type !== "pronoun"
+      ) {
         continue;
       }
 
@@ -2884,6 +3600,7 @@ function buildStandardParts(
         locativeMatch,
         conWithMatch,
         instrumentalMatch: context.instrumentalMatch,
+        belongingMatch: context.belongingMatch,
         transportMatch: context.transportMatch,
         isObject: true,
         isHuman: objectResult.isHuman ?? undefined,
@@ -2902,8 +3619,10 @@ function buildStandardParts(
         finalGup = baseGup;
         appliedSuffix = undefined;
       } else {
-        finalGup = suffixResult.gup !== baseGup ? suffixResult.gup : objectResult.gup;
-        appliedSuffix = suffixResult.suffix || (objectResult.hasNha ? "nha" : undefined);
+        finalGup =
+          suffixResult.gup !== baseGup ? suffixResult.gup : objectResult.gup;
+        appliedSuffix =
+          suffixResult.suffix || (objectResult.hasNha ? "nha" : undefined);
       }
       const finalExplanation =
         suffixResult.explanation || objectResult.explanation;
@@ -2929,7 +3648,8 @@ function buildStandardParts(
     }
 
     const questionType = context.questionMatch?.type;
-    const skipOptionalDirection = questionType === "where_to" || questionType === "where_from";
+    const skipOptionalDirection =
+      questionType === "where_to" || questionType === "where_from";
     const tokenParts = tokenToParts(
       token,
       localIdx,
@@ -2941,6 +3661,7 @@ function buildStandardParts(
       locativeMatch,
       conWithMatch,
       context.instrumentalMatch,
+      context.belongingMatch,
       context.transportMatch,
       unknownConWithChoice,
       unknownLocativeChoice,
@@ -2949,7 +3670,8 @@ function buildStandardParts(
       motionDestinations,
       motionDestinationChoice,
       skipOptionalDirection ? null : motionDirection,
-      mirriAlternative
+      mirriAlternative,
+      locativeVerbChoice
     );
     parts.push(...tokenParts);
   }
@@ -2957,11 +3679,19 @@ function buildStandardParts(
   if (comitativePronounMatch) {
     const gupForms = comitativePronounMatch.gupForms;
     const firstGup = gupForms[0];
-    const globalIdx = globalIndices[comitativePronounMatch.triggerIndices[0]] || 0;
+    const globalIdx =
+      globalIndices[comitativePronounMatch.triggerIndices[0]] || 0;
 
-    const suffixAlts = gupForms.length > 1
-      ? gupForms.slice(1).map((g) => ({ gup: g, suffix: "", explanation: `${comitativePronounMatch.triggerPhrase} → ${g}` }))
-      : undefined;
+    const suffixAlts =
+      gupForms.length > 1
+        ? gupForms
+            .slice(1)
+            .map((g) => ({
+              gup: g,
+              suffix: "",
+              explanation: `${comitativePronounMatch.triggerPhrase} → ${g}`,
+            }))
+        : undefined;
 
     parts.push({
       type: "noun",
@@ -2978,11 +3708,19 @@ function buildStandardParts(
   if (humanAllativePronounMatch) {
     const gupForms = humanAllativePronounMatch.gupForms;
     const firstGup = gupForms[0];
-    const globalIdx = globalIndices[humanAllativePronounMatch.triggerIndices[0]] || 0;
+    const globalIdx =
+      globalIndices[humanAllativePronounMatch.triggerIndices[0]] || 0;
 
-    const suffixAlts = gupForms.length > 1
-      ? gupForms.slice(1).map((g) => ({ gup: g, suffix: "", explanation: `${humanAllativePronounMatch.triggerPhrase} → ${g}` }))
-      : undefined;
+    const suffixAlts =
+      gupForms.length > 1
+        ? gupForms
+            .slice(1)
+            .map((g) => ({
+              gup: g,
+              suffix: "",
+              explanation: `${humanAllativePronounMatch.triggerPhrase} → ${g}`,
+            }))
+        : undefined;
 
     parts.push({
       type: "noun",
@@ -2999,11 +3737,19 @@ function buildStandardParts(
   if (humanAblativePronounMatch) {
     const gupForms = humanAblativePronounMatch.gupForms;
     const firstGup = gupForms[0];
-    const globalIdx = globalIndices[humanAblativePronounMatch.triggerIndices[0]] || 0;
+    const globalIdx =
+      globalIndices[humanAblativePronounMatch.triggerIndices[0]] || 0;
 
-    const suffixAlts = gupForms.length > 1
-      ? gupForms.slice(1).map((g) => ({ gup: g, suffix: "", explanation: `${humanAblativePronounMatch.triggerPhrase} → ${g}` }))
-      : undefined;
+    const suffixAlts =
+      gupForms.length > 1
+        ? gupForms
+            .slice(1)
+            .map((g) => ({
+              gup: g,
+              suffix: "",
+              explanation: `${humanAblativePronounMatch.triggerPhrase} → ${g}`,
+            }))
+        : undefined;
 
     parts.push({
       type: "noun",
@@ -3020,11 +3766,19 @@ function buildStandardParts(
   if (sourceOriginPronounMatch && verbResult) {
     const gupForms = sourceOriginPronounMatch.gupForms;
     const firstGup = gupForms[0];
-    const globalIdx = globalIndices[sourceOriginPronounMatch.triggerIndices[0]] || 0;
+    const globalIdx =
+      globalIndices[sourceOriginPronounMatch.triggerIndices[0]] || 0;
 
-    const suffixAlts = gupForms.length > 1
-      ? gupForms.slice(1).map((g) => ({ gup: g, suffix: "", explanation: `${sourceOriginPronounMatch.triggerPhrase} → ${g}` }))
-      : undefined;
+    const suffixAlts =
+      gupForms.length > 1
+        ? gupForms
+            .slice(1)
+            .map((g) => ({
+              gup: g,
+              suffix: "",
+              explanation: `${sourceOriginPronounMatch.triggerPhrase} → ${g}`,
+            }))
+        : undefined;
 
     parts.push({
       type: "noun",
@@ -3043,9 +3797,16 @@ function buildStandardParts(
     const firstGup = gupForms[0];
     const globalIdx = globalIndices[purposePronounMatch.triggerIndices[0]] || 0;
 
-    const suffixAlts = gupForms.length > 1
-      ? gupForms.slice(1).map((g) => ({ gup: g, suffix: "", explanation: `${purposePronounMatch.triggerPhrase} → ${g}` }))
-      : undefined;
+    const suffixAlts =
+      gupForms.length > 1
+        ? gupForms
+            .slice(1)
+            .map((g) => ({
+              gup: g,
+              suffix: "",
+              explanation: `${purposePronounMatch.triggerPhrase} → ${g}`,
+            }))
+        : undefined;
 
     parts.push({
       type: "noun",
@@ -3060,7 +3821,8 @@ function buildStandardParts(
   }
 
   if (indirectObjectMatch) {
-    const { personNumber, nounWord, triggerWord, triggerIndex, nounIndex } = indirectObjectMatch;
+    const { personNumber, nounWord, triggerWord, triggerIndex, nounIndex } =
+      indirectObjectMatch;
     const globalIdx = globalIndices[triggerIndex] || 0;
     const { indirectObjectLabel } = LANG_CONFIG[mode];
 
@@ -3068,23 +3830,37 @@ function buildStandardParts(
       const possessiveForms = POSSESSIVE_PRONOUNS_GUP[personNumber];
       if (possessiveForms && possessiveForms.length > 0) {
         const firstGup = possessiveForms[0];
-        const suffixAlts = possessiveForms.length > 1
-          ? possessiveForms.slice(1).map((g) => ({ gup: g, suffix: "", explanation: `${triggerWord} → ${g}` }))
-          : undefined;
+        const suffixAlts =
+          possessiveForms.length > 1
+            ? possessiveForms
+                .slice(1)
+                .map((g) => ({
+                  gup: g,
+                  suffix: "",
+                  explanation: `${triggerWord} → ${g}`,
+                }))
+            : undefined;
 
         parts.push({
           type: "noun",
           source: nounWord || triggerWord,
           gup: firstGup,
-          explanation: `"${nounWord || triggerWord}" → ${firstGup} (${indirectObjectLabel})`,
+          explanation: `"${
+            nounWord || triggerWord
+          }" → ${firstGup} (${indirectObjectLabel})`,
           suffixAlternatives: suffixAlts,
-          globalIndex: nounIndex !== null ? (globalIndices[nounIndex] || globalIdx) : globalIdx,
+          globalIndex:
+            nounIndex !== null
+              ? globalIndices[nounIndex] || globalIdx
+              : globalIdx,
           role: "indirectObject" as GrammaticalRole,
           isHuman: true,
         });
       }
     } else if (nounWord) {
-      const nounToken = fraseTokens.find((t) => t.original.toLowerCase() === nounWord.toLowerCase());
+      const nounToken = fraseTokens.find(
+        (t) => t.original.toLowerCase() === nounWord.toLowerCase()
+      );
       let baseGup = nounWord;
       if (nounToken?.nounMatch) {
         baseGup = nounToken.nounMatch.gupKey;
@@ -3098,7 +3874,10 @@ function buildStandardParts(
         source: nounWord,
         gup: suffixedGup,
         explanation: `"${nounWord}" → ${baseGup} + -${suffix} = ${suffixedGup} (${indirectObjectLabel})`,
-        globalIndex: nounIndex !== null ? (globalIndices[nounIndex] || globalIdx) : globalIdx,
+        globalIndex:
+          nounIndex !== null
+            ? globalIndices[nounIndex] || globalIdx
+            : globalIdx,
         role: "indirectObject" as GrammaticalRole,
         isHuman: true,
       });
@@ -3174,6 +3953,7 @@ function tokenToParts(
   locativeMatch: LocativeMatch | null = null,
   conWithMatch: ConWithMatch | null = null,
   instrumentalMatch: InstrumentalMatch | null = null,
+  belongingMatch: BelongingMatch | null = null,
   transportMatch: TransportMatch | null = null,
   unknownConWithChoice: UnknownConWithChoice = null,
   unknownLocativeChoice: UnknownLocativeChoice = null,
@@ -3182,19 +3962,40 @@ function tokenToParts(
   motionDestinations?: MotionDestination[],
   motionDestinationChoice?: UnknownConWithChoice,
   motionDirection: MotionDirection = null,
-  mirriAlternative?: { type: "object-mirri" } | { type: "subject-possessive"; possessiveForm: string; subjectLocalIndex: number }
+  mirriAlternative?:
+    | { type: "object-mirri" }
+    | {
+        type: "subject-possessive";
+        possessiveForm: string;
+        subjectLocalIndex: number;
+      },
+  locativeVerbChoice: LocativeVerbResult | null = null
 ): TranslationPart[] {
   const { definiteArticles, pluralArticles, skipWords } = LANG_CONFIG[mode];
   const tokenLower = token.original.toLowerCase();
-  const allArticles = new Set([...definiteArticles, ...pluralArticles, ...skipWords]);
+  const allArticles = new Set([
+    ...definiteArticles,
+    ...pluralArticles,
+    ...skipWords,
+  ]);
   if (token.type === "unknown" && allArticles.has(tokenLower)) {
     return [];
   }
 
   if (
     token.type === "verb" &&
+    locativeVerbChoice &&
     verbResult &&
     localIdx === verbResult.localIndex
+  ) {
+    return [];
+  }
+
+  if (
+    token.type === "verb" &&
+    verbResult &&
+    localIdx === verbResult.localIndex &&
+    !locativeVerbChoice
   ) {
     const first = verbResult.results[0];
     const parts: TranslationPart[] = [
@@ -3210,12 +4011,20 @@ function tokenToParts(
       },
     ];
 
-    const verbGupHasDirection = first.gup.includes("bala") || first.gup.includes("räli");
-    if (motionDirection && verbMotionType === "motion" && !verbGupHasDirection) {
+    const verbGupHasDirection =
+      first.gup.includes("bala") || first.gup.includes("räli");
+    if (
+      motionDirection &&
+      verbMotionType === "motion" &&
+      !verbGupHasDirection
+    ) {
       const directionGup = MOTION_DIRECTION_GUP[motionDirection];
-      const directionLabel = LANG_CONFIG[mode][
-        motionDirection === "away" ? "directionAwayLabel" : "directionTowardsLabel"
-      ];
+      const directionLabel =
+        LANG_CONFIG[mode][
+          motionDirection === "away"
+            ? "directionAwayLabel"
+            : "directionTowardsLabel"
+        ];
       parts.push({
         type: "particle",
         source: motionDirection === "away" ? "→" : "←",
@@ -3230,9 +4039,16 @@ function tokenToParts(
     if (attachedClitic) {
       const cliticInfo = getCliticGup(attachedClitic, hasDualMarker, mode);
       if (cliticInfo) {
-        const cliticAlts = cliticInfo.options.length > 1
-          ? cliticInfo.options.slice(1).map((o) => ({ gup: o.gup, suffix: "", explanation: o.explanation }))
-          : undefined;
+        const cliticAlts =
+          cliticInfo.options.length > 1
+            ? cliticInfo.options
+                .slice(1)
+                .map((o) => ({
+                  gup: o.gup,
+                  suffix: "",
+                  explanation: o.explanation,
+                }))
+            : undefined;
         parts.push({
           type: "object",
           source: attachedClitic,
@@ -3256,6 +4072,7 @@ function tokenToParts(
       locativeMatch,
       conWithMatch,
       instrumentalMatch,
+      belongingMatch,
       transportMatch,
       isObject: true,
       isHuman: token.nounMatch?.isHuman,
@@ -3356,15 +4173,28 @@ function tokenToParts(
         const comitativeForms = comitativePronounsGup[personNumber];
         if (comitativeForms && comitativeForms.length > 0) {
           const gup = comitativeForms[0];
-          const comitativeAlts = comitativeForms.length > 1
-            ? comitativeForms.slice(1).map((g) => ({ gup: g, suffix: "", explanation: `${token.original} → ${g}` }))
-            : undefined;
+          const comitativeAlts =
+            comitativeForms.length > 1
+              ? comitativeForms
+                  .slice(1)
+                  .map((g) => ({
+                    gup: g,
+                    suffix: "",
+                    explanation: `${token.original} → ${g}`,
+                  }))
+              : undefined;
           return [
             {
               type: "noun",
               source: token.original,
               gup,
-              explanation: `${LANG_CONFIG[mode].pronoun} "${token.original}" → ${gup} (${isInLocative ? LANG_CONFIG[mode].locativeExplanation : LANG_CONFIG[mode].conWithExplanation})`,
+              explanation: `${LANG_CONFIG[mode].pronoun} "${
+                token.original
+              }" → ${gup} (${
+                isInLocative
+                  ? LANG_CONFIG[mode].locativeExplanation
+                  : LANG_CONFIG[mode].conWithExplanation
+              })`,
               suffixAlternatives: comitativeAlts,
               globalIndex: globalIdx,
               isHuman: true,
@@ -3376,9 +4206,16 @@ function tokenToParts(
       const options = getPronounOptions(personNumber, hasDualMarker, mode);
       const allForms = SUBJECT_PRONOUNS_GUP[personNumber];
       const gup = options.length > 0 ? options[0].gup : allForms[0];
-      const verblessAlts = options.length > 1
-        ? options.slice(1).map((o) => ({ gup: o.gup, suffix: "", explanation: `${token.original} → ${o.gup}` }))
-        : undefined;
+      const verblessAlts =
+        options.length > 1
+          ? options
+              .slice(1)
+              .map((o) => ({
+                gup: o.gup,
+                suffix: "",
+                explanation: `${token.original} → ${o.gup}`,
+              }))
+          : undefined;
       return [
         {
           type: "subject",
@@ -3394,6 +4231,21 @@ function tokenToParts(
     return [];
   }
 
+  const agentNounMatch = detectAgentNoun(token.original, mode);
+  if (agentNounMatch) {
+    return [
+      {
+        type: "noun",
+        source: token.original,
+        gup: agentNounMatch.agentGup,
+        baseGup: agentNounMatch.verbGup,
+        appliedSuffix: "mirri",
+        explanation: agentNounMatch.explanation,
+        globalIndex: globalIdx,
+      },
+    ];
+  }
+
   const suffixResult = applySuffixBasedOnContext({
     baseGup: token.original,
     localIdx,
@@ -3402,6 +4254,7 @@ function tokenToParts(
     locativeMatch,
     conWithMatch,
     instrumentalMatch,
+    belongingMatch,
     transportMatch,
     isObject: true,
     isHuman: undefined,
@@ -3538,7 +4391,7 @@ function buildOutput(
     }
   }
 
-  applyAdjectiveSuffixes(allParts, adjNounGroups);
+  applyAdjectiveSuffixes(allParts, adjNounGroups, mode);
 
   const finalOutputParts: string[] = [];
   for (const part of allParts) {

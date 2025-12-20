@@ -7,6 +7,8 @@ export type QuestionType =
   | "where_from"
   | "what"
   | "what_purpose"
+  | "what_about"
+  | "where_belong"
   | "whom"
   | "to_whom"
   | "whose"
