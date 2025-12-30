@@ -258,7 +258,7 @@ export function processSubjects(
     } else if (
       token.type === "noun" &&
       token.gupKey &&
-      !isVerb1stOr2ndSingular
+      (isBeforeVerb || !isVerb1stOr2ndSingular)
     ) {
       if (isTransitive && token.nounMatch?.isHuman === true && !skipErgative) {
         const { suffixed, suffix } = applyErgativeSuffix(token.gupKey);
@@ -290,7 +290,7 @@ export function processSubjects(
           localIndex: i,
         });
       }
-    } else if (token.type === "unknown" && !isVerb1stOr2ndSingular) {
+    } else if (token.type === "unknown" && (isBeforeVerb || !isVerb1stOr2ndSingular)) {
       if (isTransitive && !skipErgative) {
         const { suffixed, suffix } = applyErgativeSuffix(token.original);
         const options: SubjectOption[] = [

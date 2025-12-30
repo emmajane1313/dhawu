@@ -8,7 +8,8 @@ import {
   applyHumanAssociativeSuffix,
 } from "../../constants";
 import { determinePossessiveSuffix, applyPossessiveSuffix } from "../possession";
-import { findNounInfo } from "./questionHelpers";
+import { findNounInfo, findVerbGupWithPerson } from "./questionHelpers";
+import { LEXICON } from "../../lexicon";
 
 export { findNounInfo };
 
@@ -98,13 +99,84 @@ export function detectWhereQuestionPattern(
     const afterQuestion = originalText.slice(questionMarkPos + 1).trim();
     if (afterQuestion) {
       const answerWords = afterQuestion.split(/\s+/);
-      let determinerType: "this" | "that" | "definite" | null = null;
-      let isPlural = false;
-      let isDual = false;
 
-      for (const rawWord of answerWords) {
-        const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
-        if (!answerWord) continue;
+      const { locativeVerbTriggers } = LANG_CONFIG[mode];
+
+      let locativeTriggerIdx = -1;
+      for (let i = 0; i < answerWords.length; i++) {
+        const word = answerWords[i].toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+        if (locativeVerbTriggers.includes(word)) {
+          locativeTriggerIdx = i;
+          break;
+        }
+      }
+
+      if (locativeTriggerIdx !== -1 && locativeTriggerIdx + 1 < answerWords.length) {
+        const triggerWord = answerWords[locativeTriggerIdx].toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+        const verbWord = answerWords[locativeTriggerIdx + 1].toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+        const verbInfo = findVerbGupWithPerson(verbWord, mode);
+
+        if (verbInfo) {
+          const triggerTokenIdx = lowerTokens.findIndex(
+            (t, i) => i >= tokensBeforeQuestion && t.replace(/[,.\-;:!¡¿]+$/, "") === triggerWord
+          );
+          const verbTokenIdx = lowerTokens.findIndex(
+            (t, i) => i >= tokensBeforeQuestion && t.replace(/[,.\-;:!¡¿]+$/, "") === verbWord
+          );
+
+          if (triggerTokenIdx !== -1) {
+            consumedIndices.push(triggerTokenIdx);
+            usedAnswerIndices.add(triggerTokenIdx);
+          }
+          if (verbTokenIdx !== -1) {
+            consumedIndices.push(verbTokenIdx);
+            usedAnswerIndices.add(verbTokenIdx);
+          }
+
+          const verbEntry = LEXICON.verbs[verbInfo.gup];
+          if (verbEntry && verbEntry.forms && verbEntry.forms[3]) {
+            const verbQuaternary = verbEntry.forms[3];
+            const verbWithSuffix = applyLocativeSuffix(verbQuaternary);
+
+            answerExplanation = `${verbWord} → ${verbQuaternary} + -${LOCATIVE_SUFFIX} = ${verbWithSuffix}`;
+            answerInfo = {
+              baseGup: verbWithSuffix,
+              rawBaseGup: verbQuaternary,
+              appliedSuffix: LOCATIVE_SUFFIX,
+              hasDefiniteArticle: false,
+              determinerType: null,
+              isPlural: false,
+              isDual: false,
+              baseExplanation: answerExplanation,
+              answerTokens: answerWords,
+              suffixType: "locative",
+            };
+          }
+        }
+      }
+
+      if (!answerInfo) {
+        let determinerType: "this" | "that" | "definite" | null = null;
+        let isPlural = false;
+        let isDual = false;
+
+        for (const rawWord of answerWords) {
+          const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+          if (!answerWord) continue;
+
+          if (locativeVerbTriggers.includes(answerWord)) {
+            const triggerIdx = lowerTokens.findIndex(
+              (t, i) =>
+                i >= tokensBeforeQuestion &&
+                !usedAnswerIndices.has(i) &&
+                t.replace(/[,.\-;:!¡¿]+$/, "") === answerWord
+            );
+            if (triggerIdx !== -1) {
+              consumedIndices.push(triggerIdx);
+              usedAnswerIndices.add(triggerIdx);
+            }
+            continue;
+          }
 
         if (connectors.includes(answerWord)) {
           const connectorIdx = lowerTokens.findIndex(
@@ -213,8 +285,9 @@ export function detectWhereQuestionPattern(
         }
 
         const nounInfo = findNounInfo(answerWord, mode);
-        const isWordUnknown = nounInfo === null;
-        const nounBaseGup = nounInfo?.gupKey || answerWord;
+        const verbInfo = !nounInfo ? findVerbGupWithPerson(answerWord, mode) : null;
+        const isWordUnknown = !nounInfo && !verbInfo;
+        const nounBaseGup = nounInfo?.gupKey || verbInfo?.gup || answerWord;
         const nounIsPlural = nounInfo?.isPlural || false;
         const isPlace = nounInfo?.isPlace;
         const isHuman = nounInfo?.isHuman ?? false;
@@ -375,6 +448,7 @@ export function detectWhereQuestionPattern(
           };
         }
       }
+      }
 
       if (answerInfo) {
         if (additionalAnswers.length > 0) {
@@ -418,5 +492,6 @@ export function detectWhereQuestionPattern(
     answerInfo,
     hasExplicitSubject: !!subjectGup,
     subjectInfo,
+    isComplexPattern: true,
   };
 }

@@ -1,5 +1,6 @@
 import { LanguageMode } from "@/app/components/types/components.type";
-import { Token } from "./tokenizer";
+import { Token, VerbMatch } from "./tokenizer";
+import { LEXICON } from "./lexicon";
 import {
   getPatterns,
   getNegationWords,
@@ -17,9 +18,20 @@ import {
   LocativeVerbType,
   LOCATIVE_VERBS,
   QUESTION_GUP,
-  AgentNounSuffix,
+  determineDjalSuffix,
+  applyDjalSuffix,
+  DjalVerbMatch,
+  PurposeInfinitiveMatch,
+  InfinitiveAgentMatch,
+  InfinitiveAgentType,
+  LocativeVerbMatch,
+  LOCATIVE_SUFFIX,
+  ALLATIVE_SUFFIX,
+  ABLATIVE_SUFFIX,
+  applyLocativeSuffix,
+  applyAllativeSuffix,
+  applyAblativeSuffix,
 } from "./constants";
-import { LEXICON } from "./lexicon";
 import {
   detectQuestionPattern as detectQuestionPatternFromRules,
   AnswerInfo,
@@ -88,8 +100,14 @@ export interface LocativeMatch {
   triggerPhrase: string;
   triggerIndices: number[];
   nounIndices: number[];
+  verbIndices?: number[];
   reinforcer: LocativeReinforcerInfo | null;
   explanation: string;
+  suffixType: "ngura" | "lili" | "nguru" | "ergative" | "belonging";
+  alternativeSuffixTypes?: Array<{
+    suffixType: "ngura" | "lili" | "nguru" | "ergative" | "belonging";
+    explanation: string;
+  }>;
 }
 
 export interface ConWithMatch {
@@ -116,6 +134,24 @@ export interface BelongingMatch {
   isPronoun?: boolean;
   pronounPersonNumber?: PersonNumber;
   pronounWord?: string;
+}
+
+export interface BecomeAdjectiveMatch {
+  verbIndex: number;
+  adjectiveIndex: number;
+  verbWord: string;
+  adjectiveWord: string;
+  adjectiveGup: string;
+  explanation: string;
+}
+
+export interface MakeAdjectiveMatch {
+  verbIndex: number;
+  adjectiveIndex: number;
+  verbWord: string;
+  adjectiveWord: string;
+  adjectiveGup: string;
+  explanation: string;
 }
 
 export interface TimesMatch {
@@ -446,14 +482,20 @@ export function detectCopulaPattern(
       let subjectType: "this" | "that" | null = null;
       let subjectIndex: number | null = null;
 
-      if (i > 0) {
-        const beforeCopulaWord = tokens[i - 1].original.toLowerCase();
-        if (thisWords.includes(beforeCopulaWord)) {
+      for (let k = i - 1; k >= 0; k--) {
+        const beforeWord = tokens[k].original.toLowerCase();
+        if (thisWords.includes(beforeWord)) {
           subjectType = "this";
-          subjectIndex = i - 1;
-        } else if (thatWords.includes(beforeCopulaWord)) {
+          subjectIndex = k;
+          break;
+        } else if (thatWords.includes(beforeWord)) {
           subjectType = "that";
-          subjectIndex = i - 1;
+          subjectIndex = k;
+          break;
+        }
+        const allowedTypes = ["noun", "adjective", "unknown"];
+        if (!allowedTypes.includes(tokens[k].type)) {
+          break;
         }
       }
 
@@ -1161,7 +1203,125 @@ export function detectLocativePattern(
   mode: LanguageMode
 ): LocativeMatch | null {
   const config = LANG_CONFIG[mode];
-  const { locativeTriggers } = config;
+  const {
+    locativeTriggers,
+    locativeVerbTriggers,
+    allativeVerbTriggers,
+    ablativeVerbTriggers,
+    instrumentalVerbTriggers,
+    belongingVerbTriggers
+  } = config;
+
+
+  const triggerGroups: Array<{
+    triggers: string[];
+    suffixType: "ngura" | "lili" | "nguru" | "ergative" | "belonging";
+    explanation: string;
+  }> = [
+    {
+      triggers: locativeVerbTriggers,
+      suffixType: "ngura",
+      explanation: config.locativeExplanation,
+    },
+    {
+      triggers: allativeVerbTriggers,
+      suffixType: "lili",
+      explanation: config.allativeSuffixLabel || "allative",
+    },
+    {
+      triggers: ablativeVerbTriggers,
+      suffixType: "nguru",
+      explanation: config.ablativeSuffixLabel || "ablative",
+    },
+    {
+      triggers: instrumentalVerbTriggers,
+      suffixType: "ergative",
+      explanation: "instrumental suffix (-y/-yu/-dhu/-thu)",
+    },
+    {
+      triggers: belongingVerbTriggers,
+      suffixType: "belonging",
+      explanation: "belonging/associative suffix (-wuy/-puy/-buy)",
+    },
+  ];
+
+  let firstMatch: LocativeMatch | null = null;
+  const allMatches: Array<{ trigger: string; group: typeof triggerGroups[0]; result: any; nounIndices: number[]; verbIndices: number[] }> = [];
+
+  for (const group of triggerGroups) {
+    const sortedVerbTriggers = [...group.triggers].sort(
+      (a, b) => b.split(" ").length - a.split(" ").length
+    );
+
+    for (const trigger of sortedVerbTriggers) {
+      const result = hasPhrase(tokens, trigger);
+      if (result.found) {
+        const lastTriggerIdx = Math.max(...result.indices);
+        const nounIndices: number[] = [];
+        const verbIndices: number[] = [];
+
+        for (let i = lastTriggerIdx + 1; i < tokens.length; i++) {
+          const t = tokens[i];
+      
+
+          const normalized = normalizeText(t.original);
+          if (["el", "la", "los", "las", "lo", "the", "a", "an"].includes(normalized)) {
+            continue;
+          }
+
+          if (
+            t.type === "noun" ||
+            t.type === "unknown" ||
+            t.type === "adjective" ||
+            t.type === "pronoun"
+          ) {
+            nounIndices.push(i);
+          } else if (t.type === "verb") {
+            if (t.verbMatch?.tense === "infinitive" || t.verbMatch?.tense === "gerund") {
+              verbIndices.push(i);
+              continue;
+            }
+            nounIndices.push(i);
+          } else if (t.type === "connector") {
+            if (isOtherPatternTrigger(tokens, i + 1, mode, group.triggers)) {
+              break;
+            }
+            continue;
+          }
+        }
+
+        if (verbIndices.length > 0 || nounIndices.length > 0) {
+          allMatches.push({ trigger, group, result, nounIndices, verbIndices });
+        } 
+      }
+    }
+  }
+
+  if (allMatches.length > 0) {
+    const first = allMatches[0];
+    const reinforcer = getReinforcerForTrigger(first.trigger);
+
+    firstMatch = {
+      triggerPhrase: first.trigger,
+      triggerIndices: first.result.indices,
+      nounIndices: first.nounIndices,
+      verbIndices: first.verbIndices,
+      reinforcer,
+      explanation: `"${first.trigger}" → ${first.group.explanation}`,
+      suffixType: first.group.suffixType,
+    };
+
+    if (allMatches.length > 1) {
+      const alternatives = allMatches.slice(1).map(m => ({
+        suffixType: m.group.suffixType,
+        explanation: `"${m.trigger}" → ${m.group.explanation}`,
+      }));
+      firstMatch.alternativeSuffixTypes = alternatives;
+    }
+
+    return firstMatch;
+  }
+
   const sortedTriggers = [...locativeTriggers].sort(
     (a, b) => b.split(" ").length - a.split(" ").length
   );
@@ -1181,6 +1341,10 @@ export function detectLocativePattern(
         ) {
           nounIndices.push(i);
         } else if (t.type === "verb") {
+          if (t.verbMatch?.tense === "infinitive" || t.verbMatch?.tense === "gerund") {
+            break;
+          }
+          nounIndices.push(i);
           break;
         } else if (t.type === "connector") {
           if (isOtherPatternTrigger(tokens, i + 1, mode, locativeTriggers)) {
@@ -1198,6 +1362,7 @@ export function detectLocativePattern(
           nounIndices,
           reinforcer,
           explanation: `"${trigger}" → ${config.locativeExplanation}`,
+          suffixType: "ngura",
         };
       }
     }
@@ -1231,6 +1396,10 @@ export function detectConWithPattern(
         ) {
           nounIndices.push(i);
         } else if (t.type === "verb") {
+          if (t.verbMatch?.tense === "infinitive" || t.verbMatch?.tense === "gerund") {
+            break;
+          }
+          nounIndices.push(i);
           break;
         } else if (t.type === "connector") {
           if (isOtherPatternTrigger(tokens, i + 1, mode, conWithTriggers)) {
@@ -1278,6 +1447,10 @@ export function detectInstrumentalPattern(
         ) {
           nounIndices.push(i);
         } else if (t.type === "verb") {
+          if (t.verbMatch?.tense === "infinitive" || t.verbMatch?.tense === "gerund") {
+            break;
+          }
+          nounIndices.push(i);
           break;
         } else if (t.type === "connector") {
           continue;
@@ -1357,7 +1530,12 @@ export function detectBelongingPattern(
         nextToken.type === "unknown" ||
         nextToken.type === "adjective";
 
-      if (!isNextNounLike) continue;
+      const isNextVerbAsNoun =
+        nextToken.type === "verb" &&
+        nextToken.verbMatch?.tense !== "infinitive" &&
+        nextToken.verbMatch?.tense !== "gerund";
+
+      if (!isNextNounLike && !isNextVerbAsNoun) continue;
 
       if (triggerIdx > 0) {
         const prevToken = tokens[triggerIdx - 1];
@@ -1406,6 +1584,136 @@ export function detectBelongingPattern(
   return null;
 }
 
+export function detectBecomeAdjectivePattern(
+  tokens: Token[],
+  mode: LanguageMode
+): BecomeAdjectiveMatch | null {
+  const reflexivePronouns = ["me", "te", "se", "nos", "os"];
+
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const token = tokens[i];
+    const nextToken = tokens[i + 1];
+
+    if (
+      token.type === "verb" &&
+      token.verbMatch?.isBecomeVerb &&
+      nextToken.type === "adjective" &&
+      nextToken.gupKey
+    ) {
+      return {
+        verbIndex: i,
+        adjectiveIndex: i + 1,
+        verbWord: token.original,
+        adjectiveWord: nextToken.original,
+        adjectiveGup: nextToken.gupKey,
+        explanation: `"${token.original} ${nextToken.original}" → become + adjective`,
+      };
+    }
+
+    if (i < tokens.length - 2) {
+      const thirdToken = tokens[i + 2];
+      const pronounWord = token.original.toLowerCase();
+      const verbWord = nextToken.original.toLowerCase();
+      const combinedVerb = `${pronounWord} ${verbWord}`;
+
+      if (
+        reflexivePronouns.includes(pronounWord) &&
+        thirdToken.type === "adjective" &&
+        thirdToken.gupKey
+      ) {
+        const becomeVerbEntry = LEXICON.verbs["ŋama-dhirri"];
+        if (becomeVerbEntry && becomeVerbEntry.isBecomeVerb) {
+          let foundMatch = false;
+          for (const forms of becomeVerbEntry[mode]) {
+            const allConjugations = [
+              ...forms.presentIndicative,
+              ...forms.preterite,
+              ...forms.imperfect,
+              ...forms.future,
+              ...forms.conditional,
+              ...forms.presentSubjunctive,
+            ];
+            if (allConjugations.some(conj => conj.toLowerCase() === combinedVerb)) {
+              foundMatch = true;
+              break;
+            }
+          }
+
+          if (foundMatch) {
+            return {
+              verbIndex: i,
+              adjectiveIndex: i + 2,
+              verbWord: combinedVerb,
+              adjectiveWord: thirdToken.original,
+              adjectiveGup: thirdToken.gupKey,
+              explanation: `"${combinedVerb} ${thirdToken.original}" → become + adjective`,
+            };
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+export function detectMakeAdjectivePattern(
+  tokens: Token[],
+  mode: LanguageMode
+): MakeAdjectiveMatch | null {
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const token = tokens[i];
+    const nextToken = tokens[i + 1];
+
+    if (
+      token.type === "verb" &&
+      nextToken.type === "adjective" &&
+      nextToken.gupKey
+    ) {
+      let hasMakeVerb = token.verbMatch?.isMakeVerb || false;
+
+      if (!hasMakeVerb && token.verbMatch) {
+        const verbWord = token.original.toLowerCase();
+        for (const entry of Object.values(LEXICON.verbs)) {
+          if (entry.isMakeVerb) {
+            for (const forms of entry[mode]) {
+              const allConjugations = [
+                forms.infinitive,
+                ...forms.presentIndicative,
+                ...forms.preterite,
+                ...forms.imperfect,
+                ...forms.future,
+                ...forms.conditional,
+                ...forms.presentSubjunctive,
+                forms.gerund,
+                forms.pastParticiple,
+              ];
+              if (allConjugations.some(conj => conj.toLowerCase() === verbWord)) {
+                hasMakeVerb = true;
+                break;
+              }
+            }
+            if (hasMakeVerb) break;
+          }
+        }
+      }
+
+      if (hasMakeVerb) {
+        return {
+          verbIndex: i,
+          adjectiveIndex: i + 1,
+          verbWord: token.original,
+          adjectiveWord: nextToken.original,
+          adjectiveGup: nextToken.gupKey,
+          explanation: `"${token.original} ${nextToken.original}" → make + adjective`,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
 export function detectTransportPattern(
   tokens: Token[],
   mode: LanguageMode
@@ -1446,6 +1754,14 @@ export function detectTransportPattern(
           }
           break;
         } else if (t.type === "verb") {
+          if (t.verbMatch?.tense === "infinitive" || t.verbMatch?.tense === "gerund") {
+            break;
+          }
+          nounIndices.push(j);
+          const nounLower = t.original.toLowerCase();
+          if (vehicles.includes(nounLower)) {
+            isKnownVehicle = true;
+          }
           break;
         } else if (t.type === "connector" || t.type === "pronoun") {
           continue;
@@ -1550,17 +1866,14 @@ export function detectPronounPattern(
           }
         }
         if (matches) {
-          const lastTriggerWord =
-            triggerWords[triggerWords.length - 1].toLowerCase();
           const nextTokenIdx = i + triggerWords.length;
           const nextToken = tokens[nextTokenIdx];
 
-          const normalizedLastWord = normalizeText(lastTriggerWord);
-          if (
-            normalizedLastWord === "el" &&
-            nextToken &&
-            (nextToken.type === "noun" || nextToken.type === "unknown")
-          ) {
+          const lastMatchedTokenIdx = i + triggerWords.length - 1;
+          const lastMatchedToken = tokens[lastMatchedTokenIdx];
+          const lastMatchedTokenLower = lastMatchedToken.original.toLowerCase();
+
+          if (lastMatchedTokenLower === "el" && nextToken) {
             continue;
           }
 
@@ -2046,7 +2359,7 @@ export function detectAgentNoun(
       const stemOnly = stem;
 
       for (const entry of Object.values(LEXICON.verbs)) {
-        const verbForms = mode === "es" ? entry.es : entry.en;
+        const verbForms = entry[mode];
         for (const form of verbForms) {
           const infinitiveLower = form.infinitive.toLowerCase();
           if (
@@ -2075,6 +2388,676 @@ export function detectAgentNoun(
         agentGup: fallbackGup,
         explanation: `${word} → ${derivedVerb} → ${fallbackGup} (${agentNounLabel})`,
       };
+    }
+  }
+
+  return null;
+}
+
+export interface RelativeClauseMatch {
+  nounIndex: number;
+  nounWord: string;
+  nounGup: string;
+  triggerIndex: number;
+  triggerWord: string;
+  verbIndex: number;
+  verbWord: string;
+  verbGup: string;
+  agentGup: string;
+  consumedIndices: number[];
+  explanation: string;
+  isParticiple: boolean;
+}
+
+export function detectRelativeClausePattern(
+  tokens: Token[],
+  mode: LanguageMode
+): RelativeClauseMatch | null {
+  const config = LANG_CONFIG[mode];
+  const { relativeClauseTriggers, participleEnding, relativeClauseLabel } = config;
+
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const token = tokens[i];
+    if (token.type !== "noun" || !token.nounMatch) continue;
+
+    const nounGup = token.gupKey || token.nounMatch.gupKey;
+    if (!nounGup) continue;
+
+    if (i + 1 < tokens.length) {
+      const nextToken = tokens[i + 1];
+      const nextWordLower = nextToken.original.toLowerCase();
+
+      if (nextWordLower.endsWith(participleEnding)) {
+        const stem = nextWordLower.slice(0, -participleEnding.length);
+        if (stem.length < 2) continue;
+
+        let foundVerb: { gup: string; infinitive: string } | null = null;
+        for (const entry of Object.values(LEXICON.verbs)) {
+          const verbForms = entry[mode];
+          for (const form of verbForms) {
+            const infLower = form.infinitive.toLowerCase();
+            if (infLower === stem || infLower === stem + "e" || infLower.startsWith(stem)) {
+              foundVerb = { gup: entry.forms[3], infinitive: form.infinitive };
+              break;
+            }
+          }
+          if (foundVerb) break;
+        }
+
+        const verbGup = foundVerb ? foundVerb.gup : stem;
+        const agentGup = verbGup + "mirri";
+
+        return {
+          nounIndex: i,
+          nounWord: token.original,
+          nounGup,
+          triggerIndex: -1,
+          triggerWord: "",
+          verbIndex: i + 1,
+          verbWord: nextToken.original,
+          verbGup,
+          agentGup,
+          consumedIndices: [i, i + 1],
+          explanation: `${nextToken.original} ${token.original} → ${agentGup} ${nounGup} (${relativeClauseLabel})`,
+          isParticiple: true,
+        };
+      }
+    }
+
+    const sortedTriggers = [...relativeClauseTriggers].sort(
+      (a, b) => b.split(" ").length - a.split(" ").length
+    );
+
+    for (const trigger of sortedTriggers) {
+      const triggerWords = trigger.split(" ");
+      const triggerLen = triggerWords.length;
+
+      if (i + triggerLen + 1 >= tokens.length) continue;
+
+      let triggerMatches = true;
+      for (let t = 0; t < triggerLen; t++) {
+        if (tokens[i + 1 + t].original.toLowerCase() !== triggerWords[t]) {
+          triggerMatches = false;
+          break;
+        }
+      }
+
+      if (!triggerMatches) continue;
+
+      const verbToken = tokens[i + 1 + triggerLen];
+      const verbLower = verbToken.original.toLowerCase();
+
+      let foundVerb: { gup: string; infinitive: string } | null = null;
+      for (const entry of Object.values(LEXICON.verbs)) {
+        const verbForms = entry[mode];
+        for (const form of verbForms) {
+          const infLower = form.infinitive.toLowerCase();
+          if (
+            infLower === verbLower ||
+            verbLower.startsWith(infLower.slice(0, -2)) ||
+            verbLower.startsWith(infLower.slice(0, -1))
+          ) {
+            foundVerb = { gup: entry.forms[3], infinitive: form.infinitive };
+            break;
+          }
+        }
+        if (foundVerb) break;
+      }
+
+      const triggerPhrase = tokens
+        .slice(i + 1, i + 1 + triggerLen)
+        .map((t) => t.original)
+        .join(" ");
+
+      const consumedIndices: number[] = [i];
+      for (let t = 0; t < triggerLen; t++) {
+        consumedIndices.push(i + 1 + t);
+      }
+      consumedIndices.push(i + 1 + triggerLen);
+
+      if (foundVerb) {
+        const agentGup = foundVerb.gup + "mirri";
+        return {
+          nounIndex: i,
+          nounWord: token.original,
+          nounGup,
+          triggerIndex: i + 1,
+          triggerWord: triggerPhrase,
+          verbIndex: i + 1 + triggerLen,
+          verbWord: verbToken.original,
+          verbGup: foundVerb.gup,
+          agentGup,
+          consumedIndices,
+          explanation: `${token.original} ${triggerPhrase} ${verbToken.original} → ${agentGup} ${nounGup} (${relativeClauseLabel})`,
+          isParticiple: false,
+        };
+      }
+
+      const fallbackGup = verbLower + "mirri";
+      return {
+        nounIndex: i,
+        nounWord: token.original,
+        nounGup,
+        triggerIndex: i + 1,
+        triggerWord: triggerPhrase,
+        verbIndex: i + 1 + triggerLen,
+        verbWord: verbToken.original,
+        verbGup: verbLower,
+        agentGup: fallbackGup,
+        consumedIndices,
+        explanation: `${token.original} ${triggerPhrase} ${verbToken.original} → ${fallbackGup} ${nounGup} (${relativeClauseLabel})`,
+        isParticiple: false,
+      };
+    }
+  }
+
+  return null;
+}
+
+export function detectDjalVerbPattern(
+  tokens: Token[],
+  mode: LanguageMode
+): DjalVerbMatch | null {
+  const config = LANG_CONFIG[mode];
+  const skipWords = [
+    ...config.skipWords,
+    ...config.connectors,
+    "a",
+    "de",
+    "to",
+    "how",
+    "cómo",
+    "como",
+    "que",
+    "that",
+  ];
+
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const token = tokens[i];
+    if (token.type !== "verb" || !token.verbMatch) continue;
+
+    const isDjal = token.verbMatch.isDjal;
+    const isMarnggi = token.verbMatch.isMarnggi;
+
+    if (!isDjal && !isMarnggi) continue;
+
+    const consumedIndices: number[] = [];
+
+    for (let j = i + 1; j < tokens.length; j++) {
+      const nextToken = tokens[j];
+      const nextWordLower = nextToken.original.toLowerCase();
+
+      if (skipWords.includes(nextWordLower)) {
+        consumedIndices.push(j);
+        continue;
+      }
+
+      if (nextToken.type === "verb" && nextToken.verbMatch && !nextToken.verbMatch.isDjal && !nextToken.verbMatch.isMarnggi) {
+        const verbEntry = nextToken.verbMatch.entry;
+        const verbGupBase = verbEntry.forms[4] ?? verbEntry.forms[3];
+
+        const suffixResult = determineDjalSuffix(verbGupBase);
+        const primarySuffix = suffixResult.suffixes[0];
+        const verbGupWithSuffix = applyDjalSuffix(verbGupBase, primarySuffix);
+
+        const allOptions = suffixResult.suffixes.map((s) =>
+          applyDjalSuffix(verbGupBase, s)
+        );
+
+        const djalType = isDjal ? "djal" : "marnggi";
+        const djalLabel = isDjal ? "djäl" : "marŋgi";
+
+        consumedIndices.push(j);
+
+        const attachedClitic = nextToken.verbMatch.attachedClitic;
+        const attachedCliticPerson = attachedClitic
+          ? config.indirectObjectClitics[attachedClitic]
+          : undefined;
+
+        const verbTense = nextToken.verbMatch.tense;
+        const isSubjunctive = verbTense === "presentSubjunctive" || verbTense === "imperfectSubjunctive";
+        const verbPerson = nextToken.verbMatch.person;
+        const subjunctivePerson = (verbPerson !== undefined && verbPerson !== null) ? verbPerson : undefined;
+
+        return {
+          djalIndex: i,
+          djalWord: token.original,
+          djalType,
+          verbIndex: j,
+          verbWord: nextToken.original,
+          verbGupBase,
+          verbGupWithSuffix,
+          suffixOptions: allOptions,
+          consumedIndices,
+          explanation: `${nextToken.original} → ${verbGupBase} + -${primarySuffix} = ${verbGupWithSuffix} (${djalLabel} + verbo)`,
+          attachedClitic,
+          attachedCliticPerson,
+          isSubjunctive,
+          subjunctivePerson,
+        };
+      }
+
+      if (nextToken.type !== "unknown") {
+        consumedIndices.push(j);
+        continue;
+      }
+
+      break;
+    }
+  }
+
+  return null;
+}
+
+export function detectLocativeVerbPattern(
+  tokens: Token[],
+  mode: LanguageMode
+): LocativeVerbMatch | null {
+  const config = LANG_CONFIG[mode];
+  const { locativeVerbTriggers, allativeVerbTriggers, ablativeVerbTriggers } = config;
+
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const token = tokens[i];
+    const tokenLower = token.original.toLowerCase();
+
+    let suffixType: "ngura" | "lili" | "nguru" | null = null;
+    let applySuffixFn: ((word: string) => string) | null = null;
+    let suffixName: string = "";
+
+    if (locativeVerbTriggers.includes(tokenLower)) {
+      suffixType = "ngura";
+      applySuffixFn = applyLocativeSuffix;
+      suffixName = LOCATIVE_SUFFIX;
+    } else if (allativeVerbTriggers.includes(tokenLower)) {
+      suffixType = "lili";
+      applySuffixFn = applyAllativeSuffix;
+      suffixName = ALLATIVE_SUFFIX;
+    } else if (ablativeVerbTriggers.includes(tokenLower)) {
+      suffixType = "nguru";
+      applySuffixFn = applyAblativeSuffix;
+      suffixName = ABLATIVE_SUFFIX;
+    }
+
+    if (!suffixType || !applySuffixFn) continue;
+
+    const nextToken = tokens[i + 1];
+    if (nextToken.type !== "verb" || !nextToken.verbMatch) continue;
+
+    const verbMatch = nextToken.verbMatch;
+    const verbEntry = LEXICON.verbs[verbMatch.gupKey];
+
+    if (!verbEntry || !verbEntry.forms || !verbEntry.forms[3]) continue;
+
+    const verbQuaternary = verbEntry.forms[3];
+    const verbWithSuffix = applySuffixFn(verbQuaternary);
+
+    const consumedIndices = [i, i + 1];
+
+    const explanation = `${tokenLower} ${nextToken.original} → ${verbQuaternary} + -${suffixName} = ${verbWithSuffix}`;
+
+    return {
+      suffixType,
+      triggerIndex: i,
+      triggerWord: token.original,
+      verbIndex: i + 1,
+      verbWord: nextToken.original,
+      verbGup: verbMatch.gupKey,
+      verbQuaternary,
+      verbWithSuffix,
+      consumedIndices,
+      explanation,
+    };
+  }
+
+  return null;
+}
+
+export function detectPurposeInfinitive(
+  tokens: Token[],
+  mode: LanguageMode
+): PurposeInfinitiveMatch | null {
+  const config = LANG_CONFIG[mode];
+  const skipWords = [
+    ...config.skipWords,
+    ...config.connectors,
+    ...config.purposeConnectors,
+  ];
+
+  const irVerbEntry = LEXICON.verbs["marrtji"];
+  const irForms = irVerbEntry?.[mode]?.[0];
+  const irConjugations = irForms
+    ? [
+        ...irForms.preterite,
+        ...irForms.imperfect,
+        ...irForms.presentIndicative,
+        ...irForms.future,
+        ...irForms.conditional,
+      ]
+    : [];
+
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const token = tokens[i];
+
+    let effectiveVerbMatch: VerbMatch | undefined = token.verbMatch;
+    if (token.type === "verb" && !token.verbMatch && irVerbEntry && irForms) {
+      const normalizedWord = token.original.toLowerCase();
+      if (irConjugations.includes(normalizedWord)) {
+        let tense: string = "present";
+        let person = 0;
+        const tenseArrays: [string, string[]][] = [
+          ["preterite", irForms.preterite],
+          ["imperfect", irForms.imperfect],
+          ["presentIndicative", irForms.presentIndicative],
+          ["future", irForms.future],
+          ["conditional", irForms.conditional],
+        ];
+        for (const [tenseName, arr] of tenseArrays) {
+          const idx = arr.indexOf(normalizedWord);
+          if (idx !== -1) {
+            tense = tenseName;
+            person = idx;
+            break;
+          }
+        }
+        effectiveVerbMatch = {
+          gupKey: "marrtji",
+          entry: irVerbEntry,
+          tense,
+          person,
+          formIndex: 0,
+          isDjal: false,
+          isMarnggi: false,
+          attachedClitic: undefined,
+        };
+      }
+    }
+
+    const { copulaVerbs } = LANG_CONFIG[mode];
+    const isCopulaToken = copulaVerbs.includes(token.original.toLowerCase());
+
+    if (token.type !== "verb") continue;
+    if (!effectiveVerbMatch && !isCopulaToken) continue;
+    if (effectiveVerbMatch?.isDjal || effectiveVerbMatch?.isMarnggi) continue;
+
+    const consumedIndices: number[] = [];
+
+    for (let j = i + 1; j < tokens.length; j++) {
+      const nextToken = tokens[j];
+      const nextWordLower = nextToken.original.toLowerCase();
+
+      if (skipWords.includes(nextWordLower)) {
+        consumedIndices.push(j);
+        continue;
+      }
+
+      if (nextToken.type === "verb" && nextToken.verbMatch) {
+        if (nextToken.verbMatch.isDjal || nextToken.verbMatch.isMarnggi) break;
+        if (nextToken.verbMatch.tense === "gerund") break;
+
+        const verbEntry = nextToken.verbMatch.entry;
+        const verbGupBase = verbEntry.forms[4] ?? verbEntry.forms[3];
+
+        const mainVerbSkipsSuffix = effectiveVerbMatch?.entry?.noInfinitiveSuffix === true;
+
+        const suffixResult = determineDjalSuffix(verbGupBase);
+        const primarySuffix = suffixResult.suffixes[0];
+        const verbGupWithSuffix = mainVerbSkipsSuffix
+          ? verbGupBase
+          : applyDjalSuffix(verbGupBase, primarySuffix);
+
+        const allOptions = mainVerbSkipsSuffix
+          ? [verbGupBase]
+          : suffixResult.suffixes.map((s) => applyDjalSuffix(verbGupBase, s));
+
+        consumedIndices.push(j);
+
+        const mainVerbTense = effectiveVerbMatch?.tense || "present";
+        const mainVerbPerson = effectiveVerbMatch?.person ?? 0;
+
+        return {
+          mainVerbIndex: i,
+          mainVerbWord: token.original,
+          mainVerbGupKey: effectiveVerbMatch?.gupKey,
+          mainVerbEntry: effectiveVerbMatch?.entry,
+          mainVerbTense: mainVerbTense as string,
+          mainVerbPerson,
+          infinitiveIndex: j,
+          infinitiveWord: nextToken.original,
+          infinitiveEntry: verbEntry,
+          infinitiveGupBase: verbGupBase,
+          infinitiveGupWithSuffix: verbGupWithSuffix,
+          suffixOptions: allOptions,
+          consumedIndices,
+          explanation: mainVerbSkipsSuffix
+            ? `${nextToken.original} → ${verbGupBase} (infinitivo sin sufijo)`
+            : `${nextToken.original} → ${verbGupBase} + -${primarySuffix} = ${verbGupWithSuffix} (infinitivo -${primarySuffix})`,
+          hasAlternativePattern: !isCopulaToken,
+        };
+      }
+
+      if (nextToken.type === "noun") {
+        break;
+      }
+
+      if (nextToken.type === "adjective") {
+        if (isCopulaToken) {
+          continue;
+        }
+        break;
+      }
+
+      if (nextToken.type === "unknown") {
+        consumedIndices.push(j);
+        continue;
+      }
+    }
+  }
+
+  return null;
+}
+
+export function detectInfinitiveAgent(
+  tokens: Token[],
+  mode: LanguageMode
+): InfinitiveAgentMatch | null {
+  const config = LANG_CONFIG[mode];
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.type !== "verb" || !token.verbMatch) continue;
+
+    const mainVerbEntry = token.verbMatch.entry;
+    const mainVerbTense = token.verbMatch.tense || "present";
+    const mainVerbPerson = token.verbMatch.person ?? 0;
+
+    const subjunctiveConnector = config.relativeClauseTriggers[0];
+
+    const queIndex = tokens.findIndex(
+      (t, idx) => idx > i && t.original.toLowerCase() === subjunctiveConnector.toLowerCase()
+    );
+
+    if (queIndex !== -1 && queIndex === i + 1) {
+      for (let j = queIndex + 1; j < tokens.length; j++) {
+        const nextToken = tokens[j];
+        if (nextToken.type === "verb" && nextToken.verbMatch) {
+          const subjTense = nextToken.verbMatch.tense;
+          if (subjTense === "presentSubjunctive" || subjTense === "imperfectSubjunctive") {
+            const subjPerson = nextToken.verbMatch.person ?? 0;
+            const consumedIndices = [queIndex, j];
+
+            let objectIndex = -1;
+            let objectWord = "";
+            let objectPersonNumber: PersonNumber | null = null;
+            let objectGup: string | null = null;
+
+            for (let k = i + 1; k < queIndex; k++) {
+              const objToken = tokens[k];
+              if (objToken.type === "pronoun") {
+                objectIndex = k;
+                objectWord = objToken.original;
+                const pronounInfo = config.indirectObjectClitics[objToken.original.toLowerCase()];
+                if (pronounInfo) {
+                  objectPersonNumber = pronounInfo;
+                }
+                consumedIndices.push(k);
+                break;
+              }
+            }
+
+            return {
+              type: "object-is-agent",
+              mainVerbIndex: i,
+              mainVerbWord: token.original,
+              mainVerbEntry,
+              mainVerbTense,
+              mainVerbPerson,
+              infinitiveIndex: j,
+              infinitiveWord: nextToken.original,
+              infinitiveEntry: nextToken.verbMatch.entry,
+              objectIndex,
+              objectWord,
+              objectPersonNumber,
+              objectGup,
+              consumedIndices,
+              isSubjunctive: true,
+              subjunctivePerson: subjPerson,
+            };
+          }
+        }
+      }
+    }
+
+    for (let j = i + 1; j < tokens.length; j++) {
+      const nextToken = tokens[j];
+      if (nextToken.type === "verb" && nextToken.verbMatch) {
+        const attachedClitic = nextToken.verbMatch.attachedClitic;
+        if (attachedClitic) {
+          const cliticPerson = config.indirectObjectClitics[attachedClitic];
+          return {
+            type: "subject-is-agent",
+            mainVerbIndex: i,
+            mainVerbWord: token.original,
+            mainVerbEntry,
+            mainVerbTense,
+            mainVerbPerson,
+            infinitiveIndex: j,
+            infinitiveWord: nextToken.original,
+            infinitiveEntry: nextToken.verbMatch.entry,
+            objectIndex: j,
+            objectWord: attachedClitic,
+            objectPersonNumber: cliticPerson || null,
+            objectGup: null,
+            consumedIndices: [j],
+            isSubjunctive: false,
+          };
+        }
+
+        const verbForms = nextToken.verbMatch.entry.es || [];
+        const isInfinitive = verbForms.some(
+          (f) => f.infinitive.toLowerCase() === nextToken.original.toLowerCase()
+        );
+
+        if (isInfinitive) {
+          for (let k = j + 1; k < tokens.length; k++) {
+            const objToken = tokens[k];
+            if (objToken.original.toLowerCase() === "a") continue;
+            if (objToken.type === "pronoun" || objToken.type === "noun" || objToken.type === "unknown") {
+              return {
+                type: "subject-is-agent",
+                mainVerbIndex: i,
+                mainVerbWord: token.original,
+                mainVerbEntry,
+                mainVerbTense,
+                mainVerbPerson,
+                infinitiveIndex: j,
+                infinitiveWord: nextToken.original,
+                infinitiveEntry: nextToken.verbMatch.entry,
+                objectIndex: k,
+                objectWord: objToken.original,
+                objectPersonNumber: null,
+                objectGup: objToken.gupKey || null,
+                consumedIndices: [j],
+                isSubjunctive: false,
+              };
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    const infinitiveMarker = config.infinitiveMarker;
+    if (infinitiveMarker) {
+      for (let j = i + 1; j < tokens.length; j++) {
+        const nextToken = tokens[j];
+
+        if (nextToken.type === "pronoun" || nextToken.type === "noun" || nextToken.type === "unknown") {
+          const toIndex = tokens.findIndex(
+            (t, idx) => idx > j && t.original.toLowerCase() === infinitiveMarker.toLowerCase()
+          );
+
+          if (toIndex !== -1 && toIndex === j + 1) {
+            for (let k = toIndex + 1; k < tokens.length; k++) {
+              const verbToken = tokens[k];
+              if (verbToken.type === "verb" && verbToken.verbMatch) {
+                return {
+                  type: "object-is-agent",
+                  mainVerbIndex: i,
+                  mainVerbWord: token.original,
+                  mainVerbEntry,
+                  mainVerbTense,
+                  mainVerbPerson,
+                  infinitiveIndex: k,
+                  infinitiveWord: verbToken.original,
+                  infinitiveEntry: verbToken.verbMatch.entry,
+                  objectIndex: j,
+                  objectWord: nextToken.original,
+                  objectPersonNumber: null,
+                  objectGup: nextToken.gupKey || null,
+                  consumedIndices: [toIndex],
+                  isSubjunctive: false,
+                };
+              }
+              if (verbToken.type !== "unknown") break;
+            }
+          }
+        }
+
+        if (nextToken.original.toLowerCase() === "to") {
+          for (let k = j + 1; k < tokens.length; k++) {
+            const verbToken = tokens[k];
+            if (verbToken.type === "verb" && verbToken.verbMatch) {
+              for (let m = k + 1; m < tokens.length; m++) {
+                const objToken = tokens[m];
+                if (objToken.type === "pronoun" || objToken.type === "noun" || objToken.type === "unknown") {
+                  return {
+                    type: "subject-is-agent",
+                    mainVerbIndex: i,
+                    mainVerbWord: token.original,
+                    mainVerbEntry,
+                    mainVerbTense,
+                    mainVerbPerson,
+                    infinitiveIndex: k,
+                    infinitiveWord: verbToken.original,
+                    infinitiveEntry: verbToken.verbMatch.entry,
+                    objectIndex: m,
+                    objectWord: objToken.original,
+                    objectPersonNumber: null,
+                    objectGup: objToken.gupKey || null,
+                    consumedIndices: [j],
+                    isSubjunctive: false,
+                  };
+                }
+                break;
+              }
+              break;
+            }
+            if (verbToken.type !== "unknown") break;
+          }
+        }
+
+        break;
+      }
     }
   }
 

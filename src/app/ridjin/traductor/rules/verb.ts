@@ -5,6 +5,8 @@ import {
   hasMultiWordMarker,
   normalizeApostrophes,
   LANG_CONFIG,
+  determineDjalSuffix,
+  applyDjalSuffix,
 } from "../constants";
 
 export type VerbFormNumber = 1 | 2 | 3 | 4;
@@ -198,10 +200,25 @@ export function detectVerbFeatures(
 
 export function determineVerbForms(
   features: VerbFeatures,
-  mode: LanguageMode
+  mode: LanguageMode,
+  conjugationType?: VerbConjugationType
 ): VerbFormOption[] {
   const config = LANG_CONFIG[mode];
   const options: VerbFormOption[] = [];
+
+  if (conjugationType === "infinitive" && !features.isGerund) {
+    options.push({
+      form: 4,
+      formName: "quaternary",
+      particles: [],
+      continuous: {
+        particle: "",
+        isActive: false,
+      },
+      explanation: config.infinitive,
+    });
+    return options;
+  }
 
   if (features.mood === "imperative") {
     const isNegative = features.polarity === "negative";
@@ -397,6 +414,37 @@ export function determineVerbForms(
   }
 
   if (
+    features.isSameDayPast &&
+    features.hasToday &&
+    features.polarity === "negative"
+  ) {
+    if (features.isGerund) {
+      options.push({
+        form: 4,
+        formName: "quaternary",
+        particles: ["yaka", "gana"],
+        continuous: {
+          particle: "gana",
+          alternatives: ["ganha"],
+          isActive: true,
+        },
+        explanation: `${config.negContinuousPastToday}: yaka + gana + ${config.quaternaryForm}`,
+      });
+    } else {
+      options.push({
+        form: 4,
+        formName: "quaternary",
+        particles: ["yaka"],
+        continuous: {
+          particle: "",
+          isActive: false,
+        },
+        explanation: `${config.negPastToday}: yaka + ${config.quaternaryForm}`,
+      });
+    }
+  }
+
+  if (
     features.isYesterdayPast &&
     features.hasYesterday &&
     features.polarity === "positive"
@@ -423,6 +471,37 @@ export function determineVerbForms(
           isActive: false,
         },
         explanation: `${config.pastYesterday}: ${config.primaryForm}`,
+      });
+    }
+  }
+
+  if (
+    features.isYesterdayPast &&
+    features.hasYesterday &&
+    features.polarity === "negative"
+  ) {
+    if (features.isGerund) {
+      options.push({
+        form: 1,
+        formName: "primary",
+        particles: ["yaka", "ga"],
+        continuous: {
+          particle: "ga",
+          alternatives: ["yukurra"],
+          isActive: true,
+        },
+        explanation: `${config.negContinuousPastToday}: yaka + ga + ${config.primaryForm}`,
+      });
+    } else {
+      options.push({
+        form: 1,
+        formName: "primary",
+        particles: ["yaka"],
+        continuous: {
+          particle: "",
+          isActive: false,
+        },
+        explanation: `${config.negPastToday}: yaka + ${config.primaryForm}`,
       });
     }
   }
@@ -482,6 +561,60 @@ export function determineVerbForms(
   }
 
   if (
+    features.isSameDayPast &&
+    features.isYesterdayPast &&
+    !features.hasToday &&
+    !features.hasYesterday &&
+    features.polarity === "negative"
+  ) {
+    if (features.isGerund) {
+      options.push({
+        form: 4,
+        formName: "quaternary",
+        particles: ["yaka", "gana"],
+        continuous: {
+          particle: "gana",
+          alternatives: ["ganha"],
+          isActive: true,
+        },
+        explanation: `${config.todayUnspecified} ${config.negContinuousPastToday}: yaka + gana + ${config.quaternaryForm}`,
+      });
+      options.push({
+        form: 1,
+        formName: "primary",
+        particles: ["yaka", "ga"],
+        continuous: {
+          particle: "ga",
+          alternatives: ["yukurra"],
+          isActive: true,
+        },
+        explanation: `${config.yesterdaySpecified} ${config.negContinuousPastToday}: yaka + ga + ${config.primaryForm}`,
+      });
+    } else {
+      options.push({
+        form: 4,
+        formName: "quaternary",
+        particles: ["yaka"],
+        continuous: {
+          particle: "",
+          isActive: false,
+        },
+        explanation: `${config.todayUnspecified} ${config.negPastToday}: yaka + ${config.quaternaryForm}`,
+      });
+      options.push({
+        form: 1,
+        formName: "primary",
+        particles: ["yaka"],
+        continuous: {
+          particle: "",
+          isActive: false,
+        },
+        explanation: `${config.yesterdaySpecified} ${config.negPastToday}: yaka + ${config.primaryForm}`,
+      });
+    }
+  }
+
+  if (
     features.tense === "present" &&
     features.polarity === "positive" &&
     options.length === 0
@@ -496,6 +629,21 @@ export function determineVerbForms(
         isActive: true,
       },
       explanation: `${config.present}: ga + ${config.primaryForm}`,
+    });
+  }
+
+  const optionsWithYaka = options.filter((opt) =>
+    opt.particles.includes("yaka")
+  );
+  for (const opt of optionsWithYaka) {
+    const bayŋuParticles = opt.particles.map((p) =>
+      p === "yaka" ? "bäyŋu" : p
+    );
+    const bayŋuExplanation = opt.explanation.replace(/yaka/g, "bäyŋu");
+    options.push({
+      ...opt,
+      particles: bayŋuParticles,
+      explanation: bayŋuExplanation,
     });
   }
 
@@ -582,28 +730,58 @@ export function applyVerbRules(
     };
   }
 
-  const verbOptions = determineVerbForms(features, mode);
+  const verbOptions = determineVerbForms(features, mode, conjugationType);
   const results: VerbRuleResult[] = [];
 
   for (const option of verbOptions) {
     const baseGup = getVerbGupForm(verbMatch.gupKey, option.form);
     if (!baseGup) continue;
 
-    const particlesStr =
-      option.particles.length > 0 ? option.particles.join(" ") + " " : "";
-    const gup = particlesStr + baseGup;
+    if (
+      isInfinitiveForm &&
+      !features.isGerund &&
+      !verbMatch.entry?.noInfinitiveSuffix
+    ) {
+      const suffixResult = determineDjalSuffix(baseGup);
 
-    results.push({
-      gup,
-      baseGup,
-      particles: option.particles,
-      formUsed: option.form,
-      formName: option.formName,
-      explanation: option.explanation,
-      features,
-      options: verbOptions,
-      hasAmbiguity: verbOptions.length > 1,
-    });
+      for (const suffix of suffixResult.suffixes) {
+        const finalGup = applyDjalSuffix(baseGup, suffix);
+        const finalExplanation = `${config.infinitive}: ${baseGup} + -${suffix} = ${finalGup}`;
+
+        const particlesStr =
+          option.particles.length > 0 ? option.particles.join(" ") + " " : "";
+        const gup = particlesStr + finalGup;
+
+        results.push({
+          gup,
+          baseGup: finalGup,
+          particles: option.particles,
+          formUsed: option.form,
+          formName: option.formName,
+          explanation: finalExplanation,
+          features,
+          options: verbOptions,
+          hasAmbiguity:
+            verbOptions.length > 1 || suffixResult.suffixes.length > 1,
+        });
+      }
+    } else {
+      const particlesStr =
+        option.particles.length > 0 ? option.particles.join(" ") + " " : "";
+      const gup = particlesStr + baseGup;
+
+      results.push({
+        gup,
+        baseGup,
+        particles: option.particles,
+        formUsed: option.form,
+        formName: option.formName,
+        explanation: option.explanation,
+        features,
+        options: verbOptions,
+        hasAmbiguity: verbOptions.length > 1,
+      });
+    }
   }
 
   if (results.length === 0) {

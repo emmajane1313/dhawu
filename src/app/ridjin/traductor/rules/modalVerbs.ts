@@ -12,6 +12,7 @@ import {
   POSSESSIVE_PRONOUNS_GUP,
   ObjectPronounType,
   PersonNumber,
+  DjalVerbMatch,
 } from "../constants";
 
 const OBJECT_TO_PERSON_MAP: Record<ObjectPronounType, PersonNumber> = {
@@ -129,6 +130,7 @@ export interface BuildModalVerbPartsParams {
   skipLocalIndices: Set<number>;
   suffixCombo: DjalSuffixType[];
   mode: LanguageMode;
+  djalVerbMatch?: DjalVerbMatch | null;
 }
 
 export function buildModalVerbParts(
@@ -143,6 +145,7 @@ export function buildModalVerbParts(
     skipLocalIndices,
     suffixCombo,
     mode,
+    djalVerbMatch,
   } = params;
 
   const parts: TranslationPart[] = [];
@@ -283,6 +286,68 @@ export function buildModalVerbParts(
         globalIndex: globalIdx,
       });
     }
+  }
+
+  if (djalVerbMatch) {
+    if (djalVerbMatch.attachedClitic && djalVerbMatch.attachedCliticPerson) {
+      const possessiveForms = POSSESSIVE_PRONOUNS_GUP[djalVerbMatch.attachedCliticPerson];
+      if (possessiveForms && possessiveForms.length > 0) {
+        const pronounGup = possessiveForms[0];
+        parts.push({
+          type: "object",
+          source: djalVerbMatch.attachedClitic,
+          gup: pronounGup,
+          explanation: `"${djalVerbMatch.attachedClitic}" → ${pronounGup} (${config.objectPronoun})`,
+          globalIndex: globalIndices[djalVerbMatch.verbIndex] ?? -1,
+          isHuman: true,
+          isKnownNoun: false,
+          role: "object" as GrammaticalRole,
+          alternatives: possessiveForms.length > 1 ? possessiveForms.slice(1) : undefined,
+        });
+      }
+    } else if (djalVerbMatch.subjunctivePerson !== undefined && djalVerbMatch.subjunctivePerson > 0) {
+      const personMap: Record<number, PersonNumber> = {
+        0: "1_Sing",
+        1: "2_Sing",
+        2: "3_Sing",
+        3: "1+3_Plur",
+        4: "2_Plur",
+        5: "3_Plur",
+      };
+      const personKey = personMap[djalVerbMatch.subjunctivePerson];
+      if (personKey) {
+        const possessiveForms = POSSESSIVE_PRONOUNS_GUP[personKey];
+        if (possessiveForms && possessiveForms.length > 0) {
+          const pronounGup = possessiveForms[0];
+          parts.push({
+            type: "object",
+            source: djalVerbMatch.verbWord,
+            gup: pronounGup,
+            explanation: `"${djalVerbMatch.verbWord}" (${personKey}) → ${pronounGup} (${config.objectPronoun})`,
+            globalIndex: globalIndices[djalVerbMatch.verbIndex] ?? -1,
+            isHuman: true,
+            isKnownNoun: false,
+            role: "object" as GrammaticalRole,
+            alternatives: possessiveForms.length > 1 ? possessiveForms.slice(1) : undefined,
+          });
+        }
+      }
+    }
+
+    const suffix =
+      suffixCombo[suffixIdx] || determineDjalSuffix(djalVerbMatch.verbGupBase).suffixes[0];
+    const suffixedGup = applyDjalSuffix(djalVerbMatch.verbGupBase, suffix);
+    const djalLabel = djalVerbMatch.djalType === "djal" ? "djäl" : "marŋgi";
+
+    parts.push({
+      type: "verb",
+      source: djalVerbMatch.verbWord,
+      gup: suffixedGup,
+      baseGup: djalVerbMatch.verbGupBase,
+      appliedSuffix: suffix,
+      explanation: `"${djalVerbMatch.verbWord}" → ${suffixedGup} (${djalLabel} + verbo -${suffix})`,
+      globalIndex: globalIndices[djalVerbMatch.verbIndex] ?? -1,
+    });
   }
 
   return parts;

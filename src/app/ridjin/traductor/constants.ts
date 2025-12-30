@@ -5,6 +5,7 @@ import {
   FixedEntry,
 } from "./fixedTranslations";
 import { VerbPattern } from "./patterns";
+import { VerbEntry } from "./lexicon";
 export const LOCATIVE_SUFFIX = "ŋura";
 export const ALLATIVE_SUFFIX = "lili";
 
@@ -67,7 +68,6 @@ export const PRONOUNS_ES = [
   "tú",
   "tu",
   "él",
-  "el",
   "ella",
   "usted",
   "nosotros",
@@ -240,7 +240,6 @@ export const BELONGING_PRONOUN_TRIGGERS_ES: Record<string, PersonNumber> = {
   "tú": "2_Sing",
   "tu": "2_Sing",
   "él": "3_Sing",
-  "el": "3_Sing",
   "ella": "3_Sing",
   "nosotros dos": "1+2_Dual",
   "nosotras dos": "1+2_Dual",
@@ -283,7 +282,6 @@ export const COMITATIVE_PRONOUN_TRIGGERS_ES: Record<string, PersonNumber> = {
   conmigo: "1_Sing",
   contigo: "2_Sing",
   "con él": "3_Sing",
-  "con el": "3_Sing",
   "con ella": "3_Sing",
   "con nosotros dos": "1+2_Dual",
   "con nosotras dos": "1+2_Dual",
@@ -374,7 +372,6 @@ export const HUMAN_ABLATIVE_PRONOUN_TRIGGERS_ES: Record<string, PersonNumber> =
     "desde mi": "1_Sing",
     "desde ti": "2_Sing",
     "desde él": "3_Sing",
-    "desde el": "3_Sing",
     "desde ella": "3_Sing",
     "desde nosotros": "1+2_Plur",
     "desde nosotras": "1+2_Plur",
@@ -400,7 +397,6 @@ export const SOURCE_ORIGIN_PRONOUN_TRIGGERS_ES: Record<string, PersonNumber> = {
   "de mi": "1_Sing",
   "de ti": "2_Sing",
   "de él": "3_Sing",
-  "de el": "3_Sing",
   "de ella": "3_Sing",
   "de nosotros": "1+2_Plur",
   "de nosotras": "1+2_Plur",
@@ -431,9 +427,7 @@ export const PURPOSE_PRONOUN_TRIGGERS_ES: Record<string, PersonNumber> = {
   "para ti": "2_Sing",
   "a causa de ti": "2_Sing",
   "por él": "3_Sing",
-  "por el": "3_Sing",
   "para él": "3_Sing",
-  "para el": "3_Sing",
   "a causa de él": "3_Sing",
   "por ella": "3_Sing",
   "para ella": "3_Sing",
@@ -485,7 +479,6 @@ export const HUMAN_ALLATIVE_PRONOUN_TRIGGERS_ES: Record<string, PersonNumber> =
     "hacia mi": "1_Sing",
     "hacia ti": "2_Sing",
     "hacia él": "3_Sing",
-    "hacia el": "3_Sing",
     "hacia ella": "3_Sing",
     "hacia nosotros": "1+2_Plur",
     "hacia nosotras": "1+2_Plur",
@@ -2667,7 +2660,7 @@ export const OBJECT_PRONOUNS_GUP: Record<
   },
   "3_Sing": {
     gup: "ŋanya",
-    alternatives: ["nya"],
+    alternatives: [],
     explanation: "ŋanya = him/her/it",
   },
   "1_Dual_Incl": {
@@ -2728,7 +2721,6 @@ export const OBJECT_PRONOUN_TRIGGERS_ES: Record<string, ObjectPronounType[]> = {
   le: ["3_Sing"],
   su: ["3_Sing"],
   "a él": ["3_Sing"],
-  "a el": ["3_Sing"],
   "a ella": ["3_Sing"],
   "a usted": ["3_Sing"],
   nos: ["1_Dual_Incl", "1_Dual_Excl", "1+2_Plur_Incl", "1+2_Plur_Excl"],
@@ -2769,6 +2761,79 @@ export const OBJECT_PRONOUN_TRIGGERS_EN: Record<string, ObjectPronounType[]> = {
 };
 
 export type DjalSuffixType = "wa" | "wu" | "ku" | "gu";
+
+export interface DjalVerbMatch {
+  djalIndex: number;
+  djalWord: string;
+  djalType: "djal" | "marnggi";
+  verbIndex: number;
+  verbWord: string;
+  verbGupBase: string;
+  verbGupWithSuffix: string;
+  suffixOptions: string[];
+  consumedIndices: number[];
+  explanation: string;
+  attachedClitic?: string;
+  attachedCliticPerson?: PersonNumber;
+  isSubjunctive?: boolean;
+  subjunctivePerson?: number;
+}
+
+export interface PurposeInfinitiveMatch {
+  mainVerbIndex: number;
+  mainVerbWord: string;
+  mainVerbGupKey?: string;
+  mainVerbEntry?: VerbEntry;
+  mainVerbTense: string;
+  mainVerbPerson: number;
+  infinitiveIndex: number;
+  infinitiveWord: string;
+  infinitiveEntry: VerbEntry;
+  infinitiveGupBase: string;
+  infinitiveGupWithSuffix: string;
+  suffixOptions: string[];
+  consumedIndices: number[];
+  explanation: string;
+  hasAlternativePattern: boolean;
+}
+
+export type InfinitiveAgentType = "object-is-agent" | "subject-is-agent";
+
+export interface InfinitiveAgentMatch {
+  type: InfinitiveAgentType;
+  mainVerbIndex: number;
+  mainVerbWord: string;
+  mainVerbEntry: VerbEntry;
+  mainVerbTense: string;
+  mainVerbPerson: number;
+  infinitiveIndex: number;
+  infinitiveWord: string;
+  infinitiveEntry: VerbEntry;
+  objectIndex: number;
+  objectWord: string;
+  objectPersonNumber: PersonNumber | null;
+  objectGup: string | null;
+  consumedIndices: number[];
+  isSubjunctive: boolean;
+  subjunctivePerson?: number;
+}
+
+export interface LocativeVerbMatch {
+  suffixType: "ngura" | "lili" | "nguru";
+  triggerIndex: number;
+  triggerWord: string;
+  verbIndex: number;
+  verbWord: string;
+  verbGup: string;
+  verbQuaternary: string;
+  verbWithSuffix: string;
+  nounIndex?: number;
+  nounWord?: string;
+  nounGup?: string;
+  nounWithSuffix?: string;
+  consumedIndices: number[];
+  explanation: string;
+}
 
 export interface DjalSuffixResult {
   suffixes: DjalSuffixType[];
@@ -2870,6 +2935,11 @@ export interface LanguageConfig {
   possessiveOfDeTriggers: Record<string, PersonNumber>;
   possessivePronounsGup: Record<PersonNumber, string[]>;
   locativeTriggers: string[];
+  locativeVerbTriggers: string[];
+  allativeVerbTriggers: string[];
+  ablativeVerbTriggers: string[];
+  instrumentalVerbTriggers: string[];
+  belongingVerbTriggers: string[];
   conWithTriggers: string[];
   comitativePronounTriggers: Record<string, PersonNumber>;
   comitativePronounsGup: Record<PersonNumber, string[]>;
@@ -3047,13 +3117,17 @@ export interface LanguageConfig {
   yesterdaySpecified: string;
   continuousPastToday: string;
   pastToday: string;
+  negContinuousPastToday: string;
+  negPastToday: string;
   continuousPastYesterday: string;
   pastYesterday: string;
   present: string;
+  infinitive: string;
   primaryForm: string;
   directionWord: string;
   secondaryForm: string;
   tertiaryForm: string;
+  quaternaryForm: string;
   baseFormNoRule: string;
   connector: string;
   weInclusive2: string;
@@ -3122,6 +3196,11 @@ export interface LanguageConfig {
   timesLabel: string;
   agentNounSuffixes: AgentNounSuffix[];
   agentNounLabel: string;
+  relativeClauseTriggers: string[];
+  infinitiveMarker: string | null;
+  participleEnding: string;
+  relativeClauseLabel: string;
+  purposeConnectors: string[];
 }
 
 export const LOCATIVE_TRIGGERS_ES = [
@@ -3337,6 +3416,78 @@ export const LOCATIVE_TRIGGERS_EN = [
   "to",
 ];
 
+export const LOCATIVE_VERB_TRIGGERS_ES = [
+  "al",
+  "mientras",
+  "en",
+];
+
+export const LOCATIVE_VERB_TRIGGERS_EN = [
+  "while",
+  "at",
+  "in",
+];
+
+export const ALLATIVE_VERB_TRIGGERS_ES = [
+  "hacia",
+  "para",
+  "a",
+];
+
+export const ALLATIVE_VERB_TRIGGERS_EN = [
+  "towards",
+  "toward",
+  "to",
+  "for",
+];
+
+export const ABLATIVE_VERB_TRIGGERS_ES = [
+  "del",
+  "de",
+  "desde",
+  "saliendo de",
+  "viniendo de",
+];
+
+export const ABLATIVE_VERB_TRIGGERS_EN = [
+  "from",
+  "from the",
+  "out of",
+];
+
+export const INSTRUMENTAL_VERB_TRIGGERS_ES = [
+  "mediante",
+  "usando",
+  "por medio de",
+  "a través de",
+  "con",
+];
+
+export const INSTRUMENTAL_VERB_TRIGGERS_EN = [
+  "by",
+  "using",
+  "by means of",
+  "through",
+  "via",
+  "with",
+];
+
+export const BELONGING_VERB_TRIGGERS_ES = [
+  "para",
+  "sobre",
+  "acerca de",
+  "respecto a",
+  "en cuanto a",
+];
+
+export const BELONGING_VERB_TRIGGERS_EN = [
+  "for",
+  "about",
+  "regarding",
+  "concerning",
+  "with respect to",
+];
+
 export interface LocativeReinforcerInfo {
   prefix: string;
   gup: string;
@@ -3499,11 +3650,100 @@ export function applyAblativeSuffix(gupWord: string): string {
   return validarFonologia(gupWord + ABLATIVE_SUFFIX);
 }
 
+export const BECOME_ADJ_EXCEPTIONS: Record<string, string> = {
+  "manymak": "ŋamathirri",
+  "yätjkurru": "yätjirri",
+};
+
+export function determineBecomeAdjSuffix(adjGup: string): string[] {
+  const lastChar = adjGup[adjGup.length - 1];
+
+  const nasals = ["m", "n", "ŋ"];
+  const stops = ["p", "t", "k", "b", "d", "g"];
+  const liquids = ["l", "r", "ḻ", "ṟ"];
+  const glides = ["y", "w"];
+  const vowels = ["a", "e", "i", "o", "u", "ä", "ï", "ö", "ü"];
+
+  if (nasals.includes(lastChar)) {
+    return ["dhirri"];
+  }
+
+  if (stops.includes(lastChar)) {
+    return ["thirri"];
+  }
+
+  if (liquids.includes(lastChar)) {
+    return ["thirri", "yirri"];
+  }
+
+  if (glides.includes(lastChar)) {
+    return ["thirri"];
+  }
+
+  if (lastChar === "'") {
+    return ["thirri", "yirri"];
+  }
+
+  if (vowels.includes(lastChar)) {
+    return ["thirri", "yirri"];
+  }
+
+  return ["thirri"];
+}
+
+export function applyBecomeAdjSuffix(adjGup: string, suffix: string): string {
+  return validarFonologia(adjGup + suffix);
+}
+
+export const MAKE_ADJ_EXCEPTIONS: Record<string, string> = {
+  "manymak": "ŋamathama",
+  "yätjkurru": "yätjama",
+};
+
+export function determineMakeAdjSuffix(adjGup: string): string[] {
+  const lastChar = adjGup[adjGup.length - 1];
+
+  const nasals = ["m", "n", "ŋ"];
+  const stops = ["p", "t", "k", "b", "d", "g"];
+  const liquids = ["l", "r", "ḻ", "ṟ"];
+  const glides = ["y", "w"];
+  const vowels = ["a", "e", "i", "o", "u", "ä", "ï", "ö", "ü"];
+
+  if (nasals.includes(lastChar)) {
+    return ["guma"];
+  }
+
+  if (stops.includes(lastChar)) {
+    return ["kuma"];
+  }
+
+  if (liquids.includes(lastChar)) {
+    return ["kuma"];
+  }
+
+  if (glides.includes(lastChar)) {
+    return ["kuma"];
+  }
+
+  if (lastChar === "'") {
+    return ["kuma", "yama"];
+  }
+
+  if (vowels.includes(lastChar)) {
+    return ["kuma", "yama"];
+  }
+
+  return ["kuma"];
+}
+
+export function applyMakeAdjSuffix(adjGup: string, suffix: string): string {
+  return validarFonologia(adjGup + suffix);
+}
+
 export type MotionGoalDirection = "towards" | "away" | "unknown";
 
 export const FROM_TRIGGERS_ES = [
   "desde",
-  "desde el",
   "desde la",
   "desde los",
   "desde las",
@@ -3538,10 +3778,8 @@ export const TO_TRIGGERS_ES = [
   "a los",
   "a las",
   "hacia",
-  "hacia el",
   "hacia la",
   "para",
-  "para el",
   "para la",
   "entrando a",
   "yendo a",
@@ -3561,7 +3799,6 @@ export const TO_TRIGGERS_EN = [
 ];
 
 export const CON_WITH_TRIGGERS_ES = [
-  "con el",
   "con la",
   "con los",
   "con las",
@@ -3609,7 +3846,6 @@ export const INSTRUMENTAL_TRIGGERS_EN = [
 
 export const BELONGING_TRIGGERS_ES = [
   "para",
-  "para el",
   "para la",
   "para los",
   "para las",
@@ -4256,18 +4492,12 @@ export const QUESTION_WORDS_ES: Record<string, QuestionType> = {
   adonde: "where",
   adónde: "where",
   qué: "what",
-  que: "what",
   quién: "whom",
-  quien: "whom",
   quiénes: "whom",
-  quienes: "whom",
   "de quién": "whose",
-  "de quien": "whose",
   cómo: "how",
   cuándo: "when",
-  cuando: "when",
   "por qué": "why",
-  "por que": "why",
 };
 
 export const QUESTION_WORDS_EN: Record<string, QuestionType> = {
@@ -4514,16 +4744,16 @@ export const WHOSE_TRIGGERS_EN = ["whose"];
 export const WHO_TRIGGERS_ES = ["quién", "quien", "quiénes", "quienes"];
 export const WHO_TRIGGERS_EN = ["who", "whom"];
 
-export const WHAT_TRIGGERS_ES = ["qué", "que"];
+export const WHAT_TRIGGERS_ES = ["qué"];
 export const WHAT_TRIGGERS_EN = ["what"];
 
-export const WHY_TRIGGERS_ES = ["por qué", "por que", "para qué", "para que"];
+export const WHY_TRIGGERS_ES = ["por qué", "para qué"];
 export const WHY_TRIGGERS_EN = ["why", "what for", "for what"];
 
 export const WHOM_FOR_TRIGGERS_ES = ["para quién", "para quien"];
 export const WHOM_FOR_TRIGGERS_EN = ["for whom", "whom for"];
 
-export const WITH_WHAT_TRIGGERS_ES = ["con qué", "con que"];
+export const WITH_WHAT_TRIGGERS_ES = ["con qué"];
 export const WITH_WHAT_TRIGGERS_EN = ["with what"];
 
 export const BY_WHOM_TRIGGERS_ES = ["por quién", "por quien"];
@@ -4885,6 +5115,22 @@ export const AGENT_NOUN_SUFFIXES_EN: AgentNounSuffix[] = [
   { suffix: "or", verbEnding: "" },
 ];
 
+export const RELATIVE_CLAUSE_TRIGGERS_ES = [
+  "que",
+  "quien",
+  "quién",
+  "el que",
+  "la que",
+  "los que",
+  "las que",
+  "lo que",
+  "el cual",
+  "la cual",
+  "los cuales",
+  "las cuales",
+];
+export const RELATIVE_CLAUSE_TRIGGERS_EN = ["who", "that", "which", "what"];
+
 export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
   es: {
     pronouns: PRONOUNS_ES,
@@ -4915,6 +5161,11 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     possessiveOfDeTriggers: POSSESSIVE_DE_TRIGGERS_ES,
     possessivePronounsGup: POSSESSIVE_PRONOUNS_GUP,
     locativeTriggers: LOCATIVE_TRIGGERS_ES,
+    locativeVerbTriggers: LOCATIVE_VERB_TRIGGERS_ES,
+    allativeVerbTriggers: ALLATIVE_VERB_TRIGGERS_ES,
+    ablativeVerbTriggers: ABLATIVE_VERB_TRIGGERS_ES,
+    instrumentalVerbTriggers: INSTRUMENTAL_VERB_TRIGGERS_ES,
+    belongingVerbTriggers: BELONGING_VERB_TRIGGERS_ES,
     conWithTriggers: CON_WITH_TRIGGERS_ES,
     comitativePronounTriggers: COMITATIVE_PRONOUN_TRIGGERS_ES,
     comitativePronounsGup: COMITATIVE_PRONOUNS_GUP,
@@ -5155,12 +5406,16 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     yesterdaySpecified: "[AYER/ESPECIFICADO]",
     continuousPastToday: "Pasado continuo (hoy)",
     pastToday: "Pasado (hoy)",
+    negContinuousPastToday: "Pasado continuo negativo (hoy)",
+    negPastToday: "Pasado negativo (hoy)",
     continuousPastYesterday: "Pasado continuo (ayer)",
     pastYesterday: "Pasado (ayer)",
     present: "Presente",
+    infinitive: "Infinitivo (forma base)",
     primaryForm: "forma primaria",
     secondaryForm: "forma secundaria",
     tertiaryForm: "forma terciaria",
+    quaternaryForm: "forma cuaternaria",
     baseFormNoRule: "Forma base (sin regla específica)",
     connector: "Conector",
     whereTriggers: WHERE_TRIGGERS_ES,
@@ -5216,6 +5471,11 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     timesLabel: "veces (-mirri)",
     agentNounSuffixes: AGENT_NOUN_SUFFIXES_ES,
     agentNounLabel: "agente (-mirri)",
+    relativeClauseTriggers: RELATIVE_CLAUSE_TRIGGERS_ES,
+    infinitiveMarker: null,
+    participleEnding: "ndo",
+    relativeClauseLabel: "cláusula relativa (-mirri)",
+    purposeConnectors: ["a", "para", "por", "de", "en"],
   },
   en: {
     pronouns: PRONOUNS_EN,
@@ -5240,6 +5500,11 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     possessiveOfDeTriggers: POSSESSIVE_OF_TRIGGERS_EN,
     possessivePronounsGup: POSSESSIVE_PRONOUNS_GUP,
     locativeTriggers: LOCATIVE_TRIGGERS_EN,
+    locativeVerbTriggers: LOCATIVE_VERB_TRIGGERS_EN,
+    allativeVerbTriggers: ALLATIVE_VERB_TRIGGERS_EN,
+    ablativeVerbTriggers: ABLATIVE_VERB_TRIGGERS_EN,
+    instrumentalVerbTriggers: INSTRUMENTAL_VERB_TRIGGERS_EN,
+    belongingVerbTriggers: BELONGING_VERB_TRIGGERS_EN,
     conWithTriggers: CON_WITH_TRIGGERS_EN,
     comitativePronounTriggers: COMITATIVE_PRONOUN_TRIGGERS_EN,
     comitativePronounsGup: COMITATIVE_PRONOUNS_GUP,
@@ -5449,13 +5714,17 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     yesterdaySpecified: "[YESTERDAY/SPECIFIED]",
     continuousPastToday: "Continuous past (today)",
     pastToday: "Past (today)",
+    negContinuousPastToday: "Negative continuous past (today)",
+    negPastToday: "Negative past (today)",
     continuousPastYesterday: "Continuous past (yesterday)",
     pastYesterday: "Past (yesterday)",
     present: "Present",
+    infinitive: "Infinitive (base form)",
     primaryForm: "primary form",
     directionWord: "to",
     secondaryForm: "secondary form",
     tertiaryForm: "tertiary form",
+    quaternaryForm: "quaternary form",
     baseFormNoRule: "Base form (no specific rule)",
     connector: "Conector",
     whereTriggers: WHERE_TRIGGERS_EN,
@@ -5503,5 +5772,10 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     timesLabel: "times (-mirri)",
     agentNounSuffixes: AGENT_NOUN_SUFFIXES_EN,
     agentNounLabel: "agent noun (-mirri)",
+    relativeClauseTriggers: RELATIVE_CLAUSE_TRIGGERS_EN,
+    infinitiveMarker: "to",
+    participleEnding: "ing",
+    relativeClauseLabel: "relative clause (-mirri)",
+    purposeConnectors: ["to", "in order to", "so as to", "for"],
   },
 };

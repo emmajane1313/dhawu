@@ -6,7 +6,17 @@ export interface VerbForms {
   future: [string, string, string, string, string, string];
   conditional: [string, string, string, string, string, string];
   presentSubjunctive: [string, string, string, string, string, string];
+  imperfectSubjunctive?: [string, string, string, string, string, string];
   imperative: {
+    yo?: string;
+    tu: string;
+    usted: string;
+    nosotros: string;
+    vosotros: string;
+    ustedes: string;
+  };
+  negativeImperative?: {
+    yo?: string;
     tu: string;
     usted: string;
     nosotros: string;
@@ -19,14 +29,19 @@ export interface VerbForms {
 
 export interface VerbEntry {
   grupo: number;
-  forms: [string, string, string, string];
+  forms:
+    | [string, string, string, string]
+    | [string, string, string, string, string];
   plurals: string[];
   vtr: boolean;
   isPlural: boolean;
   isDjal?: boolean;
   isMarnggi?: boolean;
+  isBecomeVerb?: boolean;
+  isMakeVerb?: boolean;
   ditrans?: boolean;
   motionType?: "motion" | "stationary";
+  noInfinitiveSuffix?: boolean;
   es: VerbForms[];
   en: VerbForms[];
 }
@@ -2215,6 +2230,7 @@ export const LEXICON: Lexicon = {
       plurals: [],
       vtr: true,
       isPlural: false,
+      noInfinitiveSuffix: true,
       es: [
         {
           infinitive: "comenzar",
@@ -3559,7 +3575,7 @@ export const LEXICON: Lexicon = {
     },
     marrtji: {
       grupo: 2,
-      forms: ["marrtji", "marrtji", "marrtjina", "marrtjinya"],
+      forms: ["marrtji", "marrtji", "marrtjina", "marrtjinya", "marrtjinyara"],
       plurals: [],
       vtr: false,
       isPlural: false,
@@ -19090,6 +19106,432 @@ export const LEXICON: Lexicon = {
         },
       ],
     },
+    "ŋama-dhirri": {
+      grupo: 0,
+      forms: ["ŋama-dhirri", "ŋama-dhirri", "ŋama-dhirri", "ŋama-dhirri"],
+      plurals: [],
+      vtr: false,
+      isPlural: false,
+      isBecomeVerb: true,
+      es: [
+        {
+          infinitive: "volverse",
+          presentIndicative: [
+            "me vuelvo",
+            "te vuelves",
+            "se vuelve",
+            "nos volvemos",
+            "os volvéis",
+            "se vuelven",
+          ],
+          preterite: [
+            "me volví",
+            "te volviste",
+            "se volvió",
+            "nos volvimos",
+            "os volvisteis",
+            "se volvieron",
+          ],
+          imperfect: [
+            "me volvía",
+            "te volvías",
+            "se volvía",
+            "nos volvíamos",
+            "os volvíais",
+            "se volvían",
+          ],
+          future: [
+            "me volveré",
+            "te volverás",
+            "se volverá",
+            "nos volveremos",
+            "os volveréis",
+            "se volverán",
+          ],
+          conditional: [
+            "me volvería",
+            "te volverías",
+            "se volvería",
+            "nos volveríamos",
+            "os volveríais",
+            "se volverían",
+          ],
+          presentSubjunctive: [
+            "me vuelva",
+            "te vuelvas",
+            "se vuelva",
+            "nos volvamos",
+            "os volváis",
+            "se vuelvan",
+          ],
+          imperative: {
+            tu: "vuélvete",
+            usted: "vuélvase",
+            nosotros: "volvàmonos",
+            vosotros: "volveos",
+            ustedes: "vuélvanse",
+          },
+          gerund: "volviéndose",
+          pastParticiple: "vuelto",
+        },
+        {
+          infinitive: "ponerse",
+          presentIndicative: [
+            "me pongo",
+            "te pones",
+            "se pone",
+            "nos ponemos",
+            "os ponéis",
+            "se ponen",
+          ],
+          preterite: [
+            "me puse",
+            "te pusiste",
+            "se puso",
+            "nos pusimos",
+            "os pusisteis",
+            "se pusieron",
+          ],
+          imperfect: [
+            "me ponía",
+            "te ponías",
+            "se ponía",
+            "nos poníamos",
+            "os poníais",
+            "se ponían",
+          ],
+          future: [
+            "me pondré",
+            "te pondrás",
+            "se pondrá",
+            "nos pondremos",
+            "os pondréis",
+            "se pondrán",
+          ],
+          conditional: [
+            "me pondría",
+            "te pondrías",
+            "se pondría",
+            "nos pondríamos",
+            "os pondríais",
+            "se pondrían",
+          ],
+          presentSubjunctive: [
+            "me ponga",
+            "te pongas",
+            "se ponga",
+            "nos pongamos",
+            "os pongáis",
+            "se pongan",
+          ],
+          imperative: {
+            tu: "ponte",
+            usted: "póngase",
+            nosotros: "pongámonos",
+            vosotros: "poneos",
+            ustedes: "pónganse",
+          },
+          gerund: "poniéndose",
+          pastParticiple: "puesto",
+        },
+      ],
+      en: [
+        {
+          infinitive: "become",
+          presentIndicative: ["become", "become", "becomes", "become", "become", "become"],
+          preterite: ["became", "became", "became", "became", "became", "became"],
+          imperfect: ["became", "became", "became", "became", "became", "became"],
+          future: [
+            "will become",
+            "will become",
+            "will become",
+            "will become",
+            "will become",
+            "will become",
+          ],
+          conditional: [
+            "would become",
+            "would become",
+            "would become",
+            "would become",
+            "would become",
+            "would become",
+          ],
+          presentSubjunctive: ["become", "become", "become", "become", "become", "become"],
+          imperative: {
+            tu: "become",
+            usted: "become",
+            nosotros: "let's become",
+            vosotros: "become",
+            ustedes: "become",
+          },
+          gerund: "becoming",
+          pastParticiple: "become",
+        },
+        {
+          infinitive: "turn",
+          presentIndicative: ["turn", "turn", "turns", "turn", "turn", "turn"],
+          preterite: ["turned", "turned", "turned", "turned", "turned", "turned"],
+          imperfect: ["turned", "turned", "turned", "turned", "turned", "turned"],
+          future: [
+            "will turn",
+            "will turn",
+            "will turn",
+            "will turn",
+            "will turn",
+            "will turn",
+          ],
+          conditional: [
+            "would turn",
+            "would turn",
+            "would turn",
+            "would turn",
+            "would turn",
+            "would turn",
+          ],
+          presentSubjunctive: ["turn", "turn", "turn", "turn", "turn", "turn"],
+          imperative: {
+            tu: "turn",
+            usted: "turn",
+            nosotros: "let's turn",
+            vosotros: "turn",
+            ustedes: "turn",
+          },
+          gerund: "turning",
+          pastParticiple: "turned",
+        },
+        {
+          infinitive: "get",
+          presentIndicative: ["get", "get", "gets", "get", "get", "get"],
+          preterite: ["got", "got", "got", "got", "got", "got"],
+          imperfect: ["got", "got", "got", "got", "got", "got"],
+          future: [
+            "will get",
+            "will get",
+            "will get",
+            "will get",
+            "will get",
+            "will get",
+          ],
+          conditional: [
+            "would get",
+            "would get",
+            "would get",
+            "would get",
+            "would get",
+            "would get",
+          ],
+          presentSubjunctive: ["get", "get", "get", "get", "get", "get"],
+          imperative: {
+            tu: "get",
+            usted: "get",
+            nosotros: "let's get",
+            vosotros: "get",
+            ustedes: "get",
+          },
+          gerund: "getting",
+          pastParticiple: "gotten",
+        },
+        {
+          infinitive: "go",
+          presentIndicative: ["go", "go", "goes", "go", "go", "go"],
+          preterite: ["went", "went", "went", "went", "went", "went"],
+          imperfect: ["went", "went", "went", "went", "went", "went"],
+          future: [
+            "will go",
+            "will go",
+            "will go",
+            "will go",
+            "will go",
+            "will go",
+          ],
+          conditional: [
+            "would go",
+            "would go",
+            "would go",
+            "would go",
+            "would go",
+            "would go",
+          ],
+          presentSubjunctive: ["go", "go", "go", "go", "go", "go"],
+          imperative: {
+            tu: "go",
+            usted: "go",
+            nosotros: "let's go",
+            vosotros: "go",
+            ustedes: "go",
+          },
+          gerund: "going",
+          pastParticiple: "gone",
+        },
+      ],
+    },
+    "darrtjalŋ-kuma": {
+      grupo: 0,
+      forms: ["darrtjalŋ-kuma", "darrtjalŋ-kuma", "darrtjalŋ-kuma", "darrtjalŋ-kuma"],
+      plurals: [],
+      vtr: true,
+      isPlural: false,
+      isMakeVerb: true,
+      es: [
+        {
+          infinitive: "hacer",
+          presentIndicative: [
+            "hago",
+            "haces",
+            "hace",
+            "hacemos",
+            "hacéis",
+            "hacen",
+          ],
+          preterite: [
+            "hice",
+            "hiciste",
+            "hizo",
+            "hicimos",
+            "hicisteis",
+            "hicieron",
+          ],
+          imperfect: [
+            "hacía",
+            "hacías",
+            "hacía",
+            "hacíamos",
+            "hacíais",
+            "hacían",
+          ],
+          future: [
+            "haré",
+            "harás",
+            "hará",
+            "haremos",
+            "haréis",
+            "harán",
+          ],
+          conditional: [
+            "haría",
+            "harías",
+            "haría",
+            "haríamos",
+            "haríais",
+            "harían",
+          ],
+          presentSubjunctive: [
+            "haga",
+            "hagas",
+            "haga",
+            "hagamos",
+            "hagáis",
+            "hagan",
+          ],
+          imperfectSubjunctive: [
+            "hiciera",
+            "hicieras",
+            "hiciera",
+            "hiciéramos",
+            "hicierais",
+            "hicieran",
+          ],
+          imperative: {
+            yo: "",
+            tu: "haz",
+            usted: "haga",
+            nosotros: "hagamos",
+            vosotros: "haced",
+            ustedes: "hagan",
+          },
+          negativeImperative: {
+            yo: "",
+            tu: "no hagas",
+            usted: "no haga",
+            nosotros: "no hagamos",
+            vosotros: "no hagáis",
+            ustedes: "no hagan",
+          },
+          gerund: "haciendo",
+          pastParticiple: "hecho",
+        },
+      ],
+      en: [
+        {
+          infinitive: "make",
+          presentIndicative: [
+            "make",
+            "make",
+            "makes",
+            "make",
+            "make",
+            "make",
+          ],
+          preterite: [
+            "made",
+            "made",
+            "made",
+            "made",
+            "made",
+            "made",
+          ],
+          imperfect: [
+            "made",
+            "made",
+            "made",
+            "made",
+            "made",
+            "made",
+          ],
+          future: [
+            "will make",
+            "will make",
+            "will make",
+            "will make",
+            "will make",
+            "will make",
+          ],
+          conditional: [
+            "would make",
+            "would make",
+            "would make",
+            "would make",
+            "would make",
+            "would make",
+          ],
+          presentSubjunctive: [
+            "make",
+            "make",
+            "make",
+            "make",
+            "make",
+            "make",
+          ],
+          imperfectSubjunctive: [
+            "made",
+            "made",
+            "made",
+            "made",
+            "made",
+            "made",
+          ],
+          imperative: {
+            yo: "",
+            tu: "make",
+            usted: "make",
+            nosotros: "let's make",
+            vosotros: "make",
+            ustedes: "make",
+          },
+          negativeImperative: {
+            yo: "",
+            tu: "don't make",
+            usted: "don't make",
+            nosotros: "let's not make",
+            vosotros: "don't make",
+            ustedes: "don't make",
+          },
+          gerund: "making",
+          pastParticiple: "made",
+        },
+      ],
+    },
   },
 
   nouns: {
@@ -20086,6 +20528,13 @@ export const LEXICON: Lexicon = {
       en: ["all"],
       esPlural: ["todos", "todoses"],
       enPlural: ["alls"],
+    },
+    borum: {
+      plurals: [],
+      es: ["maduro", "madura"],
+      en: ["ripe", "mature"],
+      esPlural: ["maduros", "maduras"],
+      enPlural: ["ripes", "matures"],
     },
     gänaŋu: {
       plurals: [],

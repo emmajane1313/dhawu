@@ -9,8 +9,9 @@ import {
   determineHumanAssociativeSuffix,
   applyHumanAssociativeSuffix,
 } from "../../constants";
-import { findNounInfo } from "./questionHelpers";
+import { findNounInfo, findVerbGupWithPerson } from "./questionHelpers";
 import { determinePossessiveSuffix, applyPossessiveSuffix } from "../possession";
+import { LEXICON } from "../../lexicon";
 
 function findMultiWordTrigger(
   tokens: string[],
@@ -89,11 +90,68 @@ export function detectWhereFromPattern(
     const afterQuestion = originalText.slice(questionMarkPos + 1).trim();
     if (afterQuestion) {
       const answerWords = afterQuestion.split(/\s+/);
-      let determinerType: "this" | "that" | "definite" | null = null;
-      let isPlural = false;
-      let isDual = false;
 
-      for (const rawWord of answerWords) {
+      const { ablativeVerbTriggers } = LANG_CONFIG[mode];
+
+      let ablativeTriggerIdx = -1;
+      for (let i = 0; i < answerWords.length; i++) {
+        const word = answerWords[i].toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+        if (ablativeVerbTriggers.includes(word)) {
+          ablativeTriggerIdx = i;
+          break;
+        }
+      }
+
+      if (ablativeTriggerIdx !== -1 && ablativeTriggerIdx + 1 < answerWords.length) {
+        const triggerWord = answerWords[ablativeTriggerIdx].toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+        const verbWord = answerWords[ablativeTriggerIdx + 1].toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+        const verbInfo = findVerbGupWithPerson(verbWord, mode);
+
+        if (verbInfo) {
+          const triggerTokenIdx = lowerTokens.findIndex(
+            (t, i) => i >= tokensBeforeQuestion && t.replace(/[,.\-;:!¡¿]+$/, "") === triggerWord
+          );
+          const verbTokenIdx = lowerTokens.findIndex(
+            (t, i) => i >= tokensBeforeQuestion && t.replace(/[,.\-;:!¡¿]+$/, "") === verbWord
+          );
+
+          if (triggerTokenIdx !== -1) {
+            consumedIndices.push(triggerTokenIdx);
+            usedAnswerIndices.add(triggerTokenIdx);
+          }
+          if (verbTokenIdx !== -1) {
+            consumedIndices.push(verbTokenIdx);
+            usedAnswerIndices.add(verbTokenIdx);
+          }
+
+          const verbEntry = LEXICON.verbs[verbInfo.gup];
+          if (verbEntry && verbEntry.forms && verbEntry.forms[3]) {
+            const verbQuaternary = verbEntry.forms[3];
+            const verbWithSuffix = applyAblativeSuffix(verbQuaternary);
+
+            answerExplanation = `${verbWord} → ${verbQuaternary} + -${ABLATIVE_SUFFIX} = ${verbWithSuffix}`;
+            answerInfo = {
+              baseGup: verbWithSuffix,
+              rawBaseGup: verbQuaternary,
+              appliedSuffix: ABLATIVE_SUFFIX,
+              hasDefiniteArticle: false,
+              determinerType: null,
+              isPlural: false,
+              isDual: false,
+              baseExplanation: answerExplanation,
+              answerTokens: answerWords,
+              suffixType: "ablative",
+            };
+          }
+        }
+      }
+
+      if (!answerInfo) {
+        let determinerType: "this" | "that" | "definite" | null = null;
+        let isPlural = false;
+        let isDual = false;
+
+        for (const rawWord of answerWords) {
         const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
         if (!answerWord) continue;
 
@@ -362,6 +420,7 @@ export function detectWhereFromPattern(
           };
         }
       }
+      }
 
       if (answerInfo) {
         if (additionalAnswers.length > 0) {
@@ -398,5 +457,6 @@ export function detectWhereFromPattern(
     consumedIndices,
     answerInfo,
     options,
+    isComplexPattern: true,
   };
 }

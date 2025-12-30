@@ -13,9 +13,10 @@ import {
   ConWithMatch,
   InstrumentalMatch,
   BelongingMatch,
+  BecomeAdjectiveMatch,
+  MakeAdjectiveMatch,
   TransportMatch,
   ComitativePronounMatch,
-  detectComitativePronounPattern,
   HumanAllativePronounMatch,
   HumanAblativePronounMatch,
   SourceOriginPronounMatch,
@@ -26,6 +27,14 @@ import {
   detectTimesPattern,
   AgentNounMatch,
   detectAgentNoun,
+  RelativeClauseMatch,
+  detectRelativeClausePattern,
+  detectDjalVerbPattern,
+  detectPurposeInfinitive,
+  detectLocativeVerbPattern,
+  detectInfinitiveAgent,
+  detectBecomeAdjectivePattern,
+  detectMakeAdjectivePattern,
 } from "./patternMatcher";
 import { AnswerInfo } from "./rules/question/index";
 import {
@@ -84,9 +93,18 @@ import {
   COMITATIVE_PRONOUNS_GUP,
   MirriMiriwType,
   LANG_CONFIG,
+  LOCATIVE_SUFFIX,
+  ALLATIVE_SUFFIX,
+  ABLATIVE_SUFFIX,
   applyLocativeSuffix,
   applyAllativeSuffix,
   applyAblativeSuffix,
+  BECOME_ADJ_EXCEPTIONS,
+  determineBecomeAdjSuffix,
+  applyBecomeAdjSuffix,
+  MAKE_ADJ_EXCEPTIONS,
+  determineMakeAdjSuffix,
+  applyMakeAdjSuffix,
   determineHumanAssociativeSuffix,
   applyHumanAssociativeSuffix,
   HumanAssociativeSuffixType,
@@ -98,6 +116,10 @@ import {
   MOTION_DIRECTION_GUP,
   MotionGoalDirection,
   applyDjalSuffix,
+  DjalVerbMatch,
+  PurposeInfinitiveMatch,
+  InfinitiveAgentMatch,
+  LocativeVerbMatch,
 } from "./constants";
 import {
   findAllFixedMatches,
@@ -639,7 +661,10 @@ function expandSuffixAlternatives(
     const frase = frases[fi];
     for (let pi = 0; pi < frase.parts.length; pi++) {
       const part = frase.parts[pi];
-      if (part.suffixAlternatives && part.suffixAlternatives.length > 0) {
+      if (
+        (part.suffixAlternatives && part.suffixAlternatives.length > 0) ||
+        (part.verbOptions && part.verbOptions.length > 1)
+      ) {
         partsWithAlts.push({ fraseIdx: fi, partIdx: pi, part });
       }
     }
@@ -651,14 +676,23 @@ function expandSuffixAlternatives(
     gup: string;
     suffix: string;
     explanation: string;
-  }[][] = partsWithAlts.map(({ part }) => [
-    {
-      gup: part.gup,
-      suffix: part.appliedSuffix || "",
-      explanation: part.explanation,
-    },
-    ...part.suffixAlternatives!,
-  ]);
+  }[][] = partsWithAlts.map(({ part }) => {
+    if (part.verbOptions && part.verbOptions.length > 1) {
+      return part.verbOptions.map((vo) => ({
+        gup: vo.gup,
+        suffix: "",
+        explanation: vo.explanation,
+      }));
+    }
+    return [
+      {
+        gup: part.gup,
+        suffix: part.appliedSuffix || "",
+        explanation: part.explanation,
+      },
+      ...part.suffixAlternatives!,
+    ];
+  });
 
   let combinations: { gup: string; suffix: string; explanation: string }[][] = [
     [],
@@ -691,6 +725,7 @@ function expandSuffixAlternatives(
             appliedSuffix: chosen.suffix || undefined,
             explanation: chosen.explanation,
             suffixAlternatives: undefined,
+            verbOptions: undefined,
           };
         }
         return p;
@@ -844,6 +879,13 @@ interface FraseProcessingContext {
   locativeCopulaMatch: LocativeCopulaMatch | null;
   indirectObjectMatch: IndirectObjectMatch | null;
   timesMatch: TimesMatch | null;
+  relativeClauseMatch: RelativeClauseMatch | null;
+  djalVerbMatch: DjalVerbMatch | null;
+  purposeInfinitiveMatch: PurposeInfinitiveMatch | null;
+  infinitiveAgentMatch: InfinitiveAgentMatch | null;
+  locativeVerbMatch: LocativeVerbMatch | null;
+  becomeAdjectiveMatch: BecomeAdjectiveMatch | null;
+  makeAdjectiveMatch: MakeAdjectiveMatch | null;
   locativeVerbResults: LocativeVerbResult[];
   motionDestinations: MotionDestination[];
   motionDirection: MotionDirection;
@@ -859,7 +901,18 @@ interface FraseProcessingContext {
         possessiveForm: string;
         subjectLocalIndex: number;
       };
+  purposeInfinitiveAlternative?:
+    | { type: "with-main-verb" }
+    | { type: "conjugated-only"; conjugatedForm: string };
+  irPatternAlternative?: "use-pattern" | "use-literal";
+  hasIrPatternWithPurpose?: boolean;
+  makeAdjectiveAlternative?: "use-pattern" | "use-literal" | "none";
+  infinitiveAgentAlternative?: "ambiguous" | "explicit";
   isAmbiguousIrSer: boolean;
+  locativeSuffixChoice?: {
+    suffixType: "ngura" | "lili" | "nguru" | "ergative" | "belonging";
+    explanation: string;
+  } | null;
 }
 
 function applyRulesWithAlternatives(
@@ -971,6 +1024,9 @@ function applyRulesWithAlternatives(
       ctx.subjectResults,
       ctx.skipLocalIndices
     );
+    if (ctx.djalVerbMatch) {
+      objectGupWords.push(ctx.djalVerbMatch.verbGupBase);
+    }
     if (objectGupWords.length > 0) {
       modalSuffixAlternatives = generateModalSuffixCombinations(objectGupWords);
     }
@@ -983,6 +1039,65 @@ function applyRulesWithAlternatives(
     return ctx.locativeVerbResults.length > 0
       ? ctx.locativeVerbResults
       : [null];
+  })();
+
+  type PurposeInfinitiveAlternative =
+    | { type: "with-main-verb" }
+    | { type: "conjugated-only"; conjugatedForm: string };
+  const purposeInfinitiveAlternatives: PurposeInfinitiveAlternative[] = (() => {
+    if (ctx.hasIrPatternWithPurpose) {
+      return [{ type: "with-main-verb" }];
+    }
+    if (
+      ctx.purposeInfinitiveMatch?.hasAlternativePattern &&
+      ctx.purposeInfinitiveMatch.infinitiveEntry
+    ) {
+      const pim = ctx.purposeInfinitiveMatch;
+      if (pim.mainVerbTense === "imperative") {
+        return [{ type: "with-main-verb" }];
+      }
+      if (pim.mainVerbEntry?.noInfinitiveSuffix) {
+        return [{ type: "with-main-verb" }];
+      }
+      const forms = pim.infinitiveEntry.forms;
+      let conjugatedForm = "";
+      if (pim.mainVerbTense === "preterite" || pim.mainVerbTense === "imperfect") {
+        conjugatedForm = forms[2];
+      } else if (pim.mainVerbTense === "future" || pim.mainVerbTense === "conditional") {
+        conjugatedForm = forms[0];
+      } else {
+        conjugatedForm = forms[1];
+      }
+      return [
+        { type: "with-main-verb" },
+        { type: "conjugated-only", conjugatedForm },
+      ];
+    }
+    return [{ type: "with-main-verb" }];
+  })();
+
+  type IrPatternAlternative = "use-pattern" | "use-literal";
+  const irPatternAlternatives: IrPatternAlternative[] = (() => {
+    if (ctx.hasIrPatternWithPurpose) {
+      return ["use-pattern", "use-literal"];
+    }
+    return ["use-pattern"];
+  })();
+
+  type MakeAdjectiveAlternative = "use-pattern" | "use-literal" | "none";
+  const makeAdjectiveAlternatives: MakeAdjectiveAlternative[] = (() => {
+    if (ctx.makeAdjectiveMatch) {
+      return ["use-pattern", "use-literal"];
+    }
+    return ["none"];
+  })();
+
+  type InfinitiveAgentAlternative = "ambiguous" | "explicit";
+  const infinitiveAgentAlternatives: InfinitiveAgentAlternative[] = (() => {
+    if (ctx.djalVerbMatch) {
+      return ["ambiguous", "explicit"];
+    }
+    return ["ambiguous"];
   })();
 
   type MirriAlternativeType =
@@ -1028,6 +1143,26 @@ function applyRulesWithAlternatives(
     return alts;
   })();
 
+  type LocaliveSuffixChoice = {
+    suffixType: "ngura" | "lili" | "nguru" | "ergative" | "belonging";
+    explanation: string;
+  } | null;
+
+  const locativeSuffixAlternatives: LocaliveSuffixChoice[] = (() => {
+    const locMatch = ctx.context.locativeMatch;
+    if (locMatch && (locMatch.verbIndices && locMatch.verbIndices.length > 0)) {
+      const alts: LocaliveSuffixChoice[] = [{
+        suffixType: locMatch.suffixType,
+        explanation: locMatch.explanation,
+      }];
+      if (locMatch.alternativeSuffixTypes) {
+        alts.push(...locMatch.alternativeSuffixTypes);
+      }
+      return alts;
+    }
+    return [null];
+  })();
+
   const results: TranslatedFrase[] = [];
   const fraseTokenStrings = ctx.fraseTokens.map((t) => t.original);
   const hasVerb =
@@ -1044,51 +1179,67 @@ function applyRulesWithAlternatives(
               for (const motionDestAlt of motionDestAlternatives) {
                 for (const suffixCombo of modalSuffixAlternatives) {
                   for (const locVerbAlt of locativeVerbAlternatives) {
-                    for (const mirriAlt of mirriAlternatives) {
-                      const parts = buildParts(
-                        {
-                          ...ctx,
-                          subjectResults: altSubjects,
-                          objectResults: altObjects,
-                          unknownConWithChoice: conWithAlt,
-                          unknownLocativeChoice: locativeAlt,
-                          mirriAlternative: mirriAlt,
-                          copulaSubjectChoice: copulaAlt,
-                          motionDestinationChoice: motionDestAlt,
-                        },
-                        suffixCombo,
-                        locVerbAlt,
-                        questionOutputAlt
-                      );
+                    for (const locSuffixAlt of locativeSuffixAlternatives) {
+                    
+                      for (const mirriAlt of mirriAlternatives) {
+                        for (const purposeInfAlt of purposeInfinitiveAlternatives) {
+                          for (const irPatternAlt of irPatternAlternatives) {
+                            for (const makeAdjAlt of makeAdjectiveAlternatives) {
+                              for (const infAgentAlt of infinitiveAgentAlternatives) {
+                              const parts = buildParts(
+                                {
+                                  ...ctx,
+                                  subjectResults: altSubjects,
+                                  objectResults: altObjects,
+                                  unknownConWithChoice: conWithAlt,
+                                  unknownLocativeChoice: locativeAlt,
+                                  mirriAlternative: mirriAlt,
+                                  copulaSubjectChoice: copulaAlt,
+                                  motionDestinationChoice: motionDestAlt,
+                                  purposeInfinitiveAlternative: purposeInfAlt,
+                                  irPatternAlternative: irPatternAlt,
+                                  makeAdjectiveAlternative: makeAdjAlt,
+                                  infinitiveAgentAlternative: infAgentAlt,
+                                  locativeSuffixChoice: locSuffixAlt,
+                                },
+                              suffixCombo,
+                              locVerbAlt,
+                              questionOutputAlt
+                            );
 
-                      const baseTranslation: DefiniteTranslation = {
-                        gup: parts.map((p) => p.gup).join(" "),
-                        parts: parts as DefinitePart[],
-                        explanation: "",
-                      };
 
-                      const definiteVariants = applyDefiniteDemonstratives(
-                        [baseTranslation],
-                        fraseTokenStrings,
-                        mode,
-                        determinerMatches
-                      );
+                        const baseTranslation: DefiniteTranslation = {
+                          gup: parts.map((p) => p.gup).join(" "),
+                          parts: parts as DefinitePart[],
+                          explanation: "",
+                        };
 
-                      for (const defVariant of definiteVariants) {
-                        const pluralVariants = applyPluralToPhrase(
-                          [defVariant as PluralTranslation],
+                        const definiteVariants = applyDefiniteDemonstratives(
+                          [baseTranslation],
                           fraseTokenStrings,
                           mode,
-                          hasVerb,
                           determinerMatches
                         );
-                        for (const variant of pluralVariants) {
-                          results.push({
-                            tokenIndices: frase.tokenIndices,
-                            parts: variant.parts as TranslationPart[],
-                            answerInfo,
-                            isQuestionPattern: !!ctx.context.questionMatch,
-                          });
+
+                        for (const defVariant of definiteVariants) {
+                          const pluralVariants = applyPluralToPhrase(
+                            [defVariant as PluralTranslation],
+                            fraseTokenStrings,
+                            mode,
+                            hasVerb,
+                            determinerMatches
+                          );
+                          for (const variant of pluralVariants) {
+                            results.push({
+                              tokenIndices: frase.tokenIndices,
+                              parts: variant.parts as TranslationPart[],
+                              answerInfo,
+                              isQuestionPattern: !!ctx.context.questionMatch,
+                            });
+                          }
+                        }
+                        }
+                        }
                         }
                       }
                     }
@@ -1100,6 +1251,7 @@ function applyRulesWithAlternatives(
         }
       }
     }
+  }
   }
 
   const seen = new Set<string>();
@@ -1157,8 +1309,17 @@ function buildFraseContext(
 
   const modalVerbInfo = detectModalVerb(fraseTokens, verbIdx);
 
+  const irPatternNames = ["ir_present_a_infinitive", "ir_past_a_infinitive"];
+  const hasIrPattern = irPatternNames.includes(context.matchedPattern?.patternName ?? "");
+  const earlyPurposeInfinitiveMatch = detectPurposeInfinitive(fraseTokens, mode);
+  const hasIrPatternWithPurpose = hasIrPattern && earlyPurposeInfinitiveMatch?.hasAlternativePattern;
+  const infinitiveAgentMatch = detectInfinitiveAgent(fraseTokens, mode);
+  const locativeVerbMatch = detectLocativeVerbPattern(fraseTokens, mode);
+  const becomeAdjectiveMatch = detectBecomeAdjectivePattern(fraseTokens, mode);
+  const makeAdjectiveMatch = detectMakeAdjectivePattern(fraseTokens, mode);
+
   const verbResult =
-    (isCopula && !isAmbiguousIrSer) || modalVerbInfo
+    (isCopula && !isAmbiguousIrSer) || modalVerbInfo || context.questionMatch?.answerInfo
       ? null
       : processVerb(
           fraseTokens,
@@ -1171,19 +1332,33 @@ function buildFraseContext(
   let verbPerson: number | null = null;
   let isTransitive = false;
   let verbMotionType: "motion" | "stationary" | undefined;
+  if (earlyPurposeInfinitiveMatch?.hasAlternativePattern) {
+    verbPerson = earlyPurposeInfinitiveMatch.mainVerbPerson;
+    isTransitive = earlyPurposeInfinitiveMatch.mainVerbEntry?.vtr ?? false;
+    verbMotionType = earlyPurposeInfinitiveMatch.mainVerbEntry?.motionType;
+  }
   if (verbResult) {
     const vToken = fraseTokens[verbResult.localIndex];
     const mainVerbPerson = vToken?.verbMatch?.person;
-    if (mainVerbPerson !== undefined && mainVerbPerson >= 0) {
+
+    const verbIsInNounPattern =
+      context.locativeMatch?.nounIndices.includes(verbResult.localIndex) ||
+      context.belongingMatch?.belongsToNounIndices.includes(verbResult.localIndex) ||
+      context.conWithMatch?.nounIndices.includes(verbResult.localIndex) ||
+      context.instrumentalMatch?.nounIndices.includes(verbResult.localIndex) ||
+      context.transportMatch?.nounIndices.includes(verbResult.localIndex);
+
+    if (verbPerson === null && mainVerbPerson !== undefined && mainVerbPerson >= 0 && !verbIsInNounPattern) {
       verbPerson = mainVerbPerson;
     } else if (
+      verbPerson === null &&
       context.matchedPattern?.auxiliaryPerson !== null &&
       context.matchedPattern?.auxiliaryPerson !== undefined
     ) {
       verbPerson = context.matchedPattern.auxiliaryPerson;
     }
-    isTransitive = vToken?.verbMatch?.entry?.vtr ?? false;
-    verbMotionType = vToken?.verbMatch?.entry?.motionType;
+    if (!isTransitive) isTransitive = vToken?.verbMatch?.entry?.vtr ?? false;
+    if (!verbMotionType) verbMotionType = vToken?.verbMatch?.entry?.motionType;
   } else if (modalVerbInfo) {
     const verbToken = fraseTokens[verbIdx];
     const mainVerbPerson = verbToken?.verbMatch?.person;
@@ -1193,12 +1368,10 @@ function buildFraseContext(
     const infinitiveToken = fraseTokens.find(
       (t) => t.type === "verb" && t.verbMatch?.tense === "infinitive"
     );
-    if (infinitiveToken?.verbMatch?.entry?.vtr) {
-      isTransitive = true;
-    }
     if (infinitiveToken?.verbMatch?.entry?.motionType) {
       verbMotionType = infinitiveToken.verbMatch.entry.motionType;
     }
+    isTransitive = true;
   } else if (
     !hasVerbInFrase &&
     globalVerbContext &&
@@ -1482,8 +1655,10 @@ function buildFraseContext(
       triggerPhrase: locativeMatch?.triggerPhrase || "a",
       triggerIndices: allLocativeTriggerIndices,
       nounIndices: allLocativeNounIndices,
+      verbIndices: locativeMatch?.verbIndices,
       reinforcer: locativeMatch?.reinforcer || null,
       explanation: locativeMatch?.explanation || "",
+      suffixType: locativeMatch?.suffixType || "ngura",
     };
   }
   for (const dest of motionDestinationIndices) {
@@ -1492,6 +1667,11 @@ function buildFraseContext(
   if (locativeMatch) {
     for (const idx of locativeMatch.triggerIndices) {
       skipLocalIndices.add(idx);
+    }
+    if (locativeMatch.verbIndices) {
+      for (const idx of locativeMatch.verbIndices) {
+        skipLocalIndices.add(idx);
+      }
     }
   }
 
@@ -1574,6 +1754,22 @@ function buildFraseContext(
     }
   }
 
+  const relativeClauseMatch = detectRelativeClausePattern(fraseTokens, mode);
+  if (relativeClauseMatch) {
+    for (const idx of relativeClauseMatch.consumedIndices) {
+      skipLocalIndices.add(idx);
+    }
+  }
+
+  const djalVerbMatch = detectDjalVerbPattern(fraseTokens, mode);
+  if (djalVerbMatch) {
+    for (const idx of djalVerbMatch.consumedIndices) {
+      skipLocalIndices.add(idx);
+    }
+  }
+
+  const purposeInfinitiveMatch = earlyPurposeInfinitiveMatch;
+
   let locativeVerbResults: LocativeVerbResult[] = [];
   if (locativeCopulaMatch) {
     const fraseTokenStrings = fraseTokens.map((t) => t.original);
@@ -1654,6 +1850,10 @@ function buildFraseContext(
     motionDirection = null;
   }
 
+  if (purposeInfinitiveMatch?.hasAlternativePattern) {
+    motionDirection = null;
+  }
+
   for (const idx of directionTriggerIndices) {
     skipLocalIndices.add(idx);
   }
@@ -1687,10 +1887,18 @@ function buildFraseContext(
     locativeCopulaMatch,
     indirectObjectMatch,
     timesMatch,
+    relativeClauseMatch,
+    djalVerbMatch,
+    purposeInfinitiveMatch,
+    infinitiveAgentMatch,
+    locativeVerbMatch,
+    becomeAdjectiveMatch,
+    makeAdjectiveMatch,
     locativeVerbResults,
     motionDestinations: motionDestinationIndices,
     motionDirection,
     directionTriggerIndices,
+    hasIrPatternWithPurpose,
     isAmbiguousIrSer,
   };
 }
@@ -1978,13 +2186,19 @@ function processVerb(
   context: FraseContext,
   originalText: string,
   mode: LanguageMode,
-  hasSubject: boolean
+  hasSubject: boolean,
+  overrideVerbIndex?: number
 ): { results: VerbRuleResult[]; localIndex: number } | null {
   const mainVerbLocalIdx =
+    overrideVerbIndex ??
     context.matchedPattern?.mainVerbIndex ??
     fraseTokens.findIndex((t) => t.type === "verb");
 
   if (mainVerbLocalIdx === -1) return null;
+
+  if (context.questionMatch?.consumedIndices?.includes(mainVerbLocalIdx)) {
+    return null;
+  }
 
   const verbToken = fraseTokens[mainVerbLocalIdx];
   if (!verbToken.verbMatch) return null;
@@ -2012,6 +2226,51 @@ function buildParts(
   questionOutputOverride: string | null = null
 ): TranslationPart[] {
   const parts: TranslationPart[] = [];
+  const questionConsumedSet = new Set(ctx.context.questionMatch?.consumedIndices || []);
+
+  if (ctx.makeAdjectiveMatch && ctx.makeAdjectiveAlternative === "use-pattern") {
+    const mam = ctx.makeAdjectiveMatch;
+    const exceptionForm = MAKE_ADJ_EXCEPTIONS[mam.adjectiveGup];
+
+    if (exceptionForm) {
+      const suffixes = determineMakeAdjSuffix(mam.adjectiveGup);
+      const regularAlternatives = suffixes.map(s => ({
+        gup: applyMakeAdjSuffix(mam.adjectiveGup, s),
+        suffix: s,
+        explanation: `${mam.adjectiveGup} + -${s} (forma regular)`
+      }));
+
+      return [{
+        type: "verb",
+        source: `${mam.verbWord} ${mam.adjectiveWord}`,
+        gup: exceptionForm,
+        explanation: `"${mam.verbWord} ${mam.adjectiveWord}" → ${exceptionForm} (excepción)`,
+        globalIndex: -1,
+        alternatives: regularAlternatives,
+      }];
+    } else {
+      const suffixes = determineMakeAdjSuffix(mam.adjectiveGup);
+      const primarySuffix = suffixes[0];
+      const gupWithSuffix = applyMakeAdjSuffix(mam.adjectiveGup, primarySuffix);
+
+      const alternatives = suffixes.length > 1
+        ? suffixes.slice(1).map(s => ({
+            gup: applyMakeAdjSuffix(mam.adjectiveGup, s),
+            suffix: s,
+            explanation: `${mam.adjectiveGup} + -${s}`
+          }))
+        : undefined;
+
+      return [{
+        type: "verb",
+        source: `${mam.verbWord} ${mam.adjectiveWord}`,
+        gup: gupWithSuffix,
+        explanation: `"${mam.verbWord} ${mam.adjectiveWord}" → ${gupWithSuffix} (make + adj)`,
+        globalIndex: -1,
+        alternatives,
+      }];
+    }
+  }
 
   if (ctx.mirriAlternative?.type === "subject-possessive") {
     const possessiveGup = ctx.mirriAlternative.possessiveForm;
@@ -2088,7 +2347,55 @@ function buildParts(
   }
 
   buildCopulaParts(ctx, parts);
-  buildImpliedSubjectParts(ctx, parts);
+
+  if (ctx.infinitiveAgentAlternative !== "explicit") {
+    buildImpliedSubjectParts(ctx, parts);
+  }
+
+  if (ctx.infinitiveAgentAlternative === "explicit" && ctx.djalVerbMatch) {
+    const dvm = ctx.djalVerbMatch;
+    const verbEntry = ctx.fraseTokens[dvm.verbIndex]?.verbMatch?.entry;
+    const verbBaseForms = verbEntry?.forms || [];
+    const verbGupBase = verbBaseForms[0] || dvm.verbGupBase;
+    const config = LANG_CONFIG[ctx.mode];
+
+    const impliedSubject = ctx.subjectResults.find((s) => s.type === "implied");
+    const subjectGup = impliedSubject?.gup || "ŋarra";
+
+    if (dvm.subjunctivePerson !== undefined && dvm.subjunctivePerson > 0) {
+      const personMap: Record<number, PersonNumber> = {
+        0: "1_Sing", 1: "2_Sing", 2: "3_Sing",
+        3: "1+3_Plur", 4: "2_Plur", 5: "3_Plur",
+      };
+      const agentPersonKey = personMap[dvm.subjunctivePerson];
+      const agentPronouns = SUBJECT_PRONOUNS_GUP[agentPersonKey];
+      const agentGup = agentPronouns[0];
+      const possessiveForms = POSSESSIVE_PRONOUNS_GUP[agentPersonKey];
+      const possessiveGup = possessiveForms?.[0] || agentGup;
+
+      parts.push({ type: "subject", source: impliedSubject?.source || "I", gup: subjectGup, explanation: `sujeito → ${subjectGup}`, globalIndex: -1 });
+      parts.push({ type: "object", source: dvm.verbWord, gup: possessiveGup, explanation: `${agentPersonKey} → ${possessiveGup} (${config.possessive})`, globalIndex: -1 });
+      parts.push({ type: "verb", source: dvm.djalWord, gup: "djäl", explanation: `${dvm.djalWord} → djäl`, globalIndex: -1 });
+      parts.push({ type: "subject", source: "[agent]", gup: agentGup, explanation: `agente → ${agentGup}`, globalIndex: -1 });
+      parts.push({ type: "particle", source: "will", gup: "dhu", explanation: "dhu (futuro)", globalIndex: -1 });
+      parts.push({ type: "verb", source: dvm.verbWord, gup: verbGupBase, explanation: `${dvm.verbWord} → ${verbGupBase}`, globalIndex: -1 });
+    } else if (dvm.attachedCliticPerson) {
+      const objectPronounInfo = OBJECT_PRONOUNS_GUP[dvm.attachedCliticPerson as keyof typeof OBJECT_PRONOUNS_GUP];
+      const accusativeGup = objectPronounInfo?.gup;
+
+      parts.push({ type: "subject", source: impliedSubject?.source || "I", gup: subjectGup, explanation: `sujeito → ${subjectGup}`, globalIndex: -1 });
+      parts.push({ type: "verb", source: dvm.djalWord, gup: "djäl", explanation: `${dvm.djalWord} → djäl`, globalIndex: -1 });
+      parts.push({ type: "subject", source: impliedSubject?.source || "I", gup: subjectGup, explanation: `sujeito → ${subjectGup}`, globalIndex: -1 });
+      parts.push({ type: "particle", source: "will", gup: "dhu", explanation: "dhu (futuro)", globalIndex: -1 });
+      if (accusativeGup) {
+        const cliticSource = dvm.attachedClitic || "";
+        parts.push({ type: "object", source: cliticSource, gup: accusativeGup, explanation: `${cliticSource} → ${accusativeGup} (acusativo)`, globalIndex: -1 });
+      }
+      parts.push({ type: "verb", source: dvm.verbWord, gup: verbGupBase, explanation: `${dvm.verbWord} → ${verbGupBase}`, globalIndex: -1 });
+    }
+
+    return parts;
+  }
 
   if (locativeVerbChoice) {
     parts.push({
@@ -2125,8 +2432,10 @@ function buildParts(
       skipLocalIndices: ctx.skipLocalIndices,
       suffixCombo: modalSuffixCombo,
       mode: ctx.mode,
+      djalVerbMatch: ctx.djalVerbMatch,
     });
     parts.push(...modalParts);
+
     return parts;
   }
 
@@ -2140,7 +2449,215 @@ function buildParts(
     });
   }
 
+  if (ctx.relativeClauseMatch) {
+    const rcm = ctx.relativeClauseMatch;
+    parts.push({
+      type: "noun",
+      source: rcm.verbWord,
+      gup: rcm.agentGup,
+      explanation: `${rcm.verbWord} → ${rcm.agentGup} (-mirri)`,
+      globalIndex: ctx.globalIndices[rcm.verbIndex] ?? -1,
+    });
+    parts.push({
+      type: "noun",
+      source: rcm.nounWord,
+      gup: rcm.nounGup,
+      explanation: `${rcm.nounWord} → ${rcm.nounGup}`,
+      globalIndex: ctx.globalIndices[rcm.nounIndex] ?? -1,
+    });
+  }
+
+  const skipDjalVerb = ctx.context.questionMatch?.answerInfo !== undefined ||
+    questionConsumedSet.has(ctx.djalVerbMatch?.verbIndex ?? -1);
+
+  if (ctx.djalVerbMatch && !skipDjalVerb) {
+    const dvm = ctx.djalVerbMatch;
+
+    if (dvm.attachedClitic && dvm.attachedCliticPerson) {
+      const cliticInfo = getCliticGup(dvm.attachedClitic, ctx.hasDualMarker, ctx.mode);
+      if (cliticInfo) {
+        parts.push({
+          type: "object",
+          source: dvm.attachedClitic,
+          gup: cliticInfo.gup,
+          explanation: cliticInfo.explanation,
+          globalIndex: ctx.globalIndices[dvm.verbIndex] ?? -1,
+        });
+      }
+    }
+
+    const alternatives =
+      dvm.suffixOptions.length > 1
+        ? dvm.suffixOptions.map((opt) => ({
+            gup: opt,
+            suffix: "",
+            explanation: `${dvm.verbWord} → ${opt}`,
+          }))
+        : undefined;
+    parts.push({
+      type: "verb",
+      source: dvm.verbWord,
+      gup: dvm.verbGupWithSuffix,
+      explanation: dvm.explanation,
+      globalIndex: ctx.globalIndices[dvm.verbIndex] ?? -1,
+      alternatives,
+    });
+  }
+
+  const isVerbAlreadyInNewSystem = ctx.locativeVerbMatch && ctx.context.locativeMatch?.verbIndices?.includes(ctx.locativeVerbMatch.verbIndex);
+  const shouldUseLocativeVerb =
+    ctx.locativeVerbMatch &&
+    !questionConsumedSet.has(ctx.locativeVerbMatch.verbIndex) &&
+    !isVerbAlreadyInNewSystem;
+
+  if (shouldUseLocativeVerb && ctx.locativeVerbMatch) {
+    const lvm = ctx.locativeVerbMatch;
+
+    ctx.skipLocalIndices.add(lvm.triggerIndex);
+    ctx.skipLocalIndices.add(lvm.verbIndex);
+
+    parts.push({
+      type: "verb",
+      source: lvm.verbWord,
+      gup: lvm.verbWithSuffix,
+      explanation: lvm.explanation,
+      globalIndex: ctx.globalIndices[lvm.verbIndex] ?? -1,
+    });
+  }
+
+  if (ctx.becomeAdjectiveMatch) {
+    const bam = ctx.becomeAdjectiveMatch;
+
+    const exceptionForm = BECOME_ADJ_EXCEPTIONS[bam.adjectiveGup];
+
+    ctx.skipLocalIndices.add(bam.verbIndex);
+    ctx.skipLocalIndices.add(bam.adjectiveIndex);
+    if (bam.adjectiveIndex - bam.verbIndex === 2) {
+      ctx.skipLocalIndices.add(bam.verbIndex + 1);
+    }
+
+    if (exceptionForm) {
+      const suffixes = determineBecomeAdjSuffix(bam.adjectiveGup);
+      const regularAlternatives = suffixes.map(s => ({
+        gup: applyBecomeAdjSuffix(bam.adjectiveGup, s),
+        suffix: s,
+        explanation: `${bam.adjectiveGup} + -${s} (forma regular)`
+      }));
+
+      parts.push({
+        type: "verb",
+        source: `${bam.verbWord} ${bam.adjectiveWord}`,
+        gup: exceptionForm,
+        explanation: `"${bam.verbWord} ${bam.adjectiveWord}" → ${exceptionForm} (excepción)`,
+        globalIndex: ctx.globalIndices[bam.verbIndex] ?? -1,
+        alternatives: regularAlternatives,
+      });
+    } else {
+      const suffixes = determineBecomeAdjSuffix(bam.adjectiveGup);
+      const primarySuffix = suffixes[0];
+      const gupWithSuffix = applyBecomeAdjSuffix(bam.adjectiveGup, primarySuffix);
+
+      const alternatives = suffixes.length > 1
+        ? suffixes.slice(1).map(s => ({
+            gup: applyBecomeAdjSuffix(bam.adjectiveGup, s),
+            suffix: s,
+            explanation: `${bam.adjectiveGup} + -${s}`
+          }))
+        : undefined;
+
+      parts.push({
+        type: "verb",
+        source: `${bam.verbWord} ${bam.adjectiveWord}`,
+        gup: gupWithSuffix,
+        explanation: `"${bam.verbWord} ${bam.adjectiveWord}" → ${gupWithSuffix} (become + adj)`,
+        globalIndex: ctx.globalIndices[bam.verbIndex] ?? -1,
+        alternatives,
+      });
+    }
+  }
+
+
+  const hasLocativeVerbIndices = !!(ctx.context.locativeMatch?.verbIndices && ctx.context.locativeMatch.verbIndices.length > 0);
+  const shouldUsePurposeInfinitive =
+    ctx.purposeInfinitiveMatch &&
+    (!ctx.hasIrPatternWithPurpose || ctx.irPatternAlternative === "use-literal") &&
+    !questionConsumedSet.has(ctx.purposeInfinitiveMatch.infinitiveIndex) &&
+    !ctx.locativeVerbMatch &&
+    !hasLocativeVerbIndices;
+
+
+  if (shouldUsePurposeInfinitive && ctx.purposeInfinitiveMatch) {
+    const pim = ctx.purposeInfinitiveMatch;
+    const purposeAlt = ctx.purposeInfinitiveAlternative;
+
+    if (purposeAlt?.type === "conjugated-only") {
+      parts.push({
+        type: "verb",
+        source: pim.infinitiveWord,
+        gup: purposeAlt.conjugatedForm,
+        explanation: `${pim.infinitiveWord} → ${purposeAlt.conjugatedForm} (verbo conjugado)`,
+        globalIndex: ctx.globalIndices[pim.infinitiveIndex] ?? -1,
+      });
+    } else {
+      if (pim.hasAlternativePattern && pim.mainVerbEntry) {
+        const mainVerbForms = pim.mainVerbEntry.forms;
+        let mainVerbGup = mainVerbForms[1];
+        if (pim.mainVerbTense === "preterite" || pim.mainVerbTense === "imperfect") {
+          mainVerbGup = mainVerbForms[2];
+        } else if (pim.mainVerbTense === "future" || pim.mainVerbTense === "conditional") {
+          mainVerbGup = mainVerbForms[0];
+        }
+        parts.push({
+          type: "verb",
+          source: pim.mainVerbWord,
+          gup: mainVerbGup,
+          explanation: `${pim.mainVerbWord} → ${mainVerbGup}`,
+          globalIndex: ctx.globalIndices[pim.mainVerbIndex] ?? -1,
+        });
+
+        const mainVerbToken = ctx.fraseTokens[pim.mainVerbIndex];
+        const attachedClitic = mainVerbToken?.verbMatch?.attachedClitic;
+        if (attachedClitic) {
+          const cliticInfo = getCliticGup(attachedClitic, ctx.hasDualMarker, ctx.mode);
+          if (cliticInfo) {
+            const cliticAlts = cliticInfo.options
+              .filter((opt) => opt.gup !== cliticInfo.gup)
+              .map((opt) => ({
+                gup: opt.gup,
+                suffix: "",
+                explanation: opt.explanation,
+              }));
+            parts.push({
+              type: "object",
+              source: attachedClitic,
+              gup: cliticInfo.gup,
+              explanation: cliticInfo.explanation,
+              globalIndex: ctx.globalIndices[pim.mainVerbIndex] ?? -1,
+              suffixAlternatives: cliticAlts.length > 0 ? cliticAlts : undefined,
+            });
+          }
+        }
+      }
+
+      const suffixAlts = pim.suffixOptions.map((opt) => ({
+        gup: opt,
+        suffix: "",
+        explanation: `${pim.infinitiveWord} → ${opt} (infinitivo + sufixo)`,
+      }));
+
+      parts.push({
+        type: "verb",
+        source: pim.infinitiveWord,
+        gup: pim.infinitiveGupWithSuffix,
+        explanation: pim.explanation,
+        globalIndex: ctx.globalIndices[pim.infinitiveIndex] ?? -1,
+        suffixAlternatives: suffixAlts.length > 0 ? suffixAlts : undefined,
+      });
+    }
+  }
+
   buildStandardParts(ctx, parts, locativeVerbChoice);
+
   return parts;
 }
 
@@ -2237,7 +2754,7 @@ function buildImpliedSubjectParts(
 
   if (
     impliedSubject &&
-    !context.copulaMatch &&
+    (!context.copulaMatch || ctx.purposeInfinitiveMatch || ctx.isAmbiguousIrSer) &&
     !hasExplicitSubject &&
     !possessedIsAgentOfTransitive
   ) {
@@ -2245,12 +2762,14 @@ function buildImpliedSubjectParts(
       verbResult?.localIndex ?? modalVerbInfo?.verbLocalIndex ?? -1;
     const verbGlobalIndex =
       verbLocalIndex >= 0 ? globalIndices[verbLocalIndex] : -1;
+    const effectiveGlobalIndex =
+      ctx.irPatternAlternative === "use-literal" ? -1 : verbGlobalIndex;
     parts.push({
       type: "subject",
       source: impliedSubject.source,
       gup: impliedSubject.gup,
       explanation: impliedSubject.explanation,
-      globalIndex: verbGlobalIndex,
+      globalIndex: effectiveGlobalIndex,
     });
   }
 }
@@ -2358,6 +2877,52 @@ function applySuffixBasedOnContext(
       explanation: `${baseGup} + -${suffix} = ${suffixed} (${config.transportLabel})`,
     };
   }
+
+  if (locativeMatch && locativeMatch.nounIndices.includes(localIdx)) {
+    if (locativeMatch.suffixType === "lili") {
+      const finalGup = applyAllativeSuffix(baseGup);
+      return {
+        gup: finalGup,
+        suffix: "lili",
+        explanation: `${baseGup} + -lili = ${finalGup} (${config.allativeSuffixLabel || "allative"})`,
+      };
+    } else if (locativeMatch.suffixType === "nguru") {
+      const finalGup = applyAblativeSuffix(baseGup);
+      return {
+        gup: finalGup,
+        suffix: "ŋuru",
+        explanation: `${baseGup} + -ŋuru = ${finalGup} (${config.ablativeSuffixLabel})`,
+      };
+    } else if (locativeMatch.suffixType === "ngura") {
+      const finalGup = applyLocativeSuffix(baseGup);
+      return {
+        gup: finalGup,
+        suffix: "ŋura",
+        explanation: `${baseGup} + -ŋura = ${finalGup} (${config.locativeExplanation})`,
+      };
+    } else if (locativeMatch.suffixType === "ergative") {
+      const result = applyErgativeSuffix(baseGup);
+      return {
+        gup: result.suffixed,
+        suffix: "ergative",
+        explanation: `${baseGup} + -${result.suffix} = ${result.suffixed} (instrumental)`,
+      };
+    } else if (locativeMatch.suffixType === "belonging") {
+      const suffixResult = determineBelongingSuffix(baseGup, mode);
+      const alternatives = suffixResult.suffixes.map(s => ({
+        gup: applyBelongingSuffix(baseGup, s),
+        suffix: s,
+        explanation: `${baseGup} + -${s} (belonging)`
+      }));
+      const finalGup = alternatives[0].gup;
+      return {
+        gup: finalGup,
+        suffix: "belonging",
+        explanation: `${baseGup} + belonging = ${alternatives.map(a => a.gup).join(" / ")} (-wuy/-puy/-buy)`,
+        alternatives: alternatives.length > 1 ? alternatives : undefined,
+      };
+    }
+  } 
 
   const motionDest = motionDestinations?.find((d) => d.nounIdx === localIdx);
   const hasMotion = motionDest && !isObject;
@@ -2499,7 +3064,7 @@ function applySuffixBasedOnContext(
   if (locativeMatch && locativeMatch.nounIndices.includes(localIdx)) {
     const motionDest = motionDestinations?.find((d) => d.nounIdx === localIdx);
     const goalDirection = motionDest?.goalDirection;
-   
+
     if (verbMotionType === "motion") {
       if (goalDirection === "away") {
         const finalGup = applyAblativeSuffix(baseGup);
@@ -3074,10 +3639,11 @@ function buildStandardParts(
   parts: TranslationPart[],
   locativeVerbChoice: LocativeVerbResult | null = null
 ): void {
+
   const {
     fraseTokens,
     globalIndices,
-    skipLocalIndices,
+    skipLocalIndices: baseSkipLocalIndices,
     mode,
     verbResult,
     subjectResults,
@@ -3103,7 +3669,46 @@ function buildStandardParts(
     motionDirection,
     context,
     mirriAlternative,
+    purposeInfinitiveAlternative,
+    purposeInfinitiveMatch,
+    irPatternAlternative,
+    hasIrPatternWithPurpose,
   } = ctx;
+
+  const skipLocalIndices = new Set(baseSkipLocalIndices);
+
+  if (ctx.locativeVerbMatch) {
+    for (const idx of ctx.locativeVerbMatch.consumedIndices) {
+      skipLocalIndices.add(idx);
+    }
+  }
+
+  if (hasIrPatternWithPurpose && irPatternAlternative === "use-literal" && purposeInfinitiveMatch) {
+    skipLocalIndices.add(purposeInfinitiveMatch.mainVerbIndex);
+    for (const idx of purposeInfinitiveMatch.consumedIndices) {
+      skipLocalIndices.add(idx);
+    }
+  }
+
+  if (
+    purposeInfinitiveAlternative?.type === "conjugated-only" &&
+    purposeInfinitiveMatch
+  ) {
+    skipLocalIndices.add(purposeInfinitiveMatch.mainVerbIndex);
+  }
+
+  const shouldUsePurposeInf =
+    purposeInfinitiveMatch &&
+    (!hasIrPatternWithPurpose || irPatternAlternative === "use-literal");
+  if (shouldUsePurposeInf && purposeInfinitiveMatch) {
+    skipLocalIndices.add(purposeInfinitiveMatch.infinitiveIndex);
+    if (purposeInfinitiveMatch.hasAlternativePattern) {
+      skipLocalIndices.add(purposeInfinitiveMatch.mainVerbIndex);
+    }
+    for (const idx of purposeInfinitiveMatch.consumedIndices) {
+      skipLocalIndices.add(idx);
+    }
+  }
 
   const negationWords = getNegationWords(mode);
   const verbHasYaka =
@@ -3138,6 +3743,70 @@ function buildStandardParts(
   const questionConsumed = new Set(
     context.questionMatch?.consumedIndices || []
   );
+
+  if (locativeMatch?.verbIndices) {
+    const activeSuffixType = ctx.locativeSuffixChoice?.suffixType || locativeMatch.suffixType;
+ 
+    for (const verbIdx of locativeMatch.verbIndices) {
+
+      if (questionConsumed.has(verbIdx)) {
+        continue;
+      }
+
+      const verbToken = fraseTokens[verbIdx];
+      const verbGlobalIdx = globalIndices[verbIdx];
+
+
+      if (verbToken.type === "verb" && verbToken.verbMatch) {
+        const verbEntry = verbToken.verbMatch.entry;
+        const verbQuaternary = verbEntry.forms[3];
+
+        let verbWithSuffix: string;
+        let suffixName: string;
+        let suffixExplanation: string;
+        let suffixAlternatives: { gup: string; suffix: string; explanation: string }[] | undefined;
+
+        if (activeSuffixType === "lili") {
+          verbWithSuffix = applyAllativeSuffix(verbQuaternary);
+          suffixName = ALLATIVE_SUFFIX;
+          suffixExplanation = LANG_CONFIG[mode].allativeSuffixLabel || "allative";
+        } else if (activeSuffixType === "nguru") {
+          verbWithSuffix = applyAblativeSuffix(verbQuaternary);
+          suffixName = ABLATIVE_SUFFIX;
+          suffixExplanation = LANG_CONFIG[mode].ablativeSuffixLabel || "ablative";
+        } else if (activeSuffixType === "ergative") {
+          const result = applyErgativeSuffix(verbQuaternary);
+          verbWithSuffix = result.suffixed;
+          suffixName = result.suffix || "ergative";
+          suffixExplanation = "instrumental suffix";
+        } else if (activeSuffixType === "belonging") {
+          const suffixResult = determineBelongingSuffix(verbQuaternary, mode);
+          const alternatives = suffixResult.suffixes.map(s => ({
+            gup: applyBelongingSuffix(verbQuaternary, s),
+            suffix: s,
+            explanation: `${verbQuaternary} + -${s}`
+          }));
+          verbWithSuffix = alternatives[0].gup;
+          suffixName = alternatives[0].suffix;
+          suffixExplanation = "belonging/associative suffix";
+          suffixAlternatives = alternatives.length > 1 ? alternatives : undefined;
+        } else {
+          verbWithSuffix = applyLocativeSuffix(verbQuaternary);
+          suffixName = LOCATIVE_SUFFIX;
+          suffixExplanation = LANG_CONFIG[mode].locativeExplanation;
+        }
+
+        parts.push({
+          type: "verb",
+          source: verbToken.original,
+          gup: verbWithSuffix,
+          explanation: `${verbToken.original} → ${verbQuaternary} + -${suffixName} = ${verbWithSuffix} (${suffixExplanation})`,
+          globalIndex: verbGlobalIdx,
+          suffixAlternatives,
+        });
+      }
+    }
+  }
 
   for (let localIdx = 0; localIdx < fraseTokens.length; localIdx++) {
     const token = fraseTokens[localIdx];
@@ -3650,10 +4319,14 @@ function buildStandardParts(
     const questionType = context.questionMatch?.type;
     const skipOptionalDirection =
       questionType === "where_to" || questionType === "where_from";
+    const effectiveVerbResult =
+      hasIrPatternWithPurpose && irPatternAlternative === "use-literal"
+        ? null
+        : verbResult;
     const tokenParts = tokenToParts(
       token,
       localIdx,
-      verbResult,
+      effectiveVerbResult,
       globalIdx,
       hasDualMarker,
       mirriMiriwMatch,
@@ -3982,6 +4655,57 @@ function tokenToParts(
     return [];
   }
 
+  if (token.type === "verb") {
+    const isInLocativeNouns = locativeMatch?.nounIndices.includes(localIdx);
+    const isInBelongingNouns = belongingMatch?.belongsToNounIndices.includes(localIdx);
+    const isInConWithNouns = conWithMatch?.nounIndices.includes(localIdx);
+    const isInInstrumentalNouns = instrumentalMatch?.nounIndices.includes(localIdx);
+    const isInTransportNouns = transportMatch?.nounIndices.includes(localIdx);
+
+    if (
+      isInLocativeNouns ||
+      isInBelongingNouns ||
+      isInConWithNouns ||
+      isInInstrumentalNouns ||
+      isInTransportNouns
+    ) {
+      const suffixResult = applySuffixBasedOnContext({
+        baseGup: token.original,
+        localIdx,
+        mode,
+        mirriMiriwMatch,
+        locativeMatch,
+        conWithMatch,
+        instrumentalMatch,
+        belongingMatch,
+        transportMatch,
+        isObject: true,
+        isHuman: undefined,
+        isPlace: undefined,
+        unknownConWithChoice,
+        unknownLocativeChoice,
+        hasNegation,
+        verbMotionType,
+        motionDestinations,
+        motionDestinationChoice,
+        mirriAlternative,
+      });
+
+      return [
+        {
+          type: "noun",
+          source: token.original,
+          gup: suffixResult.gup,
+          baseGup: token.original,
+          appliedSuffix: suffixResult.suffix,
+          explanation: suffixResult.explanation,
+          suffixAlternatives: suffixResult.alternatives,
+          globalIndex: globalIdx,
+        },
+      ];
+    }
+  }
+
   if (
     token.type === "verb" &&
     locativeVerbChoice &&
@@ -3991,12 +4715,17 @@ function tokenToParts(
     return [];
   }
 
+
+  const isInLocativeVerbIndices = locativeMatch?.verbIndices?.includes(localIdx) || false;
+
   if (
     token.type === "verb" &&
     verbResult &&
     localIdx === verbResult.localIndex &&
-    !locativeVerbChoice
+    !locativeVerbChoice &&
+    !isInLocativeVerbIndices
   ) {
+   
     const first = verbResult.results[0];
     const parts: TranslationPart[] = [
       {
@@ -4109,16 +4838,36 @@ function tokenToParts(
   }
 
   if (token.type === "adjective" && token.gupKey) {
+    const baseGup = token.gupKey;
+    const suffixResult = applySuffixBasedOnContext({
+      baseGup,
+      localIdx,
+      mode,
+      mirriMiriwMatch,
+      locativeMatch,
+      conWithMatch,
+      instrumentalMatch,
+      belongingMatch,
+      transportMatch,
+      isObject: false,
+      isHuman: false,
+      isPlace: false,
+      hasNegation,
+      verbMotionType,
+      motionDestinations,
+    });
+
     return [
       {
         type: "adjective",
         source: token.original,
-        gup: token.gupKey,
-        baseGup: token.gupKey,
-        explanation: LANG_CONFIG[mode].adjective,
+        gup: suffixResult.gup,
+        baseGup,
+        explanation: suffixResult.explanation || LANG_CONFIG[mode].adjective,
         globalIndex: globalIdx,
         isPlural: token.adjectiveMatch?.isPlural,
         irregularPlurals: token.adjectiveMatch?.irregularPlurals,
+        alternatives: suffixResult.alternatives,
       },
     ];
   }
@@ -4384,6 +5133,7 @@ function buildOutput(
       const parts = partsByTokenIndex.get(i);
       if (parts) {
         for (const part of parts) {
+         
           outputParts.push(part.gup);
           allParts.push(part);
         }
@@ -4397,6 +5147,7 @@ function buildOutput(
   for (const part of allParts) {
     finalOutputParts.push(part.gup);
   }
+
 
   return {
     output: finalOutputParts.join(" "),

@@ -30,6 +30,8 @@ export interface VerbMatch {
   attachedClitic?: string;
   isDjal?: boolean;
   isMarnggi?: boolean;
+  isBecomeVerb?: boolean;
+  isMakeVerb?: boolean;
 }
 
 export interface NounMatch {
@@ -101,6 +103,8 @@ function tryMatchVerb(
         entry,
         isDjal: entry.isDjal,
         isMarnggi: entry.isMarnggi,
+        isBecomeVerb: entry.isBecomeVerb,
+        isMakeVerb: entry.isMakeVerb,
       };
 
       if (forms.infinitive === normalized) {
@@ -159,6 +163,8 @@ function tryMatchVerbClitic(
         entry,
         isDjal: entry.isDjal,
         isMarnggi: entry.isMarnggi,
+        isBecomeVerb: entry.isBecomeVerb,
+        isMakeVerb: entry.isMakeVerb,
       };
 
       const imperativeKeys: (keyof typeof forms.imperative)[] = [
@@ -534,7 +540,7 @@ function detectAgentNounInTokenizer(
       const stemOnly = stem;
 
       for (const entry of Object.values(LEXICON.verbs)) {
-        const verbForms = mode === "es" ? entry.es : entry.en;
+        const verbForms = entry[mode];
         for (const form of verbForms) {
           const infinitiveLower = form.infinitive.toLowerCase();
           if (

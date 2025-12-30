@@ -7,8 +7,9 @@ import {
   QUESTION_GUP,
   ALLATIVE_SUFFIX,
 } from "../../constants";
-import { findNounInfo } from "./questionHelpers";
+import { findNounInfo, findVerbGupWithPerson } from "./questionHelpers";
 import { determinePossessiveSuffix, applyPossessiveSuffix } from "../possession";
+import { LEXICON } from "../../lexicon";
 
 function applyAllativeSuffix(word: string): string {
   return validarFonologia(word + ALLATIVE_SUFFIX);
@@ -91,11 +92,68 @@ export function detectWhereToPattern(
     const afterQuestion = originalText.slice(questionMarkPos + 1).trim();
     if (afterQuestion) {
       const answerWords = afterQuestion.split(/\s+/);
-      let determinerType: "this" | "that" | "definite" | null = null;
-      let isPlural = false;
-      let isDual = false;
 
-      for (const rawWord of answerWords) {
+      const { allativeVerbTriggers } = LANG_CONFIG[mode];
+
+      let allativeTriggerIdx = -1;
+      for (let i = 0; i < answerWords.length; i++) {
+        const word = answerWords[i].toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+        if (allativeVerbTriggers.includes(word)) {
+          allativeTriggerIdx = i;
+          break;
+        }
+      }
+
+      if (allativeTriggerIdx !== -1 && allativeTriggerIdx + 1 < answerWords.length) {
+        const triggerWord = answerWords[allativeTriggerIdx].toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+        const verbWord = answerWords[allativeTriggerIdx + 1].toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
+        const verbInfo = findVerbGupWithPerson(verbWord, mode);
+
+        if (verbInfo) {
+          const triggerTokenIdx = lowerTokens.findIndex(
+            (t, i) => i >= tokensBeforeQuestion && t.replace(/[,.\-;:!¡¿]+$/, "") === triggerWord
+          );
+          const verbTokenIdx = lowerTokens.findIndex(
+            (t, i) => i >= tokensBeforeQuestion && t.replace(/[,.\-;:!¡¿]+$/, "") === verbWord
+          );
+
+          if (triggerTokenIdx !== -1) {
+            consumedIndices.push(triggerTokenIdx);
+            usedAnswerIndices.add(triggerTokenIdx);
+          }
+          if (verbTokenIdx !== -1) {
+            consumedIndices.push(verbTokenIdx);
+            usedAnswerIndices.add(verbTokenIdx);
+          }
+
+          const verbEntry = LEXICON.verbs[verbInfo.gup];
+          if (verbEntry && verbEntry.forms && verbEntry.forms[3]) {
+            const verbQuaternary = verbEntry.forms[3];
+            const verbWithSuffix = applyAllativeSuffix(verbQuaternary);
+
+            answerExplanation = `${verbWord} → ${verbQuaternary} + -${ALLATIVE_SUFFIX} = ${verbWithSuffix}`;
+            answerInfo = {
+              baseGup: verbWithSuffix,
+              rawBaseGup: verbQuaternary,
+              appliedSuffix: ALLATIVE_SUFFIX,
+              hasDefiniteArticle: false,
+              determinerType: null,
+              isPlural: false,
+              isDual: false,
+              baseExplanation: answerExplanation,
+              answerTokens: answerWords,
+              suffixType: "allative",
+            };
+          }
+        }
+      }
+
+      if (!answerInfo) {
+        let determinerType: "this" | "that" | "definite" | null = null;
+        let isPlural = false;
+        let isDual = false;
+
+        for (const rawWord of answerWords) {
         const answerWord = rawWord.toLowerCase().replace(/[,.\-;:!¡¿]+$/, "");
         if (!answerWord) continue;
 
@@ -356,6 +414,7 @@ export function detectWhereToPattern(
           };
         }
       }
+      }
 
       if (answerInfo) {
         if (additionalAnswers.length > 0) {
@@ -392,6 +451,7 @@ export function detectWhereToPattern(
     consumedIndices,
     answerInfo,
     options,
+    isComplexPattern: true,
   };
 }
 
