@@ -27,7 +27,7 @@ export interface QuestionMatch {
   explanation: string;
 }
 
-export type AnswerSuffixType = "locative" | "djal" | "allative" | "possessive" | "purpose" | "belonging" | "none";
+export type AnswerSuffixType = "locative" | "djal" | "allative" | "ablative" | "possessive" | "purpose" | "belonging" | "none";
 
 export interface AdditionalAnswer {
   baseGup: string;

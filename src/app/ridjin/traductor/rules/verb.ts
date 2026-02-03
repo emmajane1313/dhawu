@@ -69,7 +69,7 @@ export interface VerbFormOption {
   form: VerbFormNumber;
   formName: VerbFormName;
   particles: string[];
-  continuous: ContinuousInfo;
+  continuous?: ContinuousInfo;
   explanation: string;
 }
 
@@ -204,6 +204,7 @@ export function determineVerbForms(
   conjugationType?: VerbConjugationType
 ): VerbFormOption[] {
   const config = LANG_CONFIG[mode];
+  const futureParticles = config.futureParticles ?? ["dhu"];
   const options: VerbFormOption[] = [];
 
   if (conjugationType === "infinitive" && !features.isGerund) {
@@ -482,26 +483,26 @@ export function determineVerbForms(
   ) {
     if (features.isGerund) {
       options.push({
-        form: 1,
-        formName: "primary",
-        particles: ["yaka", "ga"],
+        form: 2,
+        formName: "secondary",
+        particles: ["yaka", "gi"],
         continuous: {
-          particle: "ga",
-          alternatives: ["yukurra"],
+          particle: "gi",
+          alternatives: ["yukurri"],
           isActive: true,
         },
-        explanation: `${config.negContinuousPastToday}: yaka + ga + ${config.primaryForm}`,
+        explanation: `${config.negContinuousPastYesterday}: yaka + gi + ${config.secondaryForm}`,
       });
     } else {
       options.push({
-        form: 1,
-        formName: "primary",
+        form: 2,
+        formName: "secondary",
         particles: ["yaka"],
         continuous: {
           particle: "",
           isActive: false,
         },
-        explanation: `${config.negPastToday}: yaka + ${config.primaryForm}`,
+        explanation: `${config.negPastYesterday}: yaka + ${config.secondaryForm}`,
       });
     }
   }
@@ -632,6 +633,36 @@ export function determineVerbForms(
     });
   }
 
+  if (
+    features.tense === "present" &&
+    features.polarity === "negative"
+  ) {
+    if (features.isGerund) {
+      options.push({
+        form: 2,
+        formName: "secondary",
+        particles: ["gi", "yaka"],
+        continuous: {
+          particle: "gi",
+          alternatives: ["yukurri"],
+          isActive: true,
+        },
+        explanation: `${config.negContinuousPresent}: gi + yaka + ${config.secondaryForm}`,
+      });
+    } else {
+      options.push({
+        form: 2,
+        formName: "secondary",
+        particles: ["yaka"],
+        continuous: {
+          particle: "",
+          isActive: false,
+        },
+        explanation: `${config.negPresent}: yaka + ${config.secondaryForm}`,
+      });
+    }
+  }
+
   const optionsWithYaka = options.filter((opt) =>
     opt.particles.includes("yaka")
   );
@@ -647,7 +678,24 @@ export function determineVerbForms(
     });
   }
 
-  return options;
+  const expandedOptions: VerbFormOption[] = [];
+  for (const option of options) {
+    if (!option.particles.includes("dhu") || futureParticles.length <= 1) {
+      expandedOptions.push(option);
+      continue;
+    }
+    for (const particle of futureParticles) {
+      const particles = option.particles.map((p) => (p === "dhu" ? particle : p));
+      const explanation = option.explanation.replace("dhu", particle);
+      expandedOptions.push({
+        ...option,
+        particles,
+        explanation,
+      });
+    }
+  }
+
+  return expandedOptions;
 }
 
 export function getVerbGupForm(
@@ -672,7 +720,8 @@ export function applyVerbRules(
   mode: LanguageMode,
   auxiliaryTense: "present" | "past" | "future" | null = null,
   auxiliaryIsContinuous: boolean = false,
-  hasSubject: boolean = false
+  hasSubject: boolean = false,
+  isLetUs: boolean = false
 ): VerbRuleResult[] {
   const config = LANG_CONFIG[mode];
   const conjugationType = verbMatch.tense as VerbConjugationType;
@@ -730,7 +779,18 @@ export function applyVerbRules(
     };
   }
 
-  const verbOptions = determineVerbForms(features, mode, conjugationType);
+  let verbOptions = determineVerbForms(features, mode, conjugationType);
+
+  if (isLetUs) {
+    verbOptions = [{
+      form: 1,
+      formName: "primary",
+      particles: [],
+      explanation: "Let's: primary form, no particles",
+      continuous: undefined,
+    }];
+  }
+
   const results: VerbRuleResult[] = [];
 
   for (const option of verbOptions) {
@@ -740,7 +800,8 @@ export function applyVerbRules(
     if (
       isInfinitiveForm &&
       !features.isGerund &&
-      !verbMatch.entry?.noInfinitiveSuffix
+      !verbMatch.entry?.noInfinitiveSuffix &&
+      !isLetUs
     ) {
       const suffixResult = determineDjalSuffix(baseGup);
 
@@ -797,6 +858,41 @@ export function applyVerbRules(
       options: [],
       hasAmbiguity: false,
     });
+  }
+
+  if (isLetUs) {
+    const letUsResults: VerbRuleResult[] = [];
+    const quaternaryForm = getVerbGupForm(verbMatch.gupKey, 4);
+
+    for (const result of results) {
+      if (result.formUsed === 1 && result.particles.length === 0) {
+        letUsResults.push({
+          ...result,
+          gup: result.baseGup,
+          explanation: `Let's: ${result.baseGup} (primary form, no particles)`,
+        });
+        letUsResults.push({
+          ...result,
+          gup: result.baseGup + "na",
+          baseGup: result.baseGup + "na",
+          explanation: `Let's: ${result.baseGup}na (primary form + -na)`,
+        });
+
+        if (quaternaryForm) {
+          const { applyAllativeSuffix } = require("../constants");
+          const withAllative = applyAllativeSuffix(quaternaryForm);
+          letUsResults.push({
+            ...result,
+            gup: withAllative,
+            baseGup: withAllative,
+            explanation: `Let's: ${quaternaryForm} + -lili = ${withAllative} (quaternary + allative)`,
+          });
+        }
+      }
+    }
+    if (letUsResults.length > 0) {
+      return letUsResults;
+    }
   }
 
   return results;

@@ -20793,6 +20793,13 @@ export const LEXICON: Lexicon = {
       esPlural: ["otra veces", "máses", "mases"],
       enPlural: ["agains", "mores"],
     },
+    barpuru: {
+      plurals: [],
+      es: ["ayer", "anoche"],
+      en: ["yesterday", "last night"],
+      esPlural: [],
+      enPlural: [],
+    },
     yurru: {
       plurals: [],
       es: ["aunque"],

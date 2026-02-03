@@ -226,7 +226,7 @@ export const BELONGING_PRONOUNS_GUP: Record<PersonNumber, string[]> = {
   "1+3_Dual": ["ŋilinyalaŋgalaŋuwuy", "linyalaŋgalaŋuwuy", "ŋalinyalaŋgalaŋuwuy"],
   "2_Dual": ["nhumalaŋgalaŋuwuy"],
   "3_Dual": ["maṉḏaŋgalaŋuwuy"],
-  "1+2_Plur": ["ŋilimurruŋgalaŋuwuy", "ŋalimurruŋgalaŋuwuy"],
+  "1+2_Plur": ["ŋilimurruŋgalaŋuwuy", "ŋalimurruŋgalaŋuwuy", "limurruŋgalaŋuwuy", ],
   "1+3_Plur": ["ŋanapurruŋgalaŋuwuy", "napurruŋgalaŋuwuy"],
   "2_Plur": ["nhumalaŋgalaŋuwuy"],
   "3_Plur": ["walalaŋgalaŋuwuy"],
@@ -1513,7 +1513,7 @@ export const SUBJECT_PRONOUNS_GUP: Record<PersonNumber, string[]> = {
   "1+3_Dual": ["ŋilinyu", "linyu", "ŋalinyu"],
   "2_Dual": ["nhuma"],
   "3_Dual": ["maṉḏa"],
-  "1+2_Plur": ["ŋilimurru", "ŋalimurru"],
+  "1+2_Plur": ["ŋilimurru", "ŋalimurru", "limurru"],
   "1+3_Plur": ["ŋanapurru", "napurru"],
   "2_Plur": ["nhuma"],
   "3_Plur": ["walala"],
@@ -3110,6 +3110,7 @@ export interface LanguageConfig {
   continuousFuture: string;
   negFuture: string;
   future: string;
+  futureParticles?: string[];
   willdo: string;
   todayUnspecified: string;
   tomorrowNext: string;
@@ -3121,7 +3122,11 @@ export interface LanguageConfig {
   negPastToday: string;
   continuousPastYesterday: string;
   pastYesterday: string;
+  negContinuousPastYesterday: string;
+  negPastYesterday: string;
   present: string;
+  negContinuousPresent: string;
+  negPresent: string;
   infinitive: string;
   primaryForm: string;
   directionWord: string;
@@ -3201,6 +3206,11 @@ export interface LanguageConfig {
   participleEnding: string;
   relativeClauseLabel: string;
   purposeConnectors: string[];
+  letsTriggers: string[];
+  letUsVerbWord: string;
+  letUsPreposition: string;
+  ngarraAboutToTriggers: string[];
+  ngarraGoingToTriggers: string[];
 }
 
 export const LOCATIVE_TRIGGERS_ES = [
@@ -5399,6 +5409,7 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     continuousFuture: "Futuro continuo",
     negFuture: "Futuro negativo",
     future: "Futuro",
+    futureParticles: ["dhu", "yurru"],
     willdo: "hacer (futuro)",
     todayUnspecified: "[HOY/NO ESPECIFICADO]",
     tomorrowNext: "(mañana/próximo)",
@@ -5410,7 +5421,11 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     negPastToday: "Pasado negativo (hoy)",
     continuousPastYesterday: "Pasado continuo (ayer)",
     pastYesterday: "Pasado (ayer)",
+    negContinuousPastYesterday: "Pasado continuo negativo (ayer)",
+    negPastYesterday: "Pasado negativo (ayer)",
     present: "Presente",
+    negContinuousPresent: "Presente continuo negativo",
+    negPresent: "Presente negativo",
     infinitive: "Infinitivo (forma base)",
     primaryForm: "forma primaria",
     secondaryForm: "forma secundaria",
@@ -5476,6 +5491,11 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     participleEnding: "ndo",
     relativeClauseLabel: "cláusula relativa (-mirri)",
     purposeConnectors: ["a", "para", "por", "de", "en"],
+    letsTriggers: [],
+    letUsVerbWord: "vamos",
+    letUsPreposition: "a",
+    ngarraAboutToTriggers: ["estoy a punto de", "estoy por"],
+    ngarraGoingToTriggers: ["voy a"],
   },
   en: {
     pronouns: PRONOUNS_EN,
@@ -5708,6 +5728,7 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     continuousFuture: "Continuous future",
     negFuture: "Negative future",
     future: "Future",
+    futureParticles: ["dhu", "yurru"],
     todayUnspecified: "[TODAY/UNSPECIFIED]",
     tomorrowNext: "(tomorrow/next)",
     notTodaySpecified: "[NOT TODAY & SPECIFIED]",
@@ -5718,7 +5739,11 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     negPastToday: "Negative past (today)",
     continuousPastYesterday: "Continuous past (yesterday)",
     pastYesterday: "Past (yesterday)",
+    negContinuousPastYesterday: "Negative continuous past (yesterday)",
+    negPastYesterday: "Negative past (yesterday)",
     present: "Present",
+    negContinuousPresent: "Negative continuous present",
+    negPresent: "Negative present",
     infinitive: "Infinitive (base form)",
     primaryForm: "primary form",
     directionWord: "to",
@@ -5777,5 +5802,10 @@ export const LANG_CONFIG: Record<LanguageMode, LanguageConfig> = {
     participleEnding: "ing",
     relativeClauseLabel: "relative clause (-mirri)",
     purposeConnectors: ["to", "in order to", "so as to", "for"],
+    letsTriggers: ["let's", "lets"],
+    letUsVerbWord: "",
+    letUsPreposition: "",
+    ngarraAboutToTriggers: ["i'm about to", "i am about to", "im about to"],
+    ngarraGoingToTriggers: ["i'm going to", "i am going to", "im going to"],
   },
 };

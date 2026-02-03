@@ -154,6 +154,20 @@ export interface MakeAdjectiveMatch {
   explanation: string;
 }
 
+export interface LetUsMatch {
+  verbIndex: number;
+  verbWord: string;
+  explanation: string;
+  isStandalone?: boolean;
+}
+
+export interface NgarraMatch {
+  verbIndex: number;
+  verbWord: string;
+  phraseIndices: number[];
+  explanation: string;
+}
+
 export interface TimesMatch {
   quantifierWord: string;
   quantifierIndex: number;
@@ -1707,6 +1721,130 @@ export function detectMakeAdjectivePattern(
           adjectiveGup: nextToken.gupKey,
           explanation: `"${token.original} ${nextToken.original}" → make + adjective`,
         };
+      }
+    }
+  }
+
+  return null;
+}
+
+export function detectLetUsPattern(
+  tokens: Token[],
+  mode: LanguageMode
+): LetUsMatch | null {
+  const config = LANG_CONFIG[mode];
+  const { letsTriggers, letUsVerbWord, letUsPreposition } = config;
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+
+    if (token.type === "verb" && token.verbMatch) {
+      const verbWord = token.original.toLowerCase();
+
+      if (letsTriggers.length > 0 && i > 0) {
+        const prevToken = tokens[i - 1];
+        const prevWord = prevToken.original.toLowerCase();
+        if (letsTriggers.includes(prevWord)) {
+          return {
+            verbIndex: i,
+            verbWord: token.original,
+            explanation: `"${prevWord} ${token.original}" → let us + verb`,
+          };
+        }
+      }
+
+      if (letUsVerbWord && token.verbMatch.tense === "presentSubjunctive" && token.verbMatch.person === 3) {
+        return {
+          verbIndex: i,
+          verbWord: token.original,
+          explanation: `"${token.original}" → subjuntivo 1ª plural (let's)`,
+        };
+      }
+
+      if (letUsVerbWord && letUsPreposition && i > 1 && verbWord !== letUsVerbWord) {
+        const prev1 = tokens[i - 1]?.original.toLowerCase();
+        const prev2 = tokens[i - 2]?.original.toLowerCase();
+        if (prev2 === letUsVerbWord && prev1 === letUsPreposition) {
+          return {
+            verbIndex: i,
+            verbWord: token.original,
+            explanation: `"${letUsVerbWord} ${letUsPreposition} ${token.original}" → let's + verb`,
+          };
+        }
+      }
+    }
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    const word = token.original.toLowerCase();
+
+    if (letUsVerbWord && word === letUsVerbWord && token.type === "verb") {
+      const nextToken = tokens[i + 1];
+      if (!nextToken || (nextToken.original.toLowerCase() !== letUsPreposition && nextToken.type !== "verb")) {
+        return {
+          verbIndex: i,
+          verbWord: letUsVerbWord,
+          explanation: `"${letUsVerbWord}" → let's (standalone)`,
+          isStandalone: true,
+        };
+      }
+    }
+
+    if (letsTriggers.includes(word)) {
+      const nextToken = tokens[i + 1];
+      if (!nextToken || nextToken.type !== "verb") {
+        return {
+          verbIndex: i,
+          verbWord: word,
+          explanation: `"${word}" → let's (standalone)`,
+          isStandalone: true,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+export function detectNgarraPattern(
+  tokens: Token[],
+  mode: LanguageMode
+): NgarraMatch | null {
+  const config = LANG_CONFIG[mode];
+  const { ngarraAboutToTriggers, ngarraGoingToTriggers } = config;
+  const allTriggers = [...ngarraAboutToTriggers, ...ngarraGoingToTriggers];
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.type === "verb" && token.verbMatch) {
+      for (const trigger of allTriggers) {
+        const triggerWords = trigger.split(" ");
+        const startIdx = i - triggerWords.length;
+
+        if (startIdx >= 0) {
+          let matches = true;
+          const phraseIndices: number[] = [];
+
+          for (let j = 0; j < triggerWords.length; j++) {
+            const tokenIdx = startIdx + j;
+            const tokenWord = tokens[tokenIdx]?.original.toLowerCase();
+            if (tokenWord !== triggerWords[j]) {
+              matches = false;
+              break;
+            }
+            phraseIndices.push(tokenIdx);
+          }
+
+          if (matches) {
+            return {
+              verbIndex: i,
+              verbWord: token.original,
+              phraseIndices,
+              explanation: `"${trigger} ${token.original}" → ŋarra + verb (first person singular only)`,
+            };
+          }
+        }
       }
     }
   }

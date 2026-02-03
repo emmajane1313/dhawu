@@ -179,7 +179,8 @@ export function processSubjects(
   isImperative: boolean,
   skipIndices: Set<number> = new Set(),
   isTransitive: boolean = false,
-  skipErgative: boolean = false
+  skipErgative: boolean = false,
+  isLetUs: boolean = false
 ): SubjectResult[] {
   const results: SubjectResult[] = [];
   const verbIdx = tokens.findIndex((t) => t.type === "verb");
@@ -189,6 +190,32 @@ export function processSubjects(
   const allWords = tokens.map((t) => t.original.toLowerCase());
   const hasDualMarker = dualMarkers.some((m) => allWords.includes(m));
   const isVerb1stOr2ndSingular = verbPerson === 0 || verbPerson === 1;
+
+  if (isLetUs) {
+    const letUsOptions: SubjectOption[] = [];
+    addPronounOptionsForPersonNumber(
+      letUsOptions,
+      "1+2_Dual",
+      config.weInclusive2
+    );
+    addPronounOptionsForPersonNumber(
+      letUsOptions,
+      "1+2_Plur",
+      config.weInclusive3Plus
+    );
+
+    results.push({
+      type: "pronoun",
+      source: "[let's]",
+      gup: letUsOptions[0].gup,
+      options: letUsOptions,
+      personNumber: letUsOptions[0].personNumber,
+      explanation: `Let's → ${letUsOptions[0].gup}`,
+      localIndex: -1,
+    });
+
+    return results;
+  }
 
   const processedIndices = new Set<number>();
   for (const [pattern, personNumber] of Object.entries(dualSubjectPatterns)) {
@@ -291,6 +318,13 @@ export function processSubjects(
         });
       }
     } else if (token.type === "unknown" && (isBeforeVerb || !isVerb1stOr2ndSingular)) {
+      const negationWords = LANG_CONFIG[mode].negation;
+      const isNegationWord = negationWords.includes(token.original.toLowerCase());
+
+      if (isNegationWord) {
+        continue;
+      }
+
       if (isTransitive && !skipErgative) {
         const { suffixed, suffix } = applyErgativeSuffix(token.original);
         const options: SubjectOption[] = [
