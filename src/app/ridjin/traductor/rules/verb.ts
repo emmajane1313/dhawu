@@ -1,899 +1,310 @@
-import { LanguageMode } from "@/app/components/types/components.type";
-import { VerbMatch } from "../tokenizer";
+import { PersonNumber } from "../core/types";
 import { LEXICON } from "../lexicon";
-import {
-  hasMultiWordMarker,
-  normalizeApostrophes,
-  LANG_CONFIG,
-  determineDjalSuffix,
-  applyDjalSuffix,
-} from "../constants";
+import { LexiconLanguage, VerbEntry, VerbForms } from "../lexicon/types";
+import { getLanguagePack } from "../lang";
 
-export type VerbFormNumber = 1 | 2 | 3 | 4;
-export type VerbFormName = "primary" | "secondary" | "tertiary" | "quaternary";
-
-export const FORM_NAMES: Record<VerbFormNumber, VerbFormName> = {
-  1: "primary",
-  2: "secondary",
-  3: "tertiary",
-  4: "quaternary",
-};
-
-export const CONTINUOUS_PARTICLES: Record<
-  VerbFormNumber,
-  { main: string; alternatives?: string[] }
-> = {
-  1: { main: "ga", alternatives: ["yukurra"] },
-  2: { main: "gi", alternatives: ["yukurri"] },
-  3: { main: "gana", alternatives: ["yukurrana"] },
-  4: { main: "gana", alternatives: ["ganha"] },
-};
-
-export type VerbMood = "indicative" | "imperative" | "subjunctive";
-export type VerbConjugationType =
-  | "presentIndicative"
-  | "preterite"
-  | "imperfect"
+export type VerbMatchKind =
+  | "present"
+  | "past_simple"
+  | "past_continuous"
   | "future"
-  | "conditional"
-  | "presentSubjunctive"
   | "imperative"
-  | "infinitive"
+  | "subjunctive"
   | "gerund"
-  | "pastParticiple"
-  | null;
+  | "infinitive";
 
-export interface VerbFeatures {
-  tense: "present" | "past" | "future" | "unknown";
-  polarity: "positive" | "negative";
-  isGerund: boolean;
-  mood: VerbMood;
-  isContinuousImperative: boolean;
-  isFuture: boolean;
-  isContinuousFuture: boolean;
-  hasToday: boolean;
-  hasSpecifiedFutureTime: boolean;
-  hasAlready: boolean;
-  isSameDayPast: boolean;
-  isYesterdayPast: boolean;
-  hasYesterday: boolean;
+export interface VerbMatch {
+  entry: VerbEntry;
+  forms: VerbForms;
+  kind: VerbMatchKind;
+  personNumbers: PersonNumber[];
+  consumed: number;
+  source: string;
+  surface: string;
+  altGupForms?: string[];
 }
 
-export interface ContinuousInfo {
-  particle: string;
-  alternatives?: string[];
-  isActive: boolean;
+const PERSON_BY_INDEX: PersonNumber[] = [
+  "1_Sing",
+  "2_Sing",
+  "3_Sing",
+  "1+2_Plur",
+  "2_Plur",
+  "3_Plur",
+];
+
+const IMPERATIVE_PERSON: Record<
+  keyof VerbForms["imperative"],
+  PersonNumber | null
+> = {
+  yo: "1_Sing",
+  tu: "2_Sing",
+  usted: "3_Sing",
+  nosotros: "1+2_Plur",
+  vosotros: "2_Plur",
+  ustedes: "3_Plur",
+};
+
+const PUNCTUATION_EDGE = /^[¡!¿?.,]+|[¡!¿?.,]+$/g;
+
+type TokenLike = { source: string };
+
+function normalizeToken(token: string, lang: LexiconLanguage): string {
+  const pack = getLanguagePack(lang);
+  const normalized = pack.normalize(token);
+  return normalized.replace(PUNCTUATION_EDGE, "");
 }
 
-export interface VerbFormOption {
-  form: VerbFormNumber;
-  formName: VerbFormName;
-  particles: string[];
-  continuous?: ContinuousInfo;
-  explanation: string;
+function splitForm(form: string, lang: LexiconLanguage): string[] {
+  return form
+    .split(/\s+/)
+    .map((part) => normalizeToken(part, lang))
+    .filter(Boolean);
 }
 
-export interface VerbRuleResult {
-  gup: string;
-  baseGup: string;
-  particles: string[];
-  formUsed: VerbFormNumber;
-  formName: VerbFormName;
-  explanation: string;
-  features: VerbFeatures;
-  options: VerbFormOption[];
-  hasAmbiguity: boolean;
+function matchSequence(
+  tokens: TokenLike[],
+  start: number,
+  formTokens: string[],
+  lang: LexiconLanguage
+): { matched: boolean; consumed: number } {
+  if (formTokens.length === 0) return { matched: false, consumed: 0 };
+  for (let offset = 0; offset < formTokens.length; offset += 1) {
+    const token = tokens[start + offset];
+    if (!token) return { matched: false, consumed: 0 };
+    const normalized = normalizeToken(token.source, lang);
+    if (normalized !== formTokens[offset]) {
+      return { matched: false, consumed: 0 };
+    }
+  }
+  return { matched: true, consumed: formTokens.length };
 }
 
-export function detectVerbFeatures(
-  tokens: string[],
-  isImperativeMood: boolean = false,
-  conjugationType: VerbConjugationType = null,
-  mode: LanguageMode
-): VerbFeatures {
-  const lowerTokens = tokens.map((t) => normalizeApostrophes(t.toLowerCase()));
-
-  const {
-    negation,
-    alreadyMarkers,
-    continuousImperativeMarkers,
-    todayMarkers,
-    yesterdayMarkers,
-    specifiedFutureMarkers,
-  } = LANG_CONFIG[mode];
-
-  let polarity: VerbFeatures["polarity"] = "positive";
-  if (negation.some((w) => lowerTokens.includes(w))) {
-    polarity = "negative";
+function pushMatch(
+  matches: VerbMatch[],
+  match: VerbMatch
+): void {
+  const dedupeKey = [
+    match.entry.meaningKey,
+    match.kind,
+    match.personNumbers.join("|"),
+    match.consumed,
+    match.surface,
+  ].join(":");
+  if (matches.some((m) => [
+    m.entry.meaningKey,
+    m.kind,
+    m.personNumbers.join("|"),
+    m.consumed,
+    m.surface,
+  ].join(":") === dedupeKey)) {
+    return;
   }
-
-  const config = LANG_CONFIG[mode];
-  let isGerund = false;
-  if (conjugationType === "gerund") {
-    isGerund = true;
-  } else if (
-    lowerTokens.some((t) => config.gerundEndings.some((e) => t.endsWith(e)))
-  ) {
-    isGerund = true;
-  }
-
-  if (!isGerund && conjugationType === "imperfect") {
-    isGerund = true;
-  }
-
-  const isFutureConjugation =
-    conjugationType === "future" || conjugationType === "conditional";
-  const isFuture = isFutureConjugation;
-
-  const hasToday = hasMultiWordMarker(lowerTokens, todayMarkers);
-  const hasYesterday = hasMultiWordMarker(lowerTokens, yesterdayMarkers);
-  const hasSpecifiedFutureTime = hasMultiWordMarker(
-    lowerTokens,
-    specifiedFutureMarkers
-  );
-  const hasAlready = hasMultiWordMarker(lowerTokens, alreadyMarkers);
-
-  const isPastConjugation =
-    conjugationType === "preterite" || conjugationType === "imperfect";
-  const isPast = isPastConjugation;
-  let isSameDayPast = false;
-  let isYesterdayPast = false;
-
-  if (isPast && !isFuture) {
-    if (hasYesterday) {
-      isYesterdayPast = true;
-    } else if (hasToday) {
-      isSameDayPast = true;
-    } else {
-      isSameDayPast = true;
-      isYesterdayPast = true;
-    }
-  }
-
-  let isContinuousFuture = false;
-  if (isFuture && isGerund) {
-    isContinuousFuture = true;
-  }
-
-  let tense: VerbFeatures["tense"] = "present";
-  if (isPast) {
-    tense = "past";
-  } else if (isFuture) {
-    tense = "future";
-  } else if (
-    conjugationType === "presentIndicative" ||
-    conjugationType === "presentSubjunctive" ||
-    conjugationType === "gerund"
-  ) {
-    tense = "present";
-  }
-
-  let mood: VerbMood = "indicative";
-  let isContinuousImperative = false;
-
-  if (isImperativeMood) {
-    mood = "imperative";
-    isContinuousImperative = hasMultiWordMarker(
-      lowerTokens,
-      continuousImperativeMarkers
-    );
-  } else if (conjugationType === "presentSubjunctive") {
-    mood = "subjunctive";
-  }
-
-  return {
-    tense,
-    polarity,
-    isGerund,
-    mood,
-    isContinuousImperative,
-    isFuture,
-    isContinuousFuture,
-    hasToday,
-    hasSpecifiedFutureTime,
-    hasAlready,
-    isSameDayPast,
-    isYesterdayPast,
-    hasYesterday,
-  };
+  matches.push(match);
 }
 
-export function determineVerbForms(
-  features: VerbFeatures,
-  mode: LanguageMode,
-  conjugationType?: VerbConjugationType
-): VerbFormOption[] {
-  const config = LANG_CONFIG[mode];
-  const futureParticles = config.futureParticles ?? ["dhu"];
-  const options: VerbFormOption[] = [];
+export function matchVerbAt(
+  tokens: TokenLike[],
+  index: number,
+  sourceLang: LexiconLanguage
+): VerbMatch[] {
+  const matches: VerbMatch[] = [];
+  const entries = Object.values(LEXICON.verbs);
+  if (entries.length === 0) return matches;
 
-  if (conjugationType === "infinitive" && !features.isGerund) {
-    options.push({
-      form: 4,
-      formName: "quaternary",
-      particles: [],
-      continuous: {
-        particle: "",
-        isActive: false,
-      },
-      explanation: config.infinitive,
-    });
-    return options;
-  }
-
-  if (features.mood === "imperative") {
-    const isNegative = features.polarity === "negative";
-
-    if (features.isContinuousImperative) {
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: isNegative ? ["yaka", "gi"] : ["gi"],
-        continuous: {
-          particle: "gi",
-          alternatives: ["yukurri"],
-          isActive: true,
-        },
-        explanation: isNegative
-          ? config.negContinuousImperative
-          : config.continuousImperative,
-      });
-    } else {
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: isNegative ? ["yaka"] : [],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: isNegative ? config.negImperative : config.imperative,
-      });
-    }
-    return options;
-  }
-
-  if (features.isFuture && features.hasToday) {
-    const isNegative = features.polarity === "negative";
-    if (features.isContinuousFuture) {
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: isNegative ? ["yaka", "dhu", "ga"] : ["dhu", "ga"],
-        continuous: {
-          particle: "ga",
-          alternatives: ["yukurra"],
-          isActive: true,
-        },
-        explanation: isNegative
-          ? `${config.negContinuousFuture}: yaka + dhu + ga + ${config.primaryForm}`
-          : `${config.continuousFuture}: dhu + ga + ${config.primaryForm}`,
-      });
-    } else {
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: isNegative ? ["yaka", "dhu"] : ["dhu"],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: isNegative
-          ? `${config.negFuture}: yaka + dhu + ${config.primaryForm}`
-          : `${config.future}: dhu + ${config.primaryForm}`,
-      });
-    }
-  }
-
-  if (
-    features.isFuture &&
-    features.hasSpecifiedFutureTime &&
-    !features.hasToday
-  ) {
-    const isNegative = features.polarity === "negative";
-    if (features.isContinuousFuture) {
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: isNegative ? ["yaka", "dhu", "gi"] : ["dhu", "gi"],
-        continuous: {
-          particle: "gi",
-          alternatives: ["yukurri"],
-          isActive: true,
-        },
-        explanation: isNegative
-          ? `${config.negContinuousFuture}: yaka + dhu + gi + ${config.secondaryForm} ${config.tomorrowNext}`
-          : `${config.continuousFuture}: dhu + gi + ${config.secondaryForm} ${config.tomorrowNext}`,
-      });
-    } else {
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: isNegative ? ["yaka", "dhu"] : ["dhu"],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: isNegative
-          ? `${config.negFuture}: yaka + dhu + ${config.secondaryForm} ${config.tomorrowNext}`
-          : `${config.future}: dhu + ${config.secondaryForm} ${config.tomorrowNext}`,
-      });
-    }
-  }
-
-  if (
-    features.isFuture &&
-    !features.hasToday &&
-    !features.hasSpecifiedFutureTime
-  ) {
-    const isNegative = features.polarity === "negative";
-
-    if (features.isContinuousFuture) {
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: isNegative ? ["yaka", "dhu", "ga"] : ["dhu", "ga"],
-        continuous: {
-          particle: "ga",
-          alternatives: ["yukurra"],
-          isActive: true,
-        },
-        explanation: isNegative
-          ? `${config.todayUnspecified} ${config.negContinuousFuture}: yaka + dhu + ga + ${config.primaryForm}`
-          : `${config.todayUnspecified} ${config.continuousFuture}: dhu + ga + ${config.primaryForm}`,
-      });
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: isNegative ? ["yaka", "dhu", "gi"] : ["dhu", "gi"],
-        continuous: {
-          particle: "gi",
-          alternatives: ["yukurri"],
-          isActive: true,
-        },
-        explanation: isNegative
-          ? `${config.notTodaySpecified} ${config.negContinuousFuture}: yaka + dhu + gi + ${config.secondaryForm}`
-          : `${config.notTodaySpecified} ${config.continuousFuture}: dhu + gi + ${config.secondaryForm}`,
-      });
-    } else {
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: isNegative ? ["yaka", "dhu"] : ["dhu"],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: isNegative
-          ? `${config.todayUnspecified} ${config.negFuture}: yaka + dhu + ${config.primaryForm}`
-          : `${config.todayUnspecified} ${config.future}: dhu + ${config.primaryForm}`,
-      });
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: isNegative ? ["yaka", "dhu"] : ["dhu"],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: isNegative
-          ? `${config.notTodaySpecified} ${config.negFuture}: yaka + dhu + ${config.secondaryForm}`
-          : `${config.notTodaySpecified} ${config.future}: dhu + ${config.secondaryForm}`,
-      });
-    }
-  }
-
-  if (
-    features.isSameDayPast &&
-    features.hasToday &&
-    features.polarity === "positive"
-  ) {
-    if (features.isGerund) {
-      options.push({
-        form: 3,
-        formName: "tertiary",
-        particles: ["gana"],
-        continuous: {
-          particle: "gana",
-          alternatives: ["yukurrana"],
-          isActive: true,
-        },
-        explanation: `${config.continuousPastToday}: gana + ${config.tertiaryForm}`,
-      });
-    } else {
-      options.push({
-        form: 3,
-        formName: "tertiary",
-        particles: [],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: `${config.pastToday}: ${config.tertiaryForm}`,
-      });
-    }
-  }
-
-  if (
-    features.isSameDayPast &&
-    features.hasToday &&
-    features.polarity === "negative"
-  ) {
-    if (features.isGerund) {
-      options.push({
-        form: 4,
-        formName: "quaternary",
-        particles: ["yaka", "gana"],
-        continuous: {
-          particle: "gana",
-          alternatives: ["ganha"],
-          isActive: true,
-        },
-        explanation: `${config.negContinuousPastToday}: yaka + gana + ${config.quaternaryForm}`,
-      });
-    } else {
-      options.push({
-        form: 4,
-        formName: "quaternary",
-        particles: ["yaka"],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: `${config.negPastToday}: yaka + ${config.quaternaryForm}`,
-      });
-    }
-  }
-
-  if (
-    features.isYesterdayPast &&
-    features.hasYesterday &&
-    features.polarity === "positive"
-  ) {
-    if (features.isGerund) {
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: ["ga"],
-        continuous: {
-          particle: "ga",
-          alternatives: ["yukurra"],
-          isActive: true,
-        },
-        explanation: `${config.continuousPastYesterday}: ga + ${config.primaryForm}`,
-      });
-    } else {
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: [],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: `${config.pastYesterday}: ${config.primaryForm}`,
-      });
-    }
-  }
-
-  if (
-    features.isYesterdayPast &&
-    features.hasYesterday &&
-    features.polarity === "negative"
-  ) {
-    if (features.isGerund) {
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: ["yaka", "gi"],
-        continuous: {
-          particle: "gi",
-          alternatives: ["yukurri"],
-          isActive: true,
-        },
-        explanation: `${config.negContinuousPastYesterday}: yaka + gi + ${config.secondaryForm}`,
-      });
-    } else {
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: ["yaka"],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: `${config.negPastYesterday}: yaka + ${config.secondaryForm}`,
-      });
-    }
-  }
-
-  if (
-    features.isSameDayPast &&
-    features.isYesterdayPast &&
-    !features.hasToday &&
-    !features.hasYesterday &&
-    features.polarity === "positive"
-  ) {
-    if (features.isGerund) {
-      options.push({
-        form: 3,
-        formName: "tertiary",
-        particles: ["gana"],
-        continuous: {
-          particle: "gana",
-          alternatives: ["yukurrana"],
-          isActive: true,
-        },
-        explanation: `${config.todayUnspecified} ${config.continuousPastToday}: gana + ${config.tertiaryForm}`,
-      });
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: ["ga"],
-        continuous: {
-          particle: "ga",
-          alternatives: ["yukurra"],
-          isActive: true,
-        },
-        explanation: `${config.yesterdaySpecified} ${config.continuousPastYesterday}: ga + ${config.primaryForm}`,
-      });
-    } else {
-      options.push({
-        form: 3,
-        formName: "tertiary",
-        particles: [],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: `${config.todayUnspecified} ${config.pastToday}: ${config.tertiaryForm}`,
-      });
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: [],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: `${config.yesterdaySpecified} ${config.pastYesterday}: ${config.primaryForm}`,
-      });
-    }
-  }
-
-  if (
-    features.isSameDayPast &&
-    features.isYesterdayPast &&
-    !features.hasToday &&
-    !features.hasYesterday &&
-    features.polarity === "negative"
-  ) {
-    if (features.isGerund) {
-      options.push({
-        form: 4,
-        formName: "quaternary",
-        particles: ["yaka", "gana"],
-        continuous: {
-          particle: "gana",
-          alternatives: ["ganha"],
-          isActive: true,
-        },
-        explanation: `${config.todayUnspecified} ${config.negContinuousPastToday}: yaka + gana + ${config.quaternaryForm}`,
-      });
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: ["yaka", "ga"],
-        continuous: {
-          particle: "ga",
-          alternatives: ["yukurra"],
-          isActive: true,
-        },
-        explanation: `${config.yesterdaySpecified} ${config.negContinuousPastToday}: yaka + ga + ${config.primaryForm}`,
-      });
-    } else {
-      options.push({
-        form: 4,
-        formName: "quaternary",
-        particles: ["yaka"],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: `${config.todayUnspecified} ${config.negPastToday}: yaka + ${config.quaternaryForm}`,
-      });
-      options.push({
-        form: 1,
-        formName: "primary",
-        particles: ["yaka"],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: `${config.yesterdaySpecified} ${config.negPastToday}: yaka + ${config.primaryForm}`,
-      });
-    }
-  }
-
-  if (
-    features.tense === "present" &&
-    features.polarity === "positive" &&
-    options.length === 0
-  ) {
-    options.push({
-      form: 1,
-      formName: "primary",
-      particles: ["ga"],
-      continuous: {
-        particle: "ga",
-        alternatives: ["yukurra"],
-        isActive: true,
-      },
-      explanation: `${config.present}: ga + ${config.primaryForm}`,
-    });
-  }
-
-  if (
-    features.tense === "present" &&
-    features.polarity === "negative"
-  ) {
-    if (features.isGerund) {
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: ["gi", "yaka"],
-        continuous: {
-          particle: "gi",
-          alternatives: ["yukurri"],
-          isActive: true,
-        },
-        explanation: `${config.negContinuousPresent}: gi + yaka + ${config.secondaryForm}`,
-      });
-    } else {
-      options.push({
-        form: 2,
-        formName: "secondary",
-        particles: ["yaka"],
-        continuous: {
-          particle: "",
-          isActive: false,
-        },
-        explanation: `${config.negPresent}: yaka + ${config.secondaryForm}`,
-      });
-    }
-  }
-
-  const optionsWithYaka = options.filter((opt) =>
-    opt.particles.includes("yaka")
-  );
-  for (const opt of optionsWithYaka) {
-    const bayŋuParticles = opt.particles.map((p) =>
-      p === "yaka" ? "bäyŋu" : p
-    );
-    const bayŋuExplanation = opt.explanation.replace(/yaka/g, "bäyŋu");
-    options.push({
-      ...opt,
-      particles: bayŋuParticles,
-      explanation: bayŋuExplanation,
-    });
-  }
-
-  const expandedOptions: VerbFormOption[] = [];
-  for (const option of options) {
-    if (!option.particles.includes("dhu") || futureParticles.length <= 1) {
-      expandedOptions.push(option);
-      continue;
-    }
-    for (const particle of futureParticles) {
-      const particles = option.particles.map((p) => (p === "dhu" ? particle : p));
-      const explanation = option.explanation.replace("dhu", particle);
-      expandedOptions.push({
-        ...option,
-        particles,
-        explanation,
-      });
-    }
-  }
-
-  return expandedOptions;
-}
-
-export function getVerbGupForm(
-  gupKey: string,
-  formNumber: VerbFormNumber
-): string | null {
-  const entry = LEXICON.verbs[gupKey];
-  if (!entry) return null;
-  return entry.forms[formNumber - 1] || null;
-}
-
-function detectHasNegation(fraseTokens: string[], mode: LanguageMode): boolean {
-  const { negation } = LANG_CONFIG[mode];
-  const lowerTokens = fraseTokens.map((t) => t.toLowerCase());
-  return lowerTokens.some((t) => negation.includes(t));
-}
-
-export function applyVerbRules(
-  verbMatch: VerbMatch,
-  fraseTokens: string[],
-  fraseText: string,
-  mode: LanguageMode,
-  auxiliaryTense: "present" | "past" | "future" | null = null,
-  auxiliaryIsContinuous: boolean = false,
-  hasSubject: boolean = false,
-  isLetUs: boolean = false
-): VerbRuleResult[] {
-  const config = LANG_CONFIG[mode];
-  const conjugationType = verbMatch.tense as VerbConjugationType;
-
-  const isImperativeForm = conjugationType === "imperative";
-  const isSubjunctiveForm = conjugationType === "presentSubjunctive";
-  const isInfinitiveForm = conjugationType === "infinitive";
-  const isPresentIndicative = conjugationType === "presentIndicative";
-  const hasExclamation = fraseText.includes("!");
-  const hasNegation = detectHasNegation(fraseTokens, mode);
-
-  const isImperativeMood =
-    (hasNegation && isSubjunctiveForm && !hasSubject && hasExclamation) ||
-    (isImperativeForm && !hasSubject) ||
-    (!hasSubject &&
-      hasExclamation &&
-      (isPresentIndicative || isSubjunctiveForm || isInfinitiveForm));
-
-  let features = detectVerbFeatures(
-    fraseTokens,
-    isImperativeMood,
-    conjugationType,
-    mode
-  );
-
-  if (auxiliaryTense) {
-    features = {
-      ...features,
-      tense: auxiliaryTense,
-      isFuture: auxiliaryTense === "future",
-      isGerund: auxiliaryIsContinuous || features.isGerund,
-      isContinuousFuture: auxiliaryTense === "future" && auxiliaryIsContinuous,
-      isSameDayPast: auxiliaryTense === "past" ? true : features.isSameDayPast,
-      isYesterdayPast:
-        auxiliaryTense === "past" ? true : features.isYesterdayPast,
-    };
-  }
-
-  const { continuousImperativeMarkers } = LANG_CONFIG[mode];
-
-  const lowerTokens = fraseTokens.map((t) => t.toLowerCase());
-  const hasContinuousImperativeMarker = continuousImperativeMarkers.some((m) =>
-    lowerTokens.includes(m)
-  );
-
-  if (
-    hasContinuousImperativeMarker &&
-    hasExclamation &&
-    auxiliaryIsContinuous
-  ) {
-    features = {
-      ...features,
-      mood: "imperative",
-      isContinuousImperative: true,
-    };
-  }
-
-  let verbOptions = determineVerbForms(features, mode, conjugationType);
-
-  if (isLetUs) {
-    verbOptions = [{
-      form: 1,
-      formName: "primary",
-      particles: [],
-      explanation: "Let's: primary form, no particles",
-      continuous: undefined,
-    }];
-  }
-
-  const results: VerbRuleResult[] = [];
-
-  for (const option of verbOptions) {
-    const baseGup = getVerbGupForm(verbMatch.gupKey, option.form);
-    if (!baseGup) continue;
-
-    if (
-      isInfinitiveForm &&
-      !features.isGerund &&
-      !verbMatch.entry?.noInfinitiveSuffix &&
-      !isLetUs
-    ) {
-      const suffixResult = determineDjalSuffix(baseGup);
-
-      for (const suffix of suffixResult.suffixes) {
-        const finalGup = applyDjalSuffix(baseGup, suffix);
-        const finalExplanation = `${config.infinitive}: ${baseGup} + -${suffix} = ${finalGup}`;
-
-        const particlesStr =
-          option.particles.length > 0 ? option.particles.join(" ") + " " : "";
-        const gup = particlesStr + finalGup;
-
-        results.push({
-          gup,
-          baseGup: finalGup,
-          particles: option.particles,
-          formUsed: option.form,
-          formName: option.formName,
-          explanation: finalExplanation,
-          features,
-          options: verbOptions,
-          hasAmbiguity:
-            verbOptions.length > 1 || suffixResult.suffixes.length > 1,
+  for (const entry of entries) {
+    const formsList = entry.conjugations[sourceLang] ?? [];
+    for (const forms of formsList) {
+      forms.presentIndicative.forEach((form: string, idx: number) => {
+        const formTokens = splitForm(form, sourceLang);
+        const seq = matchSequence(tokens, index, formTokens, sourceLang);
+        if (!seq.matched) return;
+        pushMatch(matches, {
+          entry,
+          forms,
+          kind: "present",
+          personNumbers: [PERSON_BY_INDEX[idx]],
+          consumed: seq.consumed,
+          source: tokens
+            .slice(index, index + seq.consumed)
+            .map((t) => t.source)
+            .join(" "),
+          surface: form,
         });
+      });
+
+      forms.preterite.forEach((form: string, idx: number) => {
+        const formTokens = splitForm(form, sourceLang);
+        const seq = matchSequence(tokens, index, formTokens, sourceLang);
+        if (!seq.matched) return;
+        pushMatch(matches, {
+          entry,
+          forms,
+          kind: "past_simple",
+          personNumbers: [PERSON_BY_INDEX[idx]],
+          consumed: seq.consumed,
+          source: tokens
+            .slice(index, index + seq.consumed)
+            .map((t) => t.source)
+            .join(" "),
+          surface: form,
+        });
+      });
+
+      forms.imperfect.forEach((form: string, idx: number) => {
+        const formTokens = splitForm(form, sourceLang);
+        const seq = matchSequence(tokens, index, formTokens, sourceLang);
+        if (!seq.matched) return;
+        pushMatch(matches, {
+          entry,
+          forms,
+          kind: "past_continuous",
+          personNumbers: [PERSON_BY_INDEX[idx]],
+          consumed: seq.consumed,
+          source: tokens
+            .slice(index, index + seq.consumed)
+            .map((t) => t.source)
+            .join(" "),
+          surface: form,
+        });
+      });
+
+      forms.future.forEach((form: string, idx: number) => {
+        const formTokens = splitForm(form, sourceLang);
+        const seq = matchSequence(tokens, index, formTokens, sourceLang);
+        if (!seq.matched) return;
+        pushMatch(matches, {
+          entry,
+          forms,
+          kind: "future",
+          personNumbers: [PERSON_BY_INDEX[idx]],
+          consumed: seq.consumed,
+          source: tokens
+            .slice(index, index + seq.consumed)
+            .map((t) => t.source)
+            .join(" "),
+          surface: form,
+        });
+      });
+
+      forms.presentSubjunctive.forEach((form: string, idx: number) => {
+        const formTokens = splitForm(form, sourceLang);
+        const seq = matchSequence(tokens, index, formTokens, sourceLang);
+        if (!seq.matched) return;
+        pushMatch(matches, {
+          entry,
+          forms,
+          kind: "subjunctive",
+          personNumbers: [PERSON_BY_INDEX[idx]],
+          consumed: seq.consumed,
+          source: tokens
+            .slice(index, index + seq.consumed)
+            .map((t) => t.source)
+            .join(" "),
+          surface: form,
+        });
+      });
+
+      const imperativeEntries = Object.entries(
+        forms.imperative
+      ) as [keyof VerbForms["imperative"], string | undefined][];
+      imperativeEntries.forEach(([key, form]) => {
+        if (!form) return;
+        const variants = form.includes("|")
+          ? form.split("|").map((item) => item.trim()).filter(Boolean)
+          : [form];
+        for (const variant of variants) {
+          const formTokens = splitForm(variant, sourceLang);
+          const seq = matchSequence(tokens, index, formTokens, sourceLang);
+          if (!seq.matched) continue;
+          const person = IMPERATIVE_PERSON[key as keyof VerbForms["imperative"]];
+          pushMatch(matches, {
+            entry,
+            forms,
+            kind: "imperative",
+            personNumbers: person ? [person] : [],
+            consumed: seq.consumed,
+            source: tokens
+              .slice(index, index + seq.consumed)
+              .map((t) => t.source)
+              .join(" "),
+            surface: variant,
+          });
+        }
+      });
+
+      if (forms.gerund) {
+        const formTokens = splitForm(forms.gerund, sourceLang);
+        const seq = matchSequence(tokens, index, formTokens, sourceLang);
+        if (seq.matched) {
+          pushMatch(matches, {
+            entry,
+            forms,
+            kind: "gerund",
+            personNumbers: [],
+            consumed: seq.consumed,
+            source: tokens
+              .slice(index, index + seq.consumed)
+              .map((t) => t.source)
+              .join(" "),
+            surface: forms.gerund,
+          });
+        }
       }
-    } else {
-      const particlesStr =
-        option.particles.length > 0 ? option.particles.join(" ") + " " : "";
-      const gup = particlesStr + baseGup;
 
-      results.push({
-        gup,
-        baseGup,
-        particles: option.particles,
-        formUsed: option.form,
-        formName: option.formName,
-        explanation: option.explanation,
-        features,
-        options: verbOptions,
-        hasAmbiguity: verbOptions.length > 1,
-      });
-    }
-  }
-
-  if (results.length === 0) {
-    const baseGup = getVerbGupForm(verbMatch.gupKey, 1) || verbMatch.gupKey;
-    results.push({
-      gup: baseGup,
-      baseGup,
-      particles: [],
-      formUsed: 1,
-      formName: "primary",
-      explanation: config.baseFormNoRule,
-      features,
-      options: [],
-      hasAmbiguity: false,
-    });
-  }
-
-  if (isLetUs) {
-    const letUsResults: VerbRuleResult[] = [];
-    const quaternaryForm = getVerbGupForm(verbMatch.gupKey, 4);
-
-    for (const result of results) {
-      if (result.formUsed === 1 && result.particles.length === 0) {
-        letUsResults.push({
-          ...result,
-          gup: result.baseGup,
-          explanation: `Let's: ${result.baseGup} (primary form, no particles)`,
-        });
-        letUsResults.push({
-          ...result,
-          gup: result.baseGup + "na",
-          baseGup: result.baseGup + "na",
-          explanation: `Let's: ${result.baseGup}na (primary form + -na)`,
-        });
-
-        if (quaternaryForm) {
-          const { applyAllativeSuffix } = require("../constants");
-          const withAllative = applyAllativeSuffix(quaternaryForm);
-          letUsResults.push({
-            ...result,
-            gup: withAllative,
-            baseGup: withAllative,
-            explanation: `Let's: ${quaternaryForm} + -lili = ${withAllative} (quaternary + allative)`,
+      if (forms.infinitive) {
+        const formTokens = splitForm(forms.infinitive, sourceLang);
+        const seq = matchSequence(tokens, index, formTokens, sourceLang);
+        if (seq.matched) {
+          pushMatch(matches, {
+            entry,
+            forms,
+            kind: "infinitive",
+            personNumbers: [],
+            consumed: seq.consumed,
+            source: tokens
+              .slice(index, index + seq.consumed)
+              .map((t) => t.source)
+              .join(" "),
+            surface: forms.infinitive,
           });
         }
       }
     }
-    if (letUsResults.length > 0) {
-      return letUsResults;
+  }
+
+  return matches;
+}
+
+export function matchPastParticipleAt(
+  tokens: TokenLike[],
+  index: number,
+  sourceLang: LexiconLanguage
+): VerbMatch[] {
+  const matches: VerbMatch[] = [];
+  const entries = Object.values(LEXICON.verbs);
+  if (entries.length === 0) return matches;
+
+  for (const entry of entries) {
+    const formsList = entry.conjugations[sourceLang] ?? [];
+    for (const forms of formsList) {
+      const formTokens = splitForm(forms.pastParticiple, sourceLang);
+      const seq = matchSequence(tokens, index, formTokens, sourceLang);
+      if (!seq.matched) continue;
+      pushMatch(matches, {
+        entry,
+        forms,
+        kind: "past_simple",
+        personNumbers: [],
+        consumed: seq.consumed,
+        source: tokens
+          .slice(index, index + seq.consumed)
+          .map((t) => t.source)
+          .join(" "),
+        surface: forms.pastParticiple,
+      });
     }
   }
 
-  return results;
+  return matches;
 }

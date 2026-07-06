@@ -29,9 +29,9 @@
 
   --breakpoint-galaxy: 480px;
 
-  --cursor-art: url("https://thedial.infura-ipfs.io/ipfs/QmbR22PYokrESYeCtwrwpETsby8q959zVNJgSv1x136yiQ"),
+  --cursor-art: url("https://cdn.digitalax.xyz/ipfs/QmbR22PYokrESYeCtwrwpETsby8q959zVNJgSv1x136yiQ"),
     auto;
-  --cursor-point: url("https://thedial.infura-ipfs.io/ipfs/QmeJKB1bLnMB2vS4ZwgozC5tUuDmb3YMjs3Vf56VZfaSn2"),
+  --cursor-point: url("https://cdn.digitalax.xyz/ipfs/QmeJKB1bLnMB2vS4ZwgozC5tUuDmb3YMjs3Vf56VZfaSn2"),
     pointer;
 }
 

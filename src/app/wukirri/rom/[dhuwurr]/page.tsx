@@ -41,7 +41,7 @@ export default function Dhuwurr() {
                   objectFit="cover"
                   className="rounded-full"
                   draggable={false}
-                  src={`${INTERNAL_INFURA_GATEWAY}/QmacSZRApuHAQn4xQMSzFMq7qpw1PwyjsAEbnVvuEYYsQo`}
+                  src={`${INTERNAL_INFURA_GATEWAY}QmacSZRApuHAQn4xQMSzFMq7qpw1PwyjsAEbnVvuEYYsQo`}
                 />
               </div>
             </div>
