@@ -1,0 +1,54 @@
+[
+  {
+    "locale": "español",
+    "texto": ""
+  },
+  {
+    "locale": "english",
+    "texto": "You now have two verb-factories: -thirri (become, Lesson 21) and -marama (make/cause, Lesson 20). There's a third machine in the workshop, and it completes the set: <b>-kuma / -guma / -yama</b>, which takes an ADJECTIVE and forges a transitive verb: to make something be that quality.<br/><br/>marŋgi (knowing) → marŋgikuma → to make-knowing → <b>to teach</b><br/><br/>Sit with that etymology. Teaching, in this language, is literally to cause someone to know. Not to transmit information. Not to lecture. To make-knowing. The learner is the object being transformed, and the teacher is the agent of that transformation. (Hebrew speakers: this is your causative binyan again, לימד from ידע. Same machine, other side of the planet.)<br/><br/>Ŋarra balaŋu marŋgikuŋu ŋanya → I should teach him<br/><br/>And now watch all three factories line up around a single quality:<br/><br/>marŋgi → knowing (the state)<br/>marŋgithirri → to come to know, to learn (become it)<br/>marŋgikuma → to teach (make someone else it)<br/><br/>One root. The state, the becoming, the causing. That triangle exists for quality after quality: manymak (good) can be become-good or be made-good; muk (quiet) gives mukthirri-style becoming and mukmarama making-quiet from Lesson 20. Check the dictionary for which factory each root prefers, some take -kuma, some -marama, some both.<br/><br/>And here's the bigger realisation this unlocks, one that quietly rewires how you translate: <b>many English adjectives are simply verbs in Gupapuyŋu.</b> You've already been doing it:<br/><br/>They are happy → Walala djulŋithina (they happied, they became-happy)<br/>I'm tired → Ŋarra djawaryurruna (I tired)<br/>He got sick → Ŋayi rerrimirrithina<br/><br/>English freezes these states into adjectives and props them up with to be. Gupapuyŋu lets them stay verbs, alive, with tense, with becoming built in. So stop hunting for a missing is when you translate. Ask instead: is this state secretly an event? Here, it usually is.<br/><br/>States, becomings, causings, all one family, all built with suffixes you can hold in one hand. The workshop is small. The language it builds is not."
+  },
+  {
+    "locale": "عربي",
+    "texto": ""
+  },
+  {
+    "locale": "עברית",
+    "texto": ""
+  },
+  {
+    "locale": "فارسی",
+    "texto": ""
+  },
+  {
+    "locale": "יידיש",
+    "texto": ""
+  },
+  {
+    "locale": "português",
+    "texto": ""
+  },
+  {
+    "locale": "français",
+    "texto": ""
+  },
+  {
+    "locale": "türkiye",
+    "texto": ""
+  },
+  {
+    "locale": "日本語",
+    "texto": ""
+  },
+  {
+    "locale": "magyar",
+    "texto": ""
+  },
+  {
+    "locale": "українська",
+    "texto": ""
+  },
+  {
+    "locale": "gàidhlig (albannach)",
+    "texto": ""
+  }
+]

@@ -10,6 +10,7 @@ export type CapitulosProps = {
 
 export type DictionaryEntry = {
   id: string;
+  tipo?: string;
   translations: {
     djambarrpuyŋu: string;
     español: string;
@@ -31,6 +32,11 @@ export type DictionaryEntry = {
 export type ReturnProps = {
   image: string;
   path: string;
+};
+
+export type AltavozProps = {
+  texto: string;
+  tamano?: string;
 };
 
 export type Video = {
@@ -137,3 +143,11 @@ export interface Larramu {
 }
 
 export type LanguageMode = "es" | "en";
+
+export type WordlistEntry = {
+  en: string;
+  q?: string;
+  gup: string[];
+  note?: string;
+  page: number;
+};

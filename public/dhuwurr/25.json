@@ -1,0 +1,54 @@
+[
+  {
+    "locale": "español",
+    "texto": ""
+  },
+  {
+    "locale": "english",
+    "texto": "By now you've definitely noticed them lurking in examples: little tails like -nydja, -dja, -tja hanging off words. Time to meet the discourse suffixes, the oral punctuation of Gupapuyŋu.<br/><br/>Here's the thing about a purely spoken language: it has no commas, no italics, no paragraph breaks. So where does the shaping of a sentence live? In small suffixes that mark topic, contrast, flow. They don't change WHAT you're saying. They change how it lands.<br/><br/>The suffix comes in sound-matched forms (you know this dance by now):<br/><br/>1. After a vowel, liquid, y or w → -nydja<br/>Dhuwala → Dhuwalanydja<br/>guŋga'yurru → guŋga'yurrunydja<br/><br/>2. After a nasal (m, n, ṉ, ny, ŋ) → -dja<br/>mitjiyaŋ → mitjiyaŋdja<br/><br/>3. After a stop (p, t, ṯ, tj, k) → -tja<br/>miyalk → miyalktja<br/><br/>Where do you hear it? Everywhere, once you're listening:<br/><br/>On the topic, the thing the sentence is about:<br/>Dhuwalanydja nhuŋu ŋanydja ŋarraku? → Is THIS one yours or mine?<br/>Bäpanydja ŋuli djäma → As for father, he works...<br/><br/>On a sentence-final verb, especially in questions:<br/>Nhaltjarra walala ḻakaraŋalanydja? → What did they say?<br/>Wanha nhe ŋanya guŋga'yurrunydja? → Why don't you help him?<br/><br/>And its little sibling -na, which softens onto commands and past verbs:<br/>Dharrnha nhäŋuna! → Look!<br/><br/>Can you leave them out? Yes. The old grammar books say so themselves: may be omitted, meaning stays the same. And that's exactly the point, they're not grammar in the mechanical sense. They're rhythm. Contrast. The speaker's thumb on the scale.<br/><br/>If you know Japanese, this will feel like coming home: は (wa) marks the topic, よ and ね colour the ending of a sentence, and none of them translate cleanly into English because English does all this work with stress and pauses instead. Gupapuyŋu, like Japanese, writes the melody into the words.<br/><br/>My advice: don't memorise rules for when to add them. Instead, start noticing them in every example from here on. Let your ear collect them. One day you'll add a -nydja without thinking, and that's the day the language stopped being a puzzle and started being a voice."
+  },
+  {
+    "locale": "عربي",
+    "texto": ""
+  },
+  {
+    "locale": "עברית",
+    "texto": ""
+  },
+  {
+    "locale": "فارسی",
+    "texto": ""
+  },
+  {
+    "locale": "יידיש",
+    "texto": ""
+  },
+  {
+    "locale": "português",
+    "texto": ""
+  },
+  {
+    "locale": "français",
+    "texto": ""
+  },
+  {
+    "locale": "türkiye",
+    "texto": ""
+  },
+  {
+    "locale": "日本語",
+    "texto": ""
+  },
+  {
+    "locale": "magyar",
+    "texto": ""
+  },
+  {
+    "locale": "українська",
+    "texto": ""
+  },
+  {
+    "locale": "gàidhlig (albannach)",
+    "texto": ""
+  }
+]

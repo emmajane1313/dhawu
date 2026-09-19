@@ -41,4 +41,22 @@ yarn-error.log*
 next-env.d.ts
 
 **.txt
-
+!/public/llm.txt
+.claude
+# voz: corpus, entrenamiento, modelos y herramientas de etiquetado (no se publican)
+voz/
+tutor/
+pruebas/
+scripts/
+/public/trozos/
+/src/app/etiquetar/
+/src/app/api/etiquetas/
+/src/app/components/hooks/useEtiquetar.ts
+/src/app/components/types/etiquetar.type.ts
+*.mp3
+*.wav
+*.flac
+*.onnx
+*.ckpt
+*.tar
+*.ipynb

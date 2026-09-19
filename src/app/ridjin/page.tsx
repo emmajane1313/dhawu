@@ -1,202 +1,140 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Return from "@/app/components/modules/Return";
+import Altavoz from "@/app/components/modules/Altavoz";
 import { IDIOMAS } from "@/app/lib/constantes";
 import { LanguageMode } from "../components/types/components.type";
-import { translate,  } from "./traductor";
-import { LANG_CONFIG } from "./traductor/lang";
+import { traducir } from "../components/hooks/useRidjin";
+import { reproducir } from "../components/hooks/useVoz";
 import {
-  DEV_SAMPLE_ENABLED,
-  DEV_SAMPLE_TRIGGER,
-  DevSampleSection,
-  buildDevSamplesReportChunks,
-  getDevSampleAt,
-  getDevSampleCount,
-  getDevSampleResetSection,
-  isDevSampleTrigger,
-} from "./traductor/devSamples";
-import { TranslationResult } from "./traductor/core/types";
+  GlosaPalabra,
+  IdiomaFuente,
+  TraduccionGenerada,
+} from "../components/types/ridjin.type";
+
+const ETIQUETAS: Record<
+  LanguageMode,
+  { trad: string; nota: string; sinCobertura: string }
+> = {
+  es: {
+    trad: "Traduccion",
+    nota: "Ojo: este traductor se esta reconstruyendo desde el libro de gramatica, leccion por leccion. Solo traduce lo que las reglas ya ensenadas cubren. El orden de las palabras en Gupapuyŋu no es fijo, la palabra que se quiere enfatizar puede ir primero.",
+    sinCobertura:
+      "Esta frase todavia no esta cubierta por las lecciones del libro.",
+  },
+  en: {
+    trad: "Translation",
+    nota: "Note: this translator is being rebuilt from the grammar book, lesson by lesson. It only translates what the rules taught so far cover. Word order in Gupapuyŋu is not fixed, the word you want to emphasize can be placed first.",
+    sinCobertura: "This sentence is not covered by the book lessons yet.",
+  },
+};
+
+function Desglose({
+  abierto,
+  onToggle,
+}: {
+  abierto: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div
+      onClick={onToggle}
+      className={`relative w-5 h-5 flex items-center justify-center rounded-md border text-xs cursor-point ${
+        abierto
+          ? "border-amarillo text-oscuro bg-amarillo"
+          : "border-white/30 text-white/50"
+      }`}
+    >
+      {abierto ? "▴" : "▾"}
+    </div>
+  );
+}
+
+function DesglosePanel({
+  desglose,
+  idioma,
+}: {
+  desglose: GlosaPalabra[];
+  idioma: LanguageMode;
+}) {
+  return (
+    <div className="relative w-full flex flex-row flex-wrap gap-2 pt-1">
+      {desglose.map((palabra, pIdx) => (
+        <div
+          key={pIdx}
+          className="relative w-fit flex flex-col gap-1 p-2 border border-white/20 rounded-md bg-oscuro"
+        >
+          <div
+            onClick={() => reproducir(palabra.palabra)}
+            className="relative w-fit flex text-amarillo text-sm cursor-point"
+          >
+            {palabra.palabra}
+          </div>
+          <div className="relative w-fit flex flex-col gap-px">
+            {palabra.partes.map((parte, tIdx) => (
+              <div
+                key={tIdx}
+                className="relative w-fit flex flex-row gap-2 items-baseline"
+              >
+                <div
+                  className={`text-xs ${
+                    parte.tipo === "sufijo" ? "text-amarillo/70" : "text-white"
+                  }`}
+                >
+                  {parte.texto}
+                </div>
+                <div className="text-white/50 text-xs">
+                  {idioma === "es" ? parte.es : parte.en}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Ridjin() {
-  const [result, setResult] = useState<TranslationResult | null>(null);
+  const [nuevaTraduccion, setNuevaTraduccion] =
+    useState<TraduccionGenerada | null>(null);
+  const [sinCobertura, setSinCobertura] = useState(false);
   const [inputText, setInputText] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [idioma, setIdioma] = useState<LanguageMode>("es");
-  const [openAlternatives, setOpenAlternatives] = useState<
+  const [desglosesAbiertos, setDesglosesAbiertos] = useState<
     Record<number, boolean>
   >({});
-  const [openPartAlternatives, setOpenPartAlternatives] = useState<
-    Record<string, boolean>
-  >({});
-  const [devSampleIndex, setDevSampleIndex] = useState<
-    Record<LanguageMode, number>
-  >({
-    es: 0,
-    en: 0,
-  });
-  const [devSampleSection, setDevSampleSection] = useState<
-    Record<LanguageMode, DevSampleSection>
-  >({
-    es: "all",
-    en: "all",
-  });
-  const [devCycleActive, setDevCycleActive] = useState(false);
-  const [devCurrentSample, setDevCurrentSample] = useState("");
 
-  const handleTranslate = async () => {
+  const alternarDesglose = (indice: number) =>
+    setDesglosesAbiertos((previos) => ({
+      ...previos,
+      [indice]: !previos[indice],
+    }));
+
+  const handleTranslate = () => {
     const trimmed = inputText.trim();
-    // eslint-disable-next-line no-console
-    console.log("[ridjin-debug] handleTranslate", { trimmed, idioma });
-    const resetSection = DEV_SAMPLE_ENABLED
-      ? getDevSampleResetSection(trimmed)
-      : null;
-    if (resetSection) {
-      setDevSampleIndex((prev) => ({
-        ...prev,
-        [idioma]: 0,
-      }));
-      setDevSampleSection((prev) => ({
-        ...prev,
-        [idioma]: resetSection,
-      }));
-      setDevCycleActive(false);
-      try {
-        let savedPath = "";
-        const sectionSuffix =
-          resetSection && resetSection !== "all" ? `-${resetSection}` : "";
-        const filename = `dev-samples-${idioma}${sectionSuffix}.txt`.replace(
-          /[^a-z0-9._-]/gi,
-          ""
-        );
-        await buildDevSamplesReportChunks(
-          translate,
-          idioma,
-          resetSection,
-          async (chunk, append) => {
-            const response = await fetch("/api/dev-samples", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                mode: idioma,
-                report: chunk,
-                append,
-                filename,
-              }),
-            });
-            if (!response.ok) {
-              let details = "";
-              try {
-                const data = await response.json();
-                if (data?.error) details = ` ${data.error}`;
-              } catch {
-                try {
-                  const text = await response.text();
-                  if (text) details = ` ${text}`;
-                } catch {
-                  // ignore
-                }
-              }
-              throw new Error(`No se pudo guardar el reporte.${details}`);
-            }
-            const data = await response.json();
-            if (data?.path) {
-              savedPath = data.path;
-            }
-          }
-        );
-        const path = savedPath ? ` ${savedPath}` : "";
-        const sectionLabel =
-          resetSection === "all" ? "" : ` (${resetSection})`;
-        setError(`Dev samples${sectionLabel}: índice reiniciado. Archivo:${path}`);
-      } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        setError(`Dev samples: error al guardar el reporte. ${message}`);
-      }
-      return;
-    }
-    if ((isDevSampleTrigger(trimmed) || devCycleActive) && DEV_SAMPLE_ENABLED) {
-      const currentIndex = devSampleIndex[idioma] ?? 0;
-      const section = devSampleSection[idioma] ?? "all";
-      const { sample, nextIndex } = getDevSampleAt(
-        idioma,
-        currentIndex,
-        section
-      );
-      if (!sample) {
-        setError("Dev samples vacias.");
-        return;
-      }
-      setDevCycleActive(true);
-      setDevCurrentSample(sample);
-      setInputText(sample);
-      setResult(translate(sample, idioma));
-      setError(
-        `Dev sample ${currentIndex + 1}/${getDevSampleCount(idioma, section)}`
-      );
-      setDevSampleIndex((prev) => ({
-        ...prev,
-        [idioma]: nextIndex,
-      }));
-      return;
-    }
     if (!trimmed || loading) return;
 
     setError("");
     setLoading(true);
+    setDesglosesAbiertos({});
 
     try {
-      const res = translate(trimmed, idioma);
-      setResult(res);
+      const nueva = traducir(trimmed, idioma as IdiomaFuente);
+      setNuevaTraduccion(nueva);
+      setSinCobertura(!nueva);
     } catch (e) {
-      // Surface runtime errors during translation for debugging.
-      // eslint-disable-next-line no-console
-      console.error("[ridjin-error]", e);
+      console.log("[ridjin-error]", e);
       setError("Error al traducir");
-      setResult(null);
+      setNuevaTraduccion(null);
+      setSinCobertura(false);
     } finally {
       setLoading(false);
     }
   };
-
-  const groupedCombinations = useMemo(() => {
-    if (!result?.combinations) return [];
-
-    const groups = new Map<string, TranslationResult["combinations"]>();
-
-    const makeGroupKey = (
-      combo: TranslationResult["combinations"][number]
-    ) => {
-      if (combo.variantGroup?.scope === "dropdown") {
-        return `dropdown:${combo.variantGroup.id}`;
-      }
-      if (combo.variantGroup?.scope === "box") {
-        return `box:${combo.variantGroup.id}`;
-      }
-      return `output:${combo.output}`;
-    };
-
-    for (const combo of result.combinations) {
-      const key = makeGroupKey(combo);
-      const existing = groups.get(key);
-      if (existing) {
-        existing.push(combo);
-      } else {
-        groups.set(key, [combo]);
-      }
-    }
-
-    return Array.from(groups.values()).map((combos) => {
-      const primary = combos[0];
-      const alternatives = combos
-        .slice(1)
-        .map((c) => c.output)
-        .filter((value, idx, arr) => arr.indexOf(value) === idx);
-
-      return { primary, alternatives, combos };
-    });
-  }, [result]);
 
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between pt-2 px-2 overflow-y-scroll">
@@ -212,7 +150,7 @@ export default function Ridjin() {
           <div className="relative w-full flex flex-col gap-3">
             <div className="relative w-full flex flex-col gap-2">
               <div className="text-white text-xs tracking-wide">
-                {LANG_CONFIG[idioma].disclaimerNote}
+                {ETIQUETAS[idioma].nota}
               </div>
               <div className="text-white font-neueL text-xs relative flex flex-row gap-2 w-full h-fit">
                 {IDIOMAS.map((id, i) => (
@@ -235,18 +173,7 @@ export default function Ridjin() {
               <input
                 type="text"
                 value={inputText}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setInputText(value);
-                  if (
-                    DEV_SAMPLE_ENABLED &&
-                    devCycleActive &&
-                    value.trim().toLowerCase() !== DEV_SAMPLE_TRIGGER &&
-                    value !== devCurrentSample
-                  ) {
-                    setDevCycleActive(false);
-                  }
-                }}
+                onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleTranslate()}
                 placeholder="Ej: yo como, I eat..."
                 className="relative w-full px-4 py-3 bg-oscuro border border-white/30 rounded-md text-white font-neueL placeholder:text-white/30 focus:border-amarillo outline-none"
@@ -269,135 +196,60 @@ export default function Ridjin() {
             </div>
           )}
 
-          {result && (
-            <div className="relative w-full flex flex-col gap-4">
-              {groupedCombinations.map((group, idx: number) => (
-                <div
-                  key={idx}
-                  className="relative w-full flex flex-col gap-3 p-4 border border-amarillo rounded-md font-neueL bg-oscuro/50"
-                >
-                  <div className="relative w-full flex flex-col gap-1">
-                    <div className="text-amarillo text-xs uppercase tracking-wide">
-                      {result.hasAmbiguity
-                        ? `${LANG_CONFIG[idioma].option} ${idx + 1}`
-                        : LANG_CONFIG[idioma].trad}
+          {nuevaTraduccion && (
+            <div className="relative w-full flex flex-col gap-2 p-4 border border-amarillo rounded-md font-neueL bg-oscuro/50">
+              <div className="text-amarillo text-xs uppercase tracking-wide">
+                {ETIQUETAS[idioma].trad}
+              </div>
+              <div className="relative w-full flex flex-row flex-wrap gap-2 items-center">
+                <div className="text-white text-2xl">{nuevaTraduccion.gup}</div>
+                <Altavoz texto={nuevaTraduccion.gup} />
+                {nuevaTraduccion.desglose && (
+                  <Desglose
+                    abierto={!!desglosesAbiertos[0]}
+                    onToggle={() => alternarDesglose(0)}
+                  />
+                )}
+              </div>
+              {desglosesAbiertos[0] && nuevaTraduccion.desglose && (
+                <DesglosePanel
+                  desglose={nuevaTraduccion.desglose}
+                  idioma={idioma}
+                />
+              )}
+              {nuevaTraduccion.alternativas?.map((alternativa, aIdx) => (
+                <div key={aIdx} className="relative w-full flex flex-col gap-1">
+                  <div className="relative w-full flex flex-row flex-wrap gap-2 items-baseline">
+                    <div className="text-white/60 text-sm">
+                      {alternativa.gup}
                     </div>
-                    <div className="relative w-full flex items-center gap-2">
-                      <div className="text-white text-xl">
-                        {group.primary.output || ""}
+                    {alternativa.nota && (
+                      <div className="text-amarillo/50 text-xs">
+                        {alternativa.nota}
                       </div>
-                      {group.alternatives.length > 0 && (
-                        <button
-                          type="button"
-                          className="text-amarillo text-xs border border-amarillo/60 px-2 py-0.5 rounded-md hover:bg-amarillo/10 cursor-point"
-                          onClick={() =>
-                            setOpenAlternatives((prev) => ({
-                              ...prev,
-                              [idx]: !prev[idx],
-                            }))
-                          }
-                        >
-                          {openAlternatives[idx] ? "v" : ">"}
-                        </button>
-                      )}
-                    </div>
-                    {group.alternatives.length > 0 &&
-                      openAlternatives[idx] && (
-                        <div className="relative w-full flex flex-col gap-1 pt-2">
-                          {group.alternatives.map((alt, altIdx) => (
-                            <div
-                              key={altIdx}
-                              className="text-white/70 text-sm"
-                            >
-                              {alt}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                    )}
+                    <Altavoz texto={alternativa.gup} />
+                    {alternativa.desglose && (
+                      <Desglose
+                        abierto={!!desglosesAbiertos[aIdx + 1]}
+                        onToggle={() => alternarDesglose(aIdx + 1)}
+                      />
+                    )}
                   </div>
-                  <div className="relative w-full h-px bg-white/10"></div>
-                  <div className="relative w-full flex flex-col gap-1">
-                    <div className="text-white/50 text-xs uppercase tracking-wide">
-                      {LANG_CONFIG[idioma].desglose}
-                    </div>
-                    <div className="relative w-full flex flex-col gap-2">
-                      {group.primary.parts?.map((part, pIdx: number) => {
-                        const slotId =
-                          part.slotId ?? `${part.type}:${part.source}:${pIdx}`;
-                        const slotGups = new Map<string, string | undefined>();
-                        for (const combo of group.combos) {
-                          const match = combo.parts?.find(
-                            (p) =>
-                              (p.slotId ?? `${p.type}:${p.source}:${pIdx}`) ===
-                              slotId
-                          );
-                          if (match) {
-                            slotGups.set(match.gup, undefined);
-                          }
-                        }
-                        const altFromPart = (part.alternatives ?? []).map(
-                          (alt) => ({
-                            gup: alt.gup,
-                            note: alt.note,
-                          })
-                        );
-                        for (const alt of altFromPart) {
-                          slotGups.set(alt.gup, alt.note);
-                        }
-                        slotGups.delete(part.gup);
-                        const slotAltList = Array.from(slotGups.entries()).map(
-                          ([gup, note]) => ({ gup, note })
-                        );
-                        const altKey = `${idx}-${pIdx}`;
-                        return (
-                          <div
-                            key={pIdx}
-                            className="relative flex flex-row flex-wrap gap-3 gap-0.5 p-2"
-                          >
-                            <div className="text-white text-sm">{part.gup}</div>
-                            <div className="text-white/30 text-xs">
-                              {part.source}
-                            </div>
-                            <div className="text-amarillo/70 text-xs">
-                              {part.explanation}
-                            </div>
-                            {slotAltList.length > 0 && (
-                              <div className="relative w-full flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  className="text-amarillo text-xs border border-amarillo/60 px-2 py-0.5 rounded-md hover:bg-amarillo/10 cursor-point"
-                                  onClick={() =>
-                                    setOpenPartAlternatives((prev) => ({
-                                      ...prev,
-                                      [altKey]: !prev[altKey],
-                                    }))
-                                  }
-                                >
-                                  {openPartAlternatives[altKey] ? "v" : ">"}
-                                </button>
-                              </div>
-                            )}
-                            {slotAltList.length > 0 &&
-                              openPartAlternatives[altKey] && (
-                                <div className="relative w-full flex flex-col gap-1 pl-2">
-                                  {slotAltList.map((alt, altIdx) => (
-                                    <div
-                                      key={altIdx}
-                                      className="text-white/60 text-xs"
-                                    >
-                                      {alt.gup}
-                                      {alt.note ? ` — ${alt.note}` : ""}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  {desglosesAbiertos[aIdx + 1] && alternativa.desglose && (
+                    <DesglosePanel
+                      desglose={alternativa.desglose}
+                      idioma={idioma}
+                    />
+                  )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {sinCobertura && !nuevaTraduccion && (
+            <div className="relative w-full flex flex-col gap-2 p-4 border border-white/30 rounded-md font-neueL bg-oscuro/50 text-white/60 text-sm">
+              {ETIQUETAS[idioma].sinCobertura}
             </div>
           )}
         </div>

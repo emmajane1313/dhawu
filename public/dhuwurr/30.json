@@ -1,0 +1,54 @@
+[
+  {
+    "locale": "español",
+    "texto": ""
+  },
+  {
+    "locale": "english",
+    "texto": "Now the big architecture: clauses inside clauses. I know that... The woman who... When the boat comes... If you do that... In Gupapuyŋu, an enormous amount of this is carried by one word: <b>ŋunhi</b>.<br/><br/><span style='font-size: 17px; color: #ffff00'>ŋunhi = that (reporting):</span><br/>Ŋarra ŋäkula ŋunhi gäthura walala waṉḏina → I heard that they ran away today<br/>Ŋarra marŋgi ŋunhi nhe ŋuli djäma bitjan bili → I know that you work every day<br/><br/>(Look at that second one paying off three lessons at once: marŋgi, ŋuli, bitjan bili.)<br/><br/>And, very often, you can drop the ŋunhi entirely and just butt the clauses together:<br/>Nhe marŋgi ŋarraku bäpa dhiŋgaŋala dhiyala → You know my father died here. Clauses side by side, no glue, totally natural.<br/><br/><span style='font-size: 17px; color: #ffff00'>ŋunhi = who/which (relative clauses):</span><br/>Ŋarra dhägir'yurruna djamarrkuḻi'nha ŋunhi barpuru walala ŋatha manaŋirri → I punished the children who stole the food yesterday<br/><br/>Notice the walala tucked in after ŋunhi, literally: the children, that THEY stole the food. Gupapuyŋu keeps a pronoun in the relative clause where English leaves a gap. The who is really that + they. Once you see it, relative clauses stop being scary: they're just a pointed that with a pronoun echo.<br/><br/><span style='font-size: 17px; color: #ffff00'>ŋunhi / ŋuli / bäy = when:</span><br/>Ŋunhi mitjiyaŋ dhu marrtji ŋarra dhu gurrupan nhokala → When the boat comes, I'll give it to you<br/><br/>Three interchangeable openers: ŋunhi, ŋuli, bäy. And catch the tense! The boat WILL come, dhu, right there in the when-clause. English says when the boat comes (present); Gupapuyŋu says the honest thing: it hasn't come yet, so it's future. When the boat will come. The grammar refuses to pretend the future already happened.<br/><br/><span style='font-size: 17px; color: #ffff00'>ŋuli / ŋunhi / balaŋu = if:</span><br/>Ŋuli mitjiyaŋ dhu marrtji ŋarra dhu gurrupan nhokala → IF the boat comes, I'll give it to you<br/><br/>Yes, the same little words, now doing if. When and if blur into each other here, and honestly, that's philosophically fair: every when about the future carries a quiet if inside it. You can stack them for emphasis (ŋuli balaŋu...), and slip a ga before the main clause to hinge the two halves.<br/><br/>One word, ŋunhi, holding up reporting, relatives, time and condition. Keep it in your pocket. Next lesson: the rest of the family, because, until, before, after, whether."
+  },
+  {
+    "locale": "عربي",
+    "texto": ""
+  },
+  {
+    "locale": "עברית",
+    "texto": ""
+  },
+  {
+    "locale": "فارسی",
+    "texto": ""
+  },
+  {
+    "locale": "יידיש",
+    "texto": ""
+  },
+  {
+    "locale": "português",
+    "texto": ""
+  },
+  {
+    "locale": "français",
+    "texto": ""
+  },
+  {
+    "locale": "türkiye",
+    "texto": ""
+  },
+  {
+    "locale": "日本語",
+    "texto": ""
+  },
+  {
+    "locale": "magyar",
+    "texto": ""
+  },
+  {
+    "locale": "українська",
+    "texto": ""
+  },
+  {
+    "locale": "gàidhlig (albannach)",
+    "texto": ""
+  }
+]

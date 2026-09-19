@@ -1,0 +1,54 @@
+[
+  {
+    "locale": "español",
+    "texto": ""
+  },
+  {
+    "locale": "english",
+    "texto": "Until now, one clause at a time. Real speech chains events: and, then, so, or, but. Gupapuyŋu has five small joiners, and one genuinely brilliant rule.<br/><br/><span style='font-size: 17px; color: #ffff00'>The five:</span><br/>ga → and<br/>bala → and then, so (sequence, one thing flowing into the next)<br/>bili → so, and so (yes, bili again, chameleon face six)<br/>ŋanydja → or, but<br/>yurru → but<br/><br/>Ŋayi guya nhäŋala ga dharpuŋala → He saw the fish and speared it<br/><br/>(Notice: no repeated he in the second half. Subject said once, understood after. And you can even drop the joiner entirely and just lay clauses side by side, storytellers do it constantly.)<br/><br/><span style='font-size: 17px; color: #ffff00'>The two buts, and the rule I love:</span><br/>English has one but. Gupapuyŋu has two, and chooses by logic:<br/><br/>If the first clause is negative, or holds a maybe (balaŋu, yanapi), the but is ŋanydja:<br/>Ŋayi balaŋu ŋäṉ'thuna ŋanydja ŋayi yaka marrtjinya → He should have asked, but he didn't come<br/><br/>If the first clause is positive and factual, the but is yurru:<br/>Ŋarra djäl dhiyaki yikiwa yurru ŋarra rrupiyamiriw → I want that knife, but I have no money<br/><br/>Feel the difference? ŋanydja contradicts a doubt or an absence; yurru pushes against a solid fact. The grammar tracks the epistemic weather of the sentence. English makes you guess from tone; here it's encoded.<br/><br/><span style='font-size: 17px; color: #ffff00'>Or, between words:</span><br/>Between clauses, or is ŋanydja. But between mere words, you say maku, seasoned with a question word matching what kind of thing you're choosing between:<br/>Ŋarra dhu yiki märrama nhä maku makarrpuy → I'll get a knife or (what-or) some trousers<br/>Boŋa dhu marrtji yol maku Lorru → Boŋa or (who-or) Lorru will go<br/>Märrma' maku ḻurrkun → two or three<br/><br/>What-or for things, who-or for people. Even or knows whether it's choosing between objects or humans.<br/><br/><span style='font-size: 17px; color: #ffff00'>Bonus: the sound-effect words:</span><br/>And since we're chaining actions, meet the interjections, tiny invariant words, each married to a verb, that punch the action: dharr (seeing!), ḏutj (back again!), ḻarr' (off they go!), djip (put!), dhut (sit!), baṯ (hold!).<br/>Dharrnha nhäŋuna! → Look!<br/>Ŋayi marrtjina dhakallili ga ḏutj roŋiyina → He went to the island and, ḏutj, came back<br/><br/>They never conjugate. They're pure gesture in sound, the comic-book POW! of the language, except ancient, precise, and completely standard grammar. A story told with ḻarr' and ḏutj doesn't describe movement. It performs it."
+  },
+  {
+    "locale": "عربي",
+    "texto": ""
+  },
+  {
+    "locale": "עברית",
+    "texto": ""
+  },
+  {
+    "locale": "فارسی",
+    "texto": ""
+  },
+  {
+    "locale": "יידיש",
+    "texto": ""
+  },
+  {
+    "locale": "português",
+    "texto": ""
+  },
+  {
+    "locale": "français",
+    "texto": ""
+  },
+  {
+    "locale": "türkiye",
+    "texto": ""
+  },
+  {
+    "locale": "日本語",
+    "texto": ""
+  },
+  {
+    "locale": "magyar",
+    "texto": ""
+  },
+  {
+    "locale": "українська",
+    "texto": ""
+  },
+  {
+    "locale": "gàidhlig (albannach)",
+    "texto": ""
+  }
+]

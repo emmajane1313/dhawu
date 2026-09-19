@@ -1,0 +1,54 @@
+[
+  {
+    "locale": "español",
+    "texto": ""
+  },
+  {
+    "locale": "english",
+    "texto": "Let's talk about plurals. And let's start with the twist: <b>most of the time, Gupapuyŋu doesn't mark them at all.</b><br/><br/>Ḏirramu marrtjina → The man went. Or: the men went.<br/><br/>Same sentence. Context tells you which. If you've studied Japanese, you already live here, 本 (hon) is a book or books, and nobody panics. Number is simply not information the noun is forced to carry. English makes you declare a count every single time you open your mouth; Gupapuyŋu lets you leave it open until it matters.<br/><br/>And when it does matter? You have a whole toolbox:<br/><br/><span style='font-size: 17px; color: #ffff00'>1. mala, the group word:</span><br/>Ḏirramu mala marrtjina → The men (a group of them) went<br/><br/><span style='font-size: 17px; color: #ffff00'>2. The pronouns you already know:</span><br/>Since Lesson 1 you've had duals and plurals built into every pronoun. Drop a walala or maṉḏa next to the noun and the number is settled. That's why the language never needed an -s: the pronoun system already carries the arithmetic, including the exact two.<br/><br/><span style='font-size: 17px; color: #ffff00'>3. Words that are born plural:</span><br/>Some nouns simply mean a plurality:<br/>djamarrkuḻi' → children<br/>yawirriny' → the young single men<br/>Djamarrkuḻi' ga buḻ'yun → The children are playing.<br/><br/><span style='font-size: 17px; color: #ffff00'>4. Doubling:</span><br/>Remember rendaku and the doubled adjectives from Lesson 19? Verbs can double too, for spread-out, many-actor action:<br/>marrtji → marrtji'marrtji → going along, moving as a bunch<br/><br/><span style='font-size: 17px; color: #ffff00'>5. Actual numbers, when you actually count:</span><br/>waŋgany (one), märrma' (two), ḻurrkun' (three, also a handy few).<br/>And or between numbers is the little word maku:<br/>Märrma' maku ḻurrkun yurru marrtji → Two or three will go.<br/><br/>Notice what this system says about the culture. Counting is available but optional. What's obligatory is the RELATIONSHIP: who's included, who's paired, who's kin, that's what the pronouns encode with surgical precision (inclusive, exclusive, dual!). Quantity is a detail. Company is grammar.<br/><br/>English asks: how many?<br/>Gupapuyŋu asks: who's with whom?"
+  },
+  {
+    "locale": "عربي",
+    "texto": ""
+  },
+  {
+    "locale": "עברית",
+    "texto": ""
+  },
+  {
+    "locale": "فارسی",
+    "texto": ""
+  },
+  {
+    "locale": "יידיש",
+    "texto": ""
+  },
+  {
+    "locale": "português",
+    "texto": ""
+  },
+  {
+    "locale": "français",
+    "texto": ""
+  },
+  {
+    "locale": "türkiye",
+    "texto": ""
+  },
+  {
+    "locale": "日本語",
+    "texto": ""
+  },
+  {
+    "locale": "magyar",
+    "texto": ""
+  },
+  {
+    "locale": "українська",
+    "texto": ""
+  },
+  {
+    "locale": "gàidhlig (albannach)",
+    "texto": ""
+  }
+]

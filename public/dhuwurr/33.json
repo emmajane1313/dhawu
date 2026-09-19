@@ -1,0 +1,54 @@
+[
+  {
+    "locale": "español",
+    "texto": ""
+  },
+  {
+    "locale": "english",
+    "texto": "You've been saying dhuwala since Lesson 2. Time to meet its whole family, because pointing, in Gupapuyŋu, is a full grammatical system.<br/><br/>Three distances, not two. English has this/that. Gupapuyŋu has:<br/>dhuwala → this (right here, near me)<br/>dhuwali → that (near you)<br/>ŋunha → that yonder (away from us both)<br/><br/>Three zones: mine, yours, beyond. The space between speakers is mapped before anything is even said about it. (Japanese speakers, hello again: これ/それ/あれ, kore/sore/are, the exact same three-way split.)<br/><br/>And the places to match:<br/>dhiyala → here<br/>dhiyali → there (by you)<br/>ŋunhili → there yonder<br/><br/>Barpuru ŋayi ga nhina dhiyala bala'ŋura → Yesterday he was here in this hut<br/>Yolŋu ŋunha rirrikthun ga wäŋiya → There's a person sick over there in the camp<br/><br/>And movement toward: dhipala → onto this / to here:<br/>Rulwaŋdhurru dhipala tablelili → Put it on this table<br/><br/>Now the part that makes this a system and not a word list: <b>demonstratives take case, just like nouns.</b> When this-one does something, wants something, or owns the action, the pointer itself inflects:<br/><br/>dhiyaŋu → this one (as doer, ergative)<br/>dhiyaki → for this one (dative)<br/>ŋuriŋi → that one (as doer)<br/><br/>Dhiyaŋi miyalkthu nhanŋu ŋatha gäŋala nhanukuŋu → THAT woman took his food from him (the demonstrative AND the noun both carry the doer-marking)<br/>Dhiyaki ŋarra djälnydja → It's THIS one I want<br/><br/>Same logic you learned in Lesson 11, applied to the pointing words. Nothing new to memorise, just the suffix system reaching one more word class.<br/><br/>One more secret: Gupapuyŋu has no word for the. And it doesn't need one, because dhuwala / dhuwali / ŋunhi do that work. When a story keeps referring back to someone already mentioned, ŋunhi steps in: that (aforementioned) one. English the is just a demonstrative that went pale with overuse; here the pointing stays vivid.<br/><br/>Think about why a land-based oral culture would grow THREE distances and case-marked pointers. Because where something sits, relative to me, to you, to the country, is never incidental information. It's the first fact. The grammar points before it describes."
+  },
+  {
+    "locale": "عربي",
+    "texto": ""
+  },
+  {
+    "locale": "עברית",
+    "texto": ""
+  },
+  {
+    "locale": "فارسی",
+    "texto": ""
+  },
+  {
+    "locale": "יידיש",
+    "texto": ""
+  },
+  {
+    "locale": "português",
+    "texto": ""
+  },
+  {
+    "locale": "français",
+    "texto": ""
+  },
+  {
+    "locale": "türkiye",
+    "texto": ""
+  },
+  {
+    "locale": "日本語",
+    "texto": ""
+  },
+  {
+    "locale": "magyar",
+    "texto": ""
+  },
+  {
+    "locale": "українська",
+    "texto": ""
+  },
+  {
+    "locale": "gàidhlig (albannach)",
+    "texto": ""
+  }
+]

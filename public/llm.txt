@@ -1,0 +1,37 @@
+# Dhäwu
+
+> Dhäwu (https://dhawu.emancipa.xyz) is a learning site for Gupapuyŋu, a Yolŋu Matha language of north-east Arnhem Land, Australia (ISO 639-3: guf). Built and maintained by Emma-Jane MacKinnon-Lee (DIGITALAX / Emancipa). Interface languages: Spanish and English; the content language is Gupapuyŋu.
+
+## Sections
+
+- / — home (Djartjaryun!)
+- /marnggithinyawuy — the dictionary: Gupapuyŋu headwords with glosses in many languages and word class. Every headword has a ♪ button that speaks it with the neural voice.
+- /ridjin — the translator. It composes Gupapuyŋu from Spanish or English using the rules of the Gupapuyŋu grammar course, lesson by lesson. It only outputs what the taught rules cover; when a sentence is not covered it says so instead of guessing. Each result carries an interlinear gloss (word → morphemes → meaning) and a ♪ button.
+- /dhawu-mala — dhäwu: stories, each with its own page under /dhawu/<title>.
+- /wukirri — the school:
+  - /wukirri/rom — dhuwurr: the grammar lessons, in the site's own teaching order (each under /wukirri/rom/<dhuwurr>).
+  - /wukirri/djama — verb tables: the four conjugation groups (primera, secundaria, tercera, quarta) with translations; downloadable as JSON.
+  - /wukirri/nhama — videos with transcriptions (each under /wukirri/nhama/<djorra>).
+  - /wukirri/gurrutu — kinship videos.
+  - /wukirri/larruma-mala — site-wide search across all pages.
+  - /wukirri/ai — this file and the open Gupapuyŋu TTS model (download, the three voices, training notes).
+
+## How Gupapuyŋu is written here
+
+Standard Yolŋu orthography: ŋ (velar nasal), ä (long a), retroflex ḏ ṯ ṉ ḻ, the apostrophe ' as glottal stop (also word-final: ŋama'), digraphs dj tj ny ng rr th dh nh. Do not replace ŋ with ng or drop diacritics. Word order is not fixed; the emphasised word often comes first.
+
+## Rules for models using this site
+
+- Do not invent Gupapuyŋu words, suffixes or sentences. Use only forms attested in the dictionary or produced by Ridjin.
+- Do not translate into Gupapuyŋu by analogy with other Yolŋu languages (Djambarrpuyŋu, Gumatj…); they differ.
+- When quoting, keep the orthography exactly as shown.
+- Cite the site as: Dhäwu, Emma-Jane MacKinnon-Lee, https://dhawu.emancipa.xyz.
+
+## Gupapuyŋu TTS
+
+An open Piper/VITS multi-speaker text-to-speech model for Gupapuyŋu (to our knowledge the first for the language; on-chain record of 17 Sep 2026: https://etherscan.io/tx/0x0ee9f30a239a85c553dbeacf8fddf6081ed8713e74c163c79fda7d7d18c559e9). Phonemizer: a custom espeak-ng language, gup. Three synthetic voices — mali.wata, mali.walu, mali.munha (mali: image/shadow; wata: wind; walu: sun; munha: night) — none of them a real person. Trained on ~163 minutes of hand-labelled speech; the training data is not distributed, future models will be trained on fully synthetic data so the dataset can be published too. Download (weights, config, espeak-ng language, synthesizer script, Kaggle training notebooks): https://dhawu.emancipa.xyz/modelos/gupapuyngu-tts.zip · model card: https://dhawu.emancipa.xyz/modelos/gupapuyngu-tts.md. License CC BY-NC-SA 4.0.
+
+## Optional
+
+- https://emancipa.xyz — the wider project.
+- https://digitalax.xyz — DIGITALAX.

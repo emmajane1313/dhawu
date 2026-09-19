@@ -1,13 +1,15 @@
 "use client";
 
 import useDjama from "@/app/components/hooks/useDjama";
+import Altavoz from "@/app/components/modules/Altavoz";
 import { useRouter } from "next/navigation";
 import { IoArrowBackCircle } from "react-icons/io5";
 import { IoMdDownload } from "react-icons/io";
 
 export default function Djama() {
   const router = useRouter();
-  const { search, handleSearch, filtered, downloadJsonFromUrl } = useDjama();
+  const { search, handleSearch, filtered, limite, mostrarMas, downloadJsonFromUrl } =
+    useDjama();
 
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between text-white overflow-y-scroll pt-2 px-2 font-neueL">
@@ -39,21 +41,27 @@ export default function Djama() {
         </div>
         <div className="relative w-full flex overflow-y-scroll">
           <div className="relative w-full h-fit flex flex-col items-start justify-start gap-5">
-            {filtered.map((entry) => (
+            <div className="relative w-fit h-fit flex text-xs text-white/60">
+              {filtered.length} djäma
+            </div>
+            {filtered.slice(0, limite).map((entry) => (
               <div
                 className="relative w-full h-fit flex flex-col gap-2"
                 key={entry.id}
               >
-                <div className="relative text-lg underline underline-offset-3 text-oscuro">
-                  {entry.vtr || entry?.vin
-                    ? `${entry.id} (ŋurruk ${entry.grupo}) — ${
-                        entry.vtr && entry?.vin
-                          ? "Vtr. / Vin."
-                          : entry?.vtr
-                          ? "Vtr."
-                          : "Vin."
-                      }`
-                    : `${entry.id} (ŋurruk ${entry.grupo})`}
+                <div className="relative w-fit h-fit flex flex-row items-center gap-2">
+                  <div className="relative text-lg underline underline-offset-3 text-oscuro">
+                    {entry.vtr || entry?.vin
+                      ? `${entry.id} (ŋurruk ${entry.grupo}) — ${
+                          entry.vtr && entry?.vin
+                            ? "Vtr. / Vin."
+                            : entry?.vtr
+                            ? "Vtr."
+                            : "Vin."
+                        }`
+                      : `${entry.id} (ŋurruk ${entry.grupo})`}
+                  </div>
+                  <Altavoz texto={entry.id} />
                 </div>
                 <div className="relative w-full h-fit flex gap-2 justify-between items-center text-sm pb-4">
                   {["primera", "secundaria", "tercera", "quarta"].map(
@@ -67,8 +75,16 @@ export default function Djama() {
                             {indice + 1}
                           </div>
                           <div className="relative w-full h-px bg-white/40"></div>
-                          <div className="relative w-fit h-fit flex">
-                            {entry?.[elemento as "primera"]}
+                          <div className="relative w-fit h-fit flex flex-row flex-wrap items-center justify-center gap-1">
+                            <div className="relative w-fit h-fit flex">
+                              {entry?.[elemento as "primera"]}
+                            </div>
+                            {entry?.[elemento as "primera"] && (
+                              <Altavoz
+                                texto={entry[elemento as "primera"].split(" / ")[0]}
+                                tamano="w-4 h-4"
+                              />
+                            )}
                           </div>
                         </div>
                       );
@@ -97,6 +113,14 @@ export default function Djama() {
                 })}
               </div>
             ))}
+            {filtered.length > limite && (
+              <div
+                className="relative w-full h-fit flex items-center justify-center p-3 border border-amarillo rounded-md text-amarillo cursor-point hover:bg-amarillo/10"
+                onClick={() => mostrarMas()}
+              >
+                Bulu
+              </div>
+            )}
           </div>
         </div>
       </div>
