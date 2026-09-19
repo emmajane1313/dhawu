@@ -16,7 +16,11 @@ export default function NotaVoz({ texto, voz, sonando, sonar }: NotaVozProps) {
           : "border-white/30 text-white/60 cursor-point hover:border-amarillo hover:text-amarillo"
       }`}
     >
-      {activo ? "…" : "♪"}
+      {activo ? (
+        <div className="relative w-2/3 h-2/3 rounded-full border border-oscuro border-t-transparent animate-spin"></div>
+      ) : (
+        "♪"
+      )}
     </div>
   );
 }
