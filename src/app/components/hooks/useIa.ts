@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { LanguageMode } from "../types/components.type";
 import { EstadoIa } from "../types/ia.type";
 import { elegirVoz, urlVoz, vozElegida } from "./useVoz";
+import { useTraduccion } from "./useTraduccion";
 
 const useIa = (): EstadoIa => {
+  const { traduccion } = useTraduccion();
   const [idioma, setIdioma] = useState<LanguageMode>("es");
   const [vozActiva, setVozActiva] = useState<string | null>(null);
   const [textoLibre, setTextoLibre] = useState("");
@@ -13,6 +15,10 @@ const useIa = (): EstadoIa => {
   useEffect(() => {
     setVozActiva(vozElegida());
   }, []);
+
+  useEffect(() => {
+    if (traduccion) setIdioma(traduccion);
+  }, [traduccion]);
 
   const activar = (id: string) => {
     elegirVoz(id);

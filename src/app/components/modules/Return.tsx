@@ -3,9 +3,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { IoArrowBackCircle } from "react-icons/io5";
 import { ReturnProps } from "../types/components.type";
+import { useTraduccion } from "../hooks/useTraduccion";
 
-export default function Return({ image, path }: ReturnProps) {
+export default function Return({ image, src, path }: ReturnProps) {
   const router = useRouter();
+  const { g } = useTraduccion();
 
   return (
     <div className="relative w-full sm:w-fit h-fit sm:h-full flex">
@@ -15,7 +17,7 @@ export default function Return({ image, path }: ReturnProps) {
           layout="fill"
           className="rounded-md"
           draggable={false}
-          src={`${INTERNAL_INFURA_GATEWAY}${image}`}
+          src={src ?? `${INTERNAL_INFURA_GATEWAY}${image}`}
           objectFit="cover"
           priority
         />
@@ -24,7 +26,7 @@ export default function Return({ image, path }: ReturnProps) {
           onClick={() => router.push(path)}
         >
           <IoArrowBackCircle color="white" size={15} />
-          <div className="relative w-fit h-fit flex">roŋi'ruŋiyi</div>
+          <div className="relative w-fit h-fit flex">{g("roŋi'ruŋiyi")}</div>
         </div>
       </div>
     </div>

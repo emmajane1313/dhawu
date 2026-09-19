@@ -4,10 +4,12 @@ import { IoMdDownload } from "react-icons/io";
 import useMarng from "../components/hooks/useMarng";
 import Return from "../components/modules/Return";
 import Altavoz from "../components/modules/Altavoz";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 export default function Marnggithinyawuy() {
   const { search, handleSearch, filtered, limite, mostrarMas, downloadJsonFromUrl } =
     useMarng();
+  const { g } = useTraduccion();
 
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between text-white overflow-y-scroll overflow-x-hidden pt-2 px-2 font-neueL">
@@ -17,7 +19,7 @@ export default function Marnggithinyawuy() {
       />
       <div className="relative w-full min-w-0 flex items-center justify-start h-full flex-col gap-4 flex-col">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-2xl sm:text-4xl lg:text-7xl font-estilo text-amarillo">
-          Dhäruk Mala
+          {g("Dhäruk Mala")}
           <div
             className="absolute z-10 right-2 top-2 w-fit h-fit cursor-point hover:opacity-70 bg-black p-1 border border-white rounded-md items-center justify-center"
             onClick={() => downloadJsonFromUrl()}
@@ -28,7 +30,7 @@ export default function Marnggithinyawuy() {
         <div className="relative w-full h-fit flex">
           <input
             type="text"
-            placeholder="Ḻarruma..."
+            placeholder={g("Ḻarruma...")}
             className="w-full p-3 border rounded h-10"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
@@ -37,7 +39,7 @@ export default function Marnggithinyawuy() {
         <div className="relative w-full min-w-0 flex-1 min-h-0 flex overflow-y-auto overflow-x-auto">
           <div className="relative w-max min-w-full h-fit flex flex-col items-start justify-start gap-5 pb-10">
             <div className="relative w-fit h-fit flex text-xs text-white/40">
-              {filtered.length} dhäruk
+              {filtered.length} {g("dhäruk")}
             </div>
             {filtered.slice(0, limite).map((entry) => (
               <div
@@ -82,7 +84,7 @@ export default function Marnggithinyawuy() {
                 className="relative w-full h-fit flex items-center justify-center p-3 border border-amarillo rounded-md text-amarillo cursor-point hover:bg-amarillo/10"
                 onClick={() => mostrarMas()}
               >
-                Bulu
+                {g("Bulu")}
               </div>
             )}
           </div>

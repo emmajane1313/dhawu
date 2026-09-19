@@ -15,8 +15,10 @@ import {
   VOCES_TTS,
 } from "@/app/lib/constantes";
 import { IoMdDownload } from "react-icons/io";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 export default function Ai() {
+  const { g } = useTraduccion();
   const {
     idioma,
     setIdioma,
@@ -32,10 +34,7 @@ export default function Ai() {
 
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between pt-2 px-2 overflow-hidden">
-      <Return
-        image={"QmU7tUyRwWUY4G4eYBQYpEYXWR8SgLsca2weVpc1ByaqVQ"}
-        path="/wukirri"
-      />
+      <Return src="/images/ai-largo.png" path="/wukirri" />
       <div className="relative w-full flex items-center justify-start h-full min-h-0 flex-col gap-4 text-white font-neueL overflow-y-scroll">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-5xl sm:text-7xl font-estilo text-amarillo">
           AI
@@ -43,7 +42,7 @@ export default function Ai() {
 
         <div className="relative w-full h-fit flex flex-row flex-wrap gap-2 items-center justify-between text-xs">
           <div className="relative w-fit h-fit flex text-sm sm:text-base text-white">
-            {LEMA_IA}
+            {g(LEMA_IA)}
           </div>
           <div className="relative w-fit h-fit flex flex-row gap-2 items-center">
             {IDIOMAS.map((id) => (

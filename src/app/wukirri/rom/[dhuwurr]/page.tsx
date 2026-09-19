@@ -6,10 +6,12 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { IoMdDownload } from "react-icons/io";
 import { IoArrowBackCircle } from "react-icons/io5";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 export default function Dhuwurr() {
   const router = useRouter();
   const id = useParams();
+  const { g } = useTraduccion();
   const { data, idioma, setIdioma, datosCargando, downloadJsonFromUrl } =
     useDhuwurr(Number(id?.dhuwurr));
 
@@ -21,7 +23,7 @@ export default function Dhuwurr() {
           onClick={() => router.push("/wukirri/rom")}
         >
           <IoArrowBackCircle color="white" size={15} />
-          <div className="relative w-fit h-fit flex">roŋi'ruŋiyi</div>
+          <div className="relative w-fit h-fit flex">{g("roŋi'ruŋiyi")}</div>
         </div>
         <div
           className="relative w-fit h-fit cursor-point hover:opacity-70 bg-black p-1 border border-white rounded-md items-center justify-center"

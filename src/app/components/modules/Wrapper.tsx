@@ -2,12 +2,14 @@
 
 import useParticles from "../hooks/useParticles";
 import Footer from "./Footer";
+import Traductor from "./Traductor";
 import Particles from "@tsparticles/react";
 
 export default function Wrapper({ children }: { children: React.ReactNode }) {
   const { init, particlesLoaded } = useParticles();
 
   return (
+    <Traductor>
     <div className="bg-black w-full p-2 md:p-10 min-h-[700px] h-screen flex flex-col items-center justify-center">
       {init && (
         <Particles
@@ -71,5 +73,6 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
         <Footer />
       </div>
     </div>
+    </Traductor>
   );
 }

@@ -9,10 +9,12 @@ import { useParams, useRouter } from "next/navigation";
 import { FormEvent } from "react";
 import { IoArrowBackCircle } from "react-icons/io5";
 import { MdSubtitles, MdSubtitlesOff } from "react-icons/md";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 export default function Djorra() {
   const router = useRouter();
   const id = useParams();
+  const { g } = useTraduccion();
   const {
     videoActual,
     progressRef,
@@ -34,7 +36,7 @@ export default function Djorra() {
         onClick={() => router.push("/wukirri/nhama")}
       >
         <IoArrowBackCircle color="white" size={15} />
-        <div className="relative w-fit h-fit flex">roŋi'ruŋiyi</div>
+        <div className="relative w-fit h-fit flex">{g("roŋi'ruŋiyi")}</div>
       </div>
       <div className="relative w-full flex flex-col gap-2 h-full items-start justify-start">
         <video
@@ -168,7 +170,7 @@ export default function Djorra() {
       <div className="relative w-full h-fit flex flex-wrap gap-3 text-xs justify-center overflow-y-scroll pb-3">
         <div className="relative w-full h-fit flex flex-col gap-2 items-start justify-start">
           <div className="relative text-lg w-fit h-fit underline underline-offset-3">
-            Matha Mala
+            {g("Matha Mala")}
           </div>
           <div className="relative w-full h-fit flex flex-wrap gap-3 text-xs justify-start">
             {videoActual?.videos?.map((video, indice) => {
@@ -195,7 +197,7 @@ export default function Djorra() {
         </div>
         <div className="relative w-full h-fit flex flex-col gap-2 items-start justify-start">
           <div className="relative text-lg w-fit h-fit underline underline-offset-3">
-            Djarrma
+            {g("Djarrma")}
           </div>
           <div className="relative w-full h-fit flex flex-wrap gap-3 text-xs justify-start">
             {videoActual?.transcripciones?.map((tran, indice) => {

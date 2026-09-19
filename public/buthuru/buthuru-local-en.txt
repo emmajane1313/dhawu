@@ -1,0 +1,69 @@
+BUTHURU — run the Gupapuyŋu dataset builder on your own computer
+(instructions written to be handed to an AI assistant; paste this whole file and ask it to guide you step by step)
+
+GOAL
+Run the web page "Buthuru" locally so that audio and text never leave the machine. The page cuts recordings into sentences, lets the user type what is heard, optionally anonymises the voice, and downloads a zip ready for training a Piper/VITS text-to-speech model on Kaggle. Everything runs in the browser (JavaScript); there is no backend.
+
+WHAT THE USER NEEDS
+- A computer with macOS, Windows or Linux.
+- Node.js (LTS) and git installed.
+- A browser (Chrome, Firefox, Edge or Safari).
+
+STEP 1 — install Node.js
+- macOS / Windows: go to https://nodejs.org , download the LTS installer, run it.
+- Linux (Debian/Ubuntu): sudo apt install nodejs npm
+- Check: open a terminal and run:  node -v   and   npm -v   (both should print a version number)
+
+STEP 2 — install git
+- macOS: in a terminal run:  xcode-select --install   (accept the dialog)
+- Windows: download the installer from https://git-scm.com and run it
+- Linux (Debian/Ubuntu): sudo apt install git
+- Check:  git --version
+
+STEP 3 — clone the repository and start the page
+Open a terminal (macOS: Terminal; Windows: PowerShell; Linux: Terminal) and run, one line at a time:
+
+git clone https://github.com/emmajane1313/dhawu
+cd dhawu
+npm install
+npm run dev
+
+"npm install" downloads the page's dependencies (this is the only step that needs internet). "npm run dev" starts a local web server; leave that terminal open. When it prints "Ready" (or "Local: http://localhost:3000"), the page is up.
+
+STEP 4 — open the page
+In the browser go to:  http://localhost:3000/wukirri/buthuru
+
+STEP 5 — optional proof that nothing leaves the computer
+Wait until the page shows "ready to work offline", then turn off wifi/ethernet. The whole process (upload, record, cut, label, anonymise, download zip) keeps working, because nothing is sent anywhere. You can also open the browser's developer tools (Inspect → Network) and watch: after the page has loaded there are no further requests.
+
+STEP 6 — use the page
+1. "upload files" (mp3, wav, m4a, ogg, flac) or "record me" (microphone; the recording stays in the browser's memory).
+2. The audio is cut into chunks at pauses. Adjust threshold / minimum silence / minimum chunk length and press "cut again" if the cuts are wrong.
+3. Optionally paste the full text of the recording in the left panel; select a sentence with the mouse and press "use selection" on the matching chunk. Or type directly in each chunk's box. Ctrl+Space in a box plays that chunk.
+4. Per chunk, "trim start" / "trim end" (seconds) remove noise or a false start at either edge.
+5. ▶ plays the original, ◈ plays the anonymised version. The "anonymous" toggle decides which one goes into the zip. Sliders: alpha (vocal tract length), semitones (pitch), rhythm, variation.
+6. "gup_dataset.zip" downloads:
+   dataset/metadata.csv        id|text, one line per chunk that has text
+   dataset/wavs/<id>.wav       22050 Hz, mono, 16-bit
+   espeak-gup/                 espeak-ng language files for Gupapuyŋu
+   train_kaggle.ipynb          single-voice training notebook
+   train_multi_kaggle.ipynb    multi-voice training notebook
+   README.md                   Kaggle steps
+   Labels and trims are kept in the browser's localStorage; the audio itself is not (close the tab and it is gone), so download the zip before closing.
+
+STEP 7 — train on Kaggle (free GPU)
+1. kaggle.com → Datasets → New Dataset: upload gup_dataset.zip, name the dataset "gup-dataset".
+2. Code → New Notebook → File → Import Notebook → train_kaggle.ipynb (from the zip).
+3. Right panel: Accelerator = GPU T4 x2 (or P100), Internet = ON; Add Input → gup-dataset.
+4. Save Version → Save & Run All. Each cycle trains about 4 h 45 min and stops itself.
+5. Output: gup.onnx + gup.onnx.json (the model) and gup-checkpoint.tar. To keep training, upload gup-checkpoint.tar as a dataset named "gup-checkpoint", add it as a second input and run again.
+
+STEP 8 — stop
+Back in the terminal press Ctrl+C to stop the local server. Delete the "dhawu" folder if you no longer need it.
+
+TROUBLESHOOTING
+- "command not found: node/npm/git": the install did not finish or the terminal was opened before installing; close and reopen the terminal.
+- "npm install" fails on Windows with a permissions error: run PowerShell as administrator, or install Node.js again ticking "Automatically install the necessary tools".
+- Port 3000 already in use: run  npm run dev -- -p 3001  and open http://localhost:3001/wukirri/buthuru
+- The microphone button does nothing: the browser needs permission to use the microphone; allow it in the address bar. On localhost this works without https.
+- Chunks are too long / too short: raise or lower "min. silence" and press "cut again".

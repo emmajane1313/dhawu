@@ -8,12 +8,14 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { IoArrowBackCircle } from "react-icons/io5";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 export default function Title() {
   const id = useParams();
   const path = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { g } = useTraduccion();
 
   const {
     capituloActual,
@@ -31,7 +33,7 @@ export default function Title() {
           onClick={() => router.push("/dhawu-mala")}
         >
           <IoArrowBackCircle color="white" size={15} />
-          <div className="relative w-fit h-fit flex">roŋi'ruŋiyi</div>
+          <div className="relative w-fit h-fit flex">{g("roŋi'ruŋiyi")}</div>
         </div>
       </div>
       <div className="relative w-fit h-fit flex items-center justify-center flex-row gap-3 text-white text-xs font-manga z-20 sm:flex-nowrap flex-wrap">
@@ -39,7 +41,7 @@ export default function Title() {
           className="relative w-24 h-fit border border-white flex items-center justify-center cursor-point hover:opacity-70 p-2"
           onClick={() => setAbrirCapitulo(!abrirCapitulo)}
         >
-          {`Djorra' ${capituloActual + 1}`}
+          {`${g("Djorra'")} ${capituloActual + 1}`}
         </div>
         {abrirCapitulo && (
           <div className="absolute top-8 left-0 flex flex-col items-center justify-center w-24 border-b">
@@ -64,7 +66,7 @@ export default function Title() {
                     );
                   }}
                 >
-                  {`Djorra' ${indice + 1}`}
+                  {`${g("Djorra'")} ${indice + 1}`}
                 </div>
               );
             })}
@@ -93,7 +95,7 @@ export default function Title() {
             }
           }}
         >
-          bulu
+          {g("bulu")}
         </div>
       </div>
       <Capitulos

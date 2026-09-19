@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Return from "@/app/components/modules/Return";
 import Altavoz from "@/app/components/modules/Altavoz";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 import { IDIOMAS } from "@/app/lib/constantes";
 import { LanguageMode } from "../components/types/components.type";
 import { traducir } from "../components/hooks/useRidjin";
@@ -104,6 +105,11 @@ export default function Ridjin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [idioma, setIdioma] = useState<LanguageMode>("es");
+  const { traduccion, g } = useTraduccion();
+
+  useEffect(() => {
+    if (traduccion) setIdioma(traduccion);
+  }, [traduccion]);
   const [desglosesAbiertos, setDesglosesAbiertos] = useState<
     Record<number, boolean>
   >({});
@@ -144,7 +150,7 @@ export default function Ridjin() {
       />
       <div className="relative w-full flex items-center justify-start h-full flex-col gap-4">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-5xl sm:text-7xl font-estilo text-amarillo">
-          Ridjin
+          {g("Ridjin")}
         </div>
         <div className="relative w-full flex flex-col gap-4 p-4 border border-white rounded-md bg-oscuro overflow-y-scroll">
           <div className="relative w-full flex flex-col gap-3">
@@ -183,7 +189,7 @@ export default function Ridjin() {
                 disabled={loading}
                 className="relative w-full px-4 py-3 bg-white text-oscuro font-neueL rounded-md hover:opacity-80 disabled:opacity-50 cursor-point disabled:cursor-art"
               >
-                {loading ? "Traduciendo..." : "Marrtji →"}
+                {loading ? "Traduciendo..." : g("Marrtji →")}
               </button>
             </div>
           </div>

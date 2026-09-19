@@ -1,0 +1,69 @@
+BUTHURU — ejecutar el constructor de datasets de gupapuyŋu en tu propio ordenador
+(instrucciones escritas para dárselas a una IA: pega este archivo entero y pídele que te guíe paso a paso)
+
+OBJETIVO
+Ejecutar la página web "Buthuru" en local para que el audio y el texto nunca salgan del ordenador. La página corta grabaciones en frases, permite escribir lo que se oye en cada una, anonimiza la voz si se quiere, y descarga un zip listo para entrenar un modelo de texto a voz Piper/VITS en Kaggle. Todo corre en el navegador (JavaScript); no hay ningún backend.
+
+QUÉ NECESITA LA PERSONA
+- Un ordenador con macOS, Windows o Linux.
+- Node.js (LTS) y git instalados.
+- Un navegador (Chrome, Firefox, Edge o Safari).
+
+PASO 1 — instalar Node.js
+- macOS / Windows: ir a https://nodejs.org , descargar el instalador LTS y ejecutarlo.
+- Linux (Debian/Ubuntu): sudo apt install nodejs npm
+- Comprobar: abrir una terminal y ejecutar:  node -v   y   npm -v   (los dos deben imprimir un número de versión)
+
+PASO 2 — instalar git
+- macOS: en una terminal ejecutar:  xcode-select --install   (aceptar el diálogo)
+- Windows: descargar el instalador de https://git-scm.com y ejecutarlo
+- Linux (Debian/Ubuntu): sudo apt install git
+- Comprobar:  git --version
+
+PASO 3 — clonar el repositorio y arrancar la página
+Abrir una terminal (macOS: Terminal; Windows: PowerShell; Linux: Terminal) y ejecutar, una línea cada vez:
+
+git clone https://github.com/emmajane1313/dhawu
+cd dhawu
+npm install
+npm run dev
+
+"npm install" descarga las dependencias de la página (es el único paso que necesita internet). "npm run dev" arranca un servidor web local; dejar esa terminal abierta. Cuando imprima "Ready" (o "Local: http://localhost:3000"), la página está lista.
+
+PASO 4 — abrir la página
+En el navegador ir a:  http://localhost:3000/wukirri/buthuru
+
+PASO 5 — prueba opcional de que nada sale del ordenador
+Esperar a que la página muestre "lista para trabajar sin red" y apagar el wifi/ethernet. Todo el proceso (subir, grabar, cortar, etiquetar, anonimizar, descargar el zip) sigue funcionando, porque no se envía nada a ningún sitio. También se puede abrir las herramientas de desarrollo del navegador (Inspeccionar → Red) y mirar: tras cargar la página no hay más peticiones.
+
+PASO 6 — usar la página
+1. "subir archivos" (mp3, wav, m4a, ogg, flac) o "grabarme" (micrófono; la grabación se queda en la memoria del navegador).
+2. El audio se corta en trozos en las pausas. Ajustar umbral / silencio mín. / trozo mín. y pulsar "volver a cortar" si los cortes no están bien.
+3. Opcionalmente pegar el texto completo de la grabación en el panel izquierdo; seleccionar una frase con el ratón y pulsar "usar selección" en el trozo correspondiente. O escribir directamente en la caja de cada trozo. Ctrl+Espacio en una caja reproduce ese trozo.
+4. En cada trozo, "quitar inicio" / "quitar final" (segundos) recortan ruido o un arranque en falso en cualquiera de los dos bordes.
+5. ▶ reproduce el original, ◈ la versión anonimizada. El interruptor "anónimo" decide cuál va al zip. Controles: α (longitud del tracto vocal), semitonos (tono), ritmo, variación.
+6. "gup_dataset.zip" descarga:
+   dataset/metadata.csv        id|texto, una línea por trozo con texto
+   dataset/wavs/<id>.wav       22050 Hz, mono, 16 bits
+   espeak-gup/                 archivos de idioma espeak-ng para gupapuyŋu
+   train_kaggle.ipynb          notebook de entrenamiento de una voz
+   train_multi_kaggle.ipynb    notebook de entrenamiento multi-voz
+   README.md                   pasos de Kaggle
+   Las etiquetas y los recortes se guardan en el localStorage del navegador; el audio no (al cerrar la pestaña desaparece), así que descargar el zip antes de cerrar.
+
+PASO 7 — entrenar en Kaggle (GPU gratis)
+1. kaggle.com → Datasets → New Dataset: subir gup_dataset.zip, nombrar el dataset "gup-dataset".
+2. Code → New Notebook → File → Import Notebook → train_kaggle.ipynb (del zip).
+3. Panel derecho: Accelerator = GPU T4 x2 (o P100), Internet = ON; Add Input → gup-dataset.
+4. Save Version → Save & Run All. Cada ciclo entrena unas 4 h 45 min y se detiene solo.
+5. Output: gup.onnx + gup.onnx.json (el modelo) y gup-checkpoint.tar. Para seguir entrenando, subir gup-checkpoint.tar como un dataset llamado "gup-checkpoint", añadirlo como segunda entrada y ejecutar otra vez.
+
+PASO 8 — parar
+En la terminal pulsar Ctrl+C para detener el servidor local. Borrar la carpeta "dhawu" si ya no hace falta.
+
+PROBLEMAS FRECUENTES
+- "command not found: node/npm/git": la instalación no terminó o la terminal se abrió antes de instalar; cerrar y volver a abrir la terminal.
+- "npm install" falla en Windows con un error de permisos: ejecutar PowerShell como administrador, o instalar Node.js de nuevo marcando "Automatically install the necessary tools".
+- El puerto 3000 ya está en uso: ejecutar  npm run dev -- -p 3001  y abrir http://localhost:3001/wukirri/buthuru
+- El botón del micrófono no hace nada: el navegador necesita permiso para usar el micrófono; permitirlo en la barra de direcciones. En localhost funciona sin https.
+- Los trozos salen demasiado largos / cortos: subir o bajar "silencio mín." y pulsar "volver a cortar".

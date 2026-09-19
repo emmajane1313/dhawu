@@ -1,7 +1,12 @@
 import { FunctionComponent, JSX } from "react";
 import MarqueeText from "react-fast-marquee";
+import { useTraduccion } from "../hooks/useTraduccion";
+
+const TEXTO_MARQUEE =
+  "Ŋarra yäku Emma-Jane MacKinnon-Lee. Nhämirri walala? Ŋarrakuŋu dhuwala djämapuy. Ŋarra djäl marŋgithinyawu djambarrpuyŋuwu ga gupapuyŋuwu. Dhuwala, ŋarra ŋuli ga wukirri. Ŋarrakuŋu wukirriwuy bäna balaŋu ḏuḏupmaraŋu.";
 
 const Marquee: FunctionComponent = (): JSX.Element => {
+  const { g } = useTraduccion();
   return (
     <div className="relative bottom-0 left-0 w-full h-fit flex flex-col z-20">
       <div className="relative w-full bg-azul h-3"></div>
@@ -12,10 +17,7 @@ const Marquee: FunctionComponent = (): JSX.Element => {
           {Array.from({ length: 30 }).map((_, index: number) => {
             return (
               <span className="relative text-xs text-white px-5" key={index}>
-                Ŋarra yäku Emma-Jane MacKinnon-Lee. Nhämirri walala? Ŋarrakuŋu dhuwala
-                djämapuy. Ŋarra djäl marŋgithinyawu djambarrpuyŋuwu ga
-                gupapuyŋuwu. Dhuwala, ŋarra ŋuli ga wukirri. Ŋarrakuŋu
-                wukirriwuy bäna balaŋu ḏuḏupmaraŋu.
+                {g(TEXTO_MARQUEE)}
               </span>
             );
           })}

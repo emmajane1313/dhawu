@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "./etiquetar";
 
 @font-face {
   font-family: "Manga";

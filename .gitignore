@@ -60,3 +60,5 @@ scripts/
 *.ckpt
 *.tar
 *.ipynb
+!/public/buthuru/**
+/public/trozos_anon/

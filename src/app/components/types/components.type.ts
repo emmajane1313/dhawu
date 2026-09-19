@@ -30,7 +30,8 @@ export type DictionaryEntry = {
 };
 
 export type ReturnProps = {
-  image: string;
+  image?: string;
+  src?: string;
   path: string;
 };
 
@@ -143,6 +144,14 @@ export interface Larramu {
 }
 
 export type LanguageMode = "es" | "en";
+
+export type Traduccion = LanguageMode | null;
+
+export type TraduccionContexto = {
+  traduccion: Traduccion;
+  fijar: (nueva: Traduccion) => void;
+  g: (texto: string) => string;
+};
 
 export type WordlistEntry = {
   en: string;

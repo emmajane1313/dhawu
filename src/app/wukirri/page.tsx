@@ -4,9 +4,11 @@ import Image from "next/image";
 import Return from "../components/modules/Return";
 import { INTERNAL_INFURA_GATEWAY } from "../lib/constantes";
 import { useRouter } from "next/navigation";
+import { useTraduccion } from "../components/hooks/useTraduccion";
 
 export default function Wukirri() {
   const router = useRouter();
+  const { g } = useTraduccion();
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between pt-2 px-2 overflow-y-scroll">
       <Return
@@ -15,7 +17,7 @@ export default function Wukirri() {
       />
       <div className="relative w-full flex items-center justify-start h-full flex-col gap-4 flex-col">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-5xl sm:text-7xl font-estilo text-amarillo">
-          Wukirri
+          {g("Wukirri")}
         </div>
         <div className="relative w-full h-full items-start justify-start flex overflow-y-scroll">
           <div className="relative w-full grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 items-start justify-start h-fit gap-3 text-white text-sm font-neueL">
@@ -35,7 +37,7 @@ export default function Wukirri() {
                   priority
                 />
                 <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                  Nhäma
+                  {g("Nhäma")}
                 </div>
               </div>
             </div>
@@ -55,7 +57,7 @@ export default function Wukirri() {
                   priority
                 />
                 <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                  Djäma
+                  {g("Djäma")}
                 </div>
               </div>
             </div>
@@ -75,7 +77,7 @@ export default function Wukirri() {
                   priority
                 />
                 <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                  Rom
+                  {g("Rom")}
                 </div>
               </div>
             </div>
@@ -95,7 +97,7 @@ export default function Wukirri() {
                   priority
                 />
                 <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                  Ḻarruma
+                  {g("Ḻarruma Mala")}
                 </div>
               </div>
             </div>
@@ -121,6 +123,26 @@ export default function Wukirri() {
             </div>
             <div
               className="relative w-full h-fit flex"
+              onClick={() => router.push("/wukirri/buthuru")}
+              title="Buthuru"
+            >
+              <div className="relative w-full h-36 flex border border-white rounded-md cursor-point hover:opacity-80">
+                <Image
+                  alt="Buthuru"
+                  layout="fill"
+                  className="rounded-md"
+                  draggable={false}
+                  src="/images/buthuru.png"
+                  objectFit="cover"
+                  priority
+                />
+                <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
+                  {g("Buthuru")}
+                </div>
+              </div>
+            </div>
+            <div
+              className="relative w-full h-fit flex"
               onClick={() => router.push("/wukirri/gurrutu")}
               title="Gurruṯu"
             >
@@ -135,7 +157,7 @@ export default function Wukirri() {
                   priority
                 />
                 <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                  Gurruṯu
+                  {g("Gurruṯu")}
                 </div>
               </div>
             </div>

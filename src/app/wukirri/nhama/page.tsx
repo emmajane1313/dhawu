@@ -4,9 +4,11 @@ import Image from "next/image";
 import Return from "../../components/modules/Return";
 import { INFURA_GATEWAY, VIDEOS } from "../../lib/constantes";
 import { useRouter } from "next/navigation";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 export default function Nhama() {
   const router = useRouter();
+  const { g } = useTraduccion();
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between pt-2 px-2">
       <Return
@@ -15,7 +17,7 @@ export default function Nhama() {
       />
       <div className="relative w-full flex items-center justify-between h-full flex-col gap-4 flex-col">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-5xl sm:text-7xl font-estilo text-amarillo">
-          Nhäma
+          {g("Nhäma")}
         </div>
         <div className="relative w-full flex items-start justify-start h-full">
           <div className="relative w-full items-start justify-start h-fit grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-white text-sm font-neueL">
@@ -42,7 +44,7 @@ export default function Nhama() {
                     </div>
                   </div>
                   <div className="relative w-full h-fit flex">
-                    {`Djorra' ${indice + 1} | ${video.title}`}{" "}
+                    {`${g("Djorra'")} ${indice + 1} | ${video.title}`}{" "}
                   </div>
                 </div>
               );

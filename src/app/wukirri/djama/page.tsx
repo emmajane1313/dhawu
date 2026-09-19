@@ -5,11 +5,13 @@ import Altavoz from "@/app/components/modules/Altavoz";
 import { useRouter } from "next/navigation";
 import { IoArrowBackCircle } from "react-icons/io5";
 import { IoMdDownload } from "react-icons/io";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 export default function Djama() {
   const router = useRouter();
   const { search, handleSearch, filtered, limite, mostrarMas, downloadJsonFromUrl } =
     useDjama();
+  const { g } = useTraduccion();
 
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between text-white overflow-y-scroll pt-2 px-2 font-neueL">
@@ -18,7 +20,7 @@ export default function Djama() {
         onClick={() => router.push("/wukirri/")}
       >
         <IoArrowBackCircle color="white" size={15} />
-        <div className="relative w-fit h-fit flex">roŋi'ruŋiyi</div>
+        <div className="relative w-fit h-fit flex">{g("roŋi'ruŋiyi")}</div>
       </div>
       <div
         className="absolute z-10 right-4 top-4 w-fit h-fit cursor-point hover:opacity-70 bg-black p-1 border border-white rounded-md items-center justify-center"
@@ -28,12 +30,12 @@ export default function Djama() {
       </div>
       <div className="relative w-full flex items-center justify-start h-full flex-col gap-4 flex-col">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-2xl sm:text-4xl lg:text-7xl font-estilo text-amarillo">
-          Djäma
+          {g("Djäma")}
         </div>
         <div className="relative w-full h-fit flex">
           <input
             type="text"
-            placeholder="Ḻarruma..."
+            placeholder={g("Ḻarruma...")}
             className="w-full p-3 border rounded h-10"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
@@ -42,7 +44,7 @@ export default function Djama() {
         <div className="relative w-full flex overflow-y-scroll">
           <div className="relative w-full h-fit flex flex-col items-start justify-start gap-5">
             <div className="relative w-fit h-fit flex text-xs text-white/60">
-              {filtered.length} djäma
+              {filtered.length} {g("djäma")}
             </div>
             {filtered.slice(0, limite).map((entry) => (
               <div
@@ -52,14 +54,14 @@ export default function Djama() {
                 <div className="relative w-fit h-fit flex flex-row items-center gap-2">
                   <div className="relative text-lg underline underline-offset-3 text-oscuro">
                     {entry.vtr || entry?.vin
-                      ? `${entry.id} (ŋurruk ${entry.grupo}) — ${
+                      ? `${entry.id} (${g("ŋurruk")} ${entry.grupo}) — ${
                           entry.vtr && entry?.vin
                             ? "Vtr. / Vin."
                             : entry?.vtr
                             ? "Vtr."
                             : "Vin."
                         }`
-                      : `${entry.id} (ŋurruk ${entry.grupo})`}
+                      : `${entry.id} (${g("ŋurruk")} ${entry.grupo})`}
                   </div>
                   <Altavoz texto={entry.id} />
                 </div>
@@ -118,7 +120,7 @@ export default function Djama() {
                 className="relative w-full h-fit flex items-center justify-center p-3 border border-amarillo rounded-md text-amarillo cursor-point hover:bg-amarillo/10"
                 onClick={() => mostrarMas()}
               >
-                Bulu
+                {g("Bulu")}
               </div>
             )}
           </div>

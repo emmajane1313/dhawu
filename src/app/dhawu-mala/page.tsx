@@ -5,10 +5,12 @@ import { INTERNAL_INFURA_GATEWAY } from "../lib/constantes";
 import { useRouter } from "next/navigation";
 import useDhawus from "../components/hooks/useDhawus";
 import Return from "../components/modules/Return";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 export default function DhawuMala() {
   const router = useRouter();
   const { dhawus } = useDhawus();
+  const { g } = useTraduccion();
 
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between pt-2 px-2 overflow-y-scroll">
@@ -18,7 +20,7 @@ export default function DhawuMala() {
       />
       <div className="relative w-full flex items-center justify-between h-full flex-col gap-4 flex-col">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-2xl sm:text-4xl lg:text-7xl font-estilo text-amarillo">
-          Dhäwu Bukmak
+          {g("Dhäwu Bukmak")}
         </div>
         <div className="relative w-full flex overflow-y-scroll items-start sm:items-center justify-center h-full">
           <div className="relative w-full items-center justify-center h-fit sm:flex-row flex-col flex gap-6">

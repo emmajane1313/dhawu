@@ -3,9 +3,11 @@
 import { INTERNAL_INFURA_GATEWAY } from "@/app/lib/constantes";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTraduccion } from "./components/hooks/useTraduccion";
 
 export default function Home() {
   const router = useRouter();
+  const { g } = useTraduccion();
 
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between pt-2 px-2">
@@ -25,14 +27,13 @@ export default function Home() {
       <div className="relative w-full flex items-center justify-between h-full flex-col gap-4">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md p-2 bg-oscuro border border-white">
           <div className="text-black relative w-fit h-fit flex text-sm font-manga">
-            Buwa!
+            {g("Buwa!")}
           </div>
           <div className="relative w-fit h-fit flex text-center text-3xl sm:text-7xl font-estilo text-amarillo break-all">
-            Djartjaryun!
+            {g("Djartjaryun!")}
           </div>
           <div className="relative text-white w-fit h-fit flex text-sm font-neueL pt-4">
-            Märr-ŋamathirri. Site dhuwala Yolŋukurru mathakurru. Djäl nhe
-            marŋgithinyawuygu?
+            {g("Märr-ŋamathirri. Site dhuwala Yolŋukurru mathakurru. Djäl nhe marŋgithinyawuygu?")}
           </div>
         </div>
         <div className="relative w-full h-full flex flex-col items-start justify-between gap-2">
@@ -51,7 +52,7 @@ export default function Home() {
               priority
             />
             <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-              Wukirri
+              {g("Wukirri")}
             </div>
           </div>
           <div className="relative w-full h-full flex flex-row gap-2">
@@ -70,7 +71,7 @@ export default function Home() {
                 priority
               />
               <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                Marŋgithinyawuy
+                {g("Marŋgithinyawuy")}
               </div>
             </div>
             <div
@@ -88,7 +89,7 @@ export default function Home() {
                 priority
               />
               <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                Dhäwu Mala
+                {g("Dhäwu Mala")}
               </div>
             </div>
             <div
@@ -106,7 +107,7 @@ export default function Home() {
                 priority
               />
               <div className="absolute bottom-2 right-2 flex w-fit h-fit border rounded-md font-neueL border-amarillo text-amarillo bg-red text-xxs px-2 py-1">
-                Ridjin
+                {g("Ridjin")}
               </div>
             </div>
           </div>

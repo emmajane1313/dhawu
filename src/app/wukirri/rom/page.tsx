@@ -4,6 +4,7 @@ import Return from "@/app/components/modules/Return";
 import { INTERNAL_INFURA_GATEWAY } from "@/app/lib/constantes";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 const IMAGENES = [
   "QmbG94uTK5xcgiqVNJ12dEquatjqHqiM5oiUv2JBV3m5CX",
@@ -35,6 +36,7 @@ const TOTAL_DHUWURR = 40;
 
 export default function Rom() {
   const router = useRouter();
+  const { g } = useTraduccion();
   return (
     <div className="relative w-full h-full flex flex-col sm:flex-row gap-4 items-start justify-between pt-2 px-2 overflow-y-scroll">
       <Return
@@ -43,7 +45,7 @@ export default function Rom() {
       />
       <div className="relative w-full flex items-center justify-between h-full flex-col gap-4 flex-col">
         <div className="relative w-full h-fit flex flex-col gap-2 text-center items-center justify-center rounded-md px-2 pt-2 pb-4 bg-oscuro border border-white text-5xl sm:text-7xl font-estilo text-amarillo">
-          Rom
+          {g("Rom")}
         </div>
         <div className="relative w-full h-full items-start justify-start flex overflow-y-scroll">
           <div className="relative w-full grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 items-start justify-start h-fit gap-3 text-white text-sm font-neueL pb-10">
@@ -54,7 +56,7 @@ export default function Rom() {
                   key={indice}
                   className="relative w-full h-fit flex cursor-point"
                   onClick={() => router.push(`/wukirri/rom/${indice}`)}
-                  title={`Dhuwurr ${indice}`}
+                  title={`${g("Dhuwurr")} ${indice}`}
                 >
                   <div className="relative w-full h-36 flex border border-white rounded-md hover:opacity-80">
                     {elemento ? (
@@ -73,7 +75,7 @@ export default function Rom() {
                           {indice}
                         </div>
                         <div className="relative w-fit flex text-white/50 text-xs">
-                          Dhuwurr
+                          {g("Dhuwurr")}
                         </div>
                       </div>
                     )}

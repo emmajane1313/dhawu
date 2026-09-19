@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { IoArrowBackCircle } from "react-icons/io5";
+import { useTraduccion } from "@/app/components/hooks/useTraduccion";
 
 export default function NotFound() {
   const router = useRouter();
+  const { g } = useTraduccion();
   return (
     <div className="relative w-full h-full flex gap-4 items-center justify-center text-center text-xs text-white pt-2 px-2">
       <div
@@ -12,9 +14,9 @@ export default function NotFound() {
         onClick={() => router.push("/")}
       >
         <IoArrowBackCircle color="white" size={15} />
-        <div className="relative w-fit h-fit flex">wäŋa</div>
+        <div className="relative w-fit h-fit flex">{g("wäŋa")}</div>
       </div>
-      Baba'mirri 404: Dhuwal dhäŋuny buku-gänaŋ'thirri.
+      {g("Baba'mirri 404: Dhuwal dhäŋuny buku-gänaŋ'thirri.")}
     </div>
   );
 }
